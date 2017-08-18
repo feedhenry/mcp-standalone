@@ -15,25 +15,23 @@ import (
 
 func main() {
 	var (
-		router          = web.NewRouter()
-		port            = flag.String("port", ":3001", "set the port to listen on")
-		namespace       = flag.String("namespace", "", "the namespace to target")
-		k8host          string
-		logger          = logrus.New()
-		appRepoBuilder  = &data.MobileAppRepoBuilder{}
-		k8ClientBuilder = &k8s.ClientBuilder{}
+		router         = web.NewRouter()
+		port           = flag.String("port", ":3001", "set the port to listen on")
+		namespace      = flag.String("namespace", "", "the namespace to target")
+		k8host         string
+		logger         = logrus.New()
+		appRepoBuilder = &data.MobileAppRepoBuilder{}
 	)
 	flag.StringVar(&k8host, "k8-host", "", "kubernetes target")
 	flag.Parse()
 	if *namespace == "" {
 		logger.Fatal("-namespace is a required flag")
 	}
-	k8ClientBuilder = k8ClientBuilder.WithNamespace(*namespace)
 
 	if k8host == "" {
-		k8host = os.Getenv("KUBERNETES_SERVICE_HOST") + ":" + os.Getenv("KUBERNETES_SERVICE_PORT")
+		k8host = "https://" + os.Getenv("KUBERNETES_SERVICE_HOST") + ":" + os.Getenv("KUBERNETES_SERVICE_PORT")
 	}
-	k8ClientBuilder = k8ClientBuilder.WithHost(k8host)
+	var k8ClientBuilder = k8s.NewClientBuilder(*namespace, k8host)
 	var (
 		mwBuilder     = middleware.NewBuilder(k8ClientBuilder, appRepoBuilder, *namespace)
 		openshiftUser = openshift.UserAccess{Logger: logger}

@@ -1,0 +1,42 @@
+{
+    "kind": "Route",
+    "apiVersion": "v1",
+    "metadata": {
+        "name": "mobile-server",
+        "creationTimestamp": null,
+        "labels": {
+            "run": "mobile-server"
+        },
+        "annotations": {
+            "openshift.io/host.generated": "true"
+        }
+    },
+    "spec": {
+        "host": "",
+        "to": {
+            "kind": "Service",
+            "name": "mobile-server",
+            "weight": 100
+        },
+        "port": {
+            "targetPort": 3001
+        },
+        "wildcardPolicy": "None"
+    },
+    "status": {
+        "ingress": [
+            {
+                "host": "",
+                "routerName": "router",
+                "conditions": [
+                    {
+                        "type": "Admitted",
+                        "status": "True",
+                        "lastTransitionTime": "2017-08-18T12:17:43Z"
+                    }
+                ],
+                "wildcardPolicy": "None"
+            }
+        ]
+    }
+}

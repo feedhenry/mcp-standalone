@@ -28,10 +28,11 @@ func NewAccess(logger *logrus.Logger, host string, userCheck UserChecker) *Acces
 // Handle sets the required headers
 func (c Access) Handle(w http.ResponseWriter, req *http.Request, next http.HandlerFunc) {
 	token := req.Header.Get("x-auth")
+
 	//todo take config to set skipTLS
 	if err := c.userCheck(c.host, token, true); err != nil {
 		if openshift.IsAuthenticationError(err) {
-			c.logger.Error(fmt.Sprintf("access was denied %s : %+v", err.Error(), err))
+			c.logger.Error(err.Error(), err)
 			http.Error(w, err.Error(), http.StatusUnauthorized)
 			return
 		}

@@ -1,0 +1,12 @@
+language: go
+sudo: required
+
+services:
+  - docker
+
+go:
+  - 1.7.x
+  - master
+
+script:
+  - cd $HOME/gopath/src/github.com/feedhenry/mobile-server && make test

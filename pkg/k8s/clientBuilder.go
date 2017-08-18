@@ -1,6 +1,7 @@
 package k8s
 
 import (
+	"github.com/feedhenry/mobile-server/pkg/mobile"
 	"github.com/pkg/errors"
 	"k8s.io/client-go/kubernetes"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
@@ -14,7 +15,14 @@ type ClientBuilder struct {
 	inCluster              bool
 }
 
-func (cb *ClientBuilder) WithToken(token string) *ClientBuilder {
+func NewClientBuilder(namespace, host string) mobile.ClientBuilder {
+	return &ClientBuilder{
+		namespace: namespace,
+		host:      host,
+	}
+}
+
+func (cb *ClientBuilder) WithToken(token string) mobile.ClientBuilder {
 	//important to return a new instance
 	return &ClientBuilder{
 		namespace: cb.namespace,
@@ -23,14 +31,14 @@ func (cb *ClientBuilder) WithToken(token string) *ClientBuilder {
 	}
 }
 
-func (cb *ClientBuilder) WithNamespace(ns string) *ClientBuilder {
+func (cb *ClientBuilder) WithNamespace(ns string) mobile.ClientBuilder {
 	return &ClientBuilder{
 		namespace: ns,
 		token:     cb.token,
 		host:      cb.host,
 	}
 }
-func (cb *ClientBuilder) WithHost(host string) *ClientBuilder {
+func (cb *ClientBuilder) WithHost(host string) mobile.ClientBuilder {
 	return &ClientBuilder{
 		namespace: cb.namespace,
 		token:     cb.token,
@@ -38,7 +46,7 @@ func (cb *ClientBuilder) WithHost(host string) *ClientBuilder {
 	}
 }
 
-func (cb *ClientBuilder) WithHostAndNamespace(host, ns string) *ClientBuilder {
+func (cb *ClientBuilder) WithHostAndNamespace(host, ns string) mobile.ClientBuilder {
 	return &ClientBuilder{
 		namespace: ns,
 		token:     cb.token,

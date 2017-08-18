@@ -1,6 +1,7 @@
 package web
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/codegangsta/negroni"
@@ -20,7 +21,13 @@ func BuildHTTPHandler(r *mux.Router, access *middleware.Access) http.Handler {
 	recovery := negroni.NewRecovery()
 	recovery.PrintStack = false
 	n := negroni.New(recovery)
-	n.UseFunc(access.Handle)
+	cors := middleware.Cors{}
+	n.UseFunc(cors.Handle)
+	if access != nil {
+		n.UseFunc(access.Handle)
+	} else {
+		fmt.Println("access control is turned off ")
+	}
 	n.UseHandler(r)
 	return n
 }

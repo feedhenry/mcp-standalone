@@ -3,21 +3,18 @@ package middleware
 import (
 	"net/http"
 
-	"github.com/feedhenry/mobile-server/pkg/data"
-	"github.com/feedhenry/mobile-server/pkg/k8s"
 	"github.com/feedhenry/mobile-server/pkg/mobile"
-
 	"k8s.io/client-go/kubernetes"
 )
 
 // Builder is a piece of middleware that is used to build clients based on the details in the request.
 type Builder struct {
-	clientBuilder  *k8s.ClientBuilder
-	appRepoBuilder *data.MobileAppRepoBuilder
+	clientBuilder  mobile.ClientBuilder
+	appRepoBuilder mobile.AppRepoBuilder
 	namespace      string
 }
 
-func NewBuilder(cb *k8s.ClientBuilder, arb *data.MobileAppRepoBuilder, namespace string) *Builder {
+func NewBuilder(cb mobile.ClientBuilder, arb mobile.AppRepoBuilder, namespace string) *Builder {
 	return &Builder{
 		clientBuilder:  cb,
 		appRepoBuilder: arb,

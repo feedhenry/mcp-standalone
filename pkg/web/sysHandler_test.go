@@ -11,7 +11,7 @@ import (
 
 func setupSysHandler() http.Handler {
 	router := web.NewRouter()
-	httpHandler := web.BuildHTTPHandler(router)
+	httpHandler := web.BuildHTTPHandler(router, nil)
 	sysHandler := web.NewSysHandler(logrus.StandardLogger())
 	web.SysRoute(router, sysHandler)
 	return httpHandler

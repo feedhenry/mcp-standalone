@@ -8,8 +8,11 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/feedhenry/mobile-server/pkg/mobile"
 	"github.com/gorilla/mux"
+	"github.com/pkg/errors"
+	kerror "k8s.io/apimachinery/pkg/api/errors"
 )
 
+// MobileAppHandler handle mobile actions
 type MobileAppHandler struct {
 	logger *logrus.Logger
 }
@@ -44,6 +47,7 @@ func (m *MobileAppHandler) Read(appRepo mobile.AppCruder) http.HandlerFunc {
 	}
 }
 
+// List will list mobile apps
 func (m *MobileAppHandler) List(appRepo mobile.AppCruder) http.HandlerFunc {
 	return func(rw http.ResponseWriter, req *http.Request) {
 		apps, err := appRepo.List()
@@ -59,30 +63,38 @@ func (m *MobileAppHandler) List(appRepo mobile.AppCruder) http.HandlerFunc {
 	}
 }
 
+// Delete will delete a mobile app
 func (m *MobileAppHandler) Delete(appRepo mobile.AppCruder) http.HandlerFunc {
 	return func(rw http.ResponseWriter, req *http.Request) {
+		params := mux.Vars(req)
+		id := params["id"]
+		if err := appRepo.DeleteByName(id); err != nil {
+			m.handlerError(err, rw)
+			return
+		}
 	}
 }
 
+// Create creates a mobileapp
 func (m *MobileAppHandler) Create(appRepo mobile.AppCruder) http.HandlerFunc {
 	return func(rw http.ResponseWriter, req *http.Request) {
-		m.logger.Debug("create called")
 		decoder := json.NewDecoder(req.Body)
 		app := &mobile.App{}
 		if err := decoder.Decode(app); err != nil {
 			m.handlerError(err, rw)
 			return
 		}
-		m.logger.Debug(" decoded app ", app)
 		//add validation
 		if err := appRepo.Create(app); err != nil {
 			m.handlerError(err, rw)
 			return
 		}
-		m.logger.Debug(" created ", app)
+		rw.WriteHeader(http.StatusCreated)
+
 	}
 }
 
+// Update will update a mobile app
 func (m *MobileAppHandler) Update(appRepo mobile.AppCruder) http.HandlerFunc {
 	return func(rw http.ResponseWriter, req *http.Request) {
 	}
@@ -90,8 +102,19 @@ func (m *MobileAppHandler) Update(appRepo mobile.AppCruder) http.HandlerFunc {
 
 // likely we will eventually abstract out
 func (m *MobileAppHandler) handlerError(err error, rw http.ResponseWriter) {
+	err = errors.Cause(err)
 	if mobile.IsNotFoundError(err) {
 		http.Error(rw, err.Error(), http.StatusNotFound)
+		return
+	}
+	if e, ok := err.(*mobile.StatusError); ok {
+		m.logger.Error(fmt.Sprintf("status error occurred %+v", err))
+		http.Error(rw, err.Error(), e.StatusCode())
+		return
+	}
+	if e, ok := err.(*kerror.StatusError); ok {
+		m.logger.Error(fmt.Sprintf("status error occurred %+v", err))
+		http.Error(rw, e.Error(), int(e.Status().Code))
 		return
 	}
 	m.logger.Error(fmt.Sprintf("unexpected error occurred %+v", err))

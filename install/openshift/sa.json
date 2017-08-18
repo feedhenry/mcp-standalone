@@ -1,0 +1,10 @@
+{
+    "kind": "ServiceAccount",
+    "apiVersion": "v1",
+    "metadata": {
+        "name": "mobile-server",
+        "annotations": {
+            "serviceaccounts.openshift.io/oauth-redirectreference.mobile-server": "{\"kind\":\"OAuthRedirectReference\",\"apiVersion\":\"v1\",\"reference\":{\"kind\":\"Route\",\"name\":\"mobile-server\"}}"
+        }
+    }
+}
