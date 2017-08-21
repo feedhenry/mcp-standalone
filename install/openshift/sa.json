@@ -4,7 +4,7 @@
     "metadata": {
         "name": "mobile-server",
         "annotations": {
-            "serviceaccounts.openshift.io/oauth-redirectreference.mobile-server": "{\"kind\":\"OAuthRedirectReference\",\"apiVersion\":\"v1\",\"reference\":{\"kind\":\"Route\",\"name\":\"mobile-server\"}}"
+            "serviceaccounts.openshift.io/oauth-redirecturi.first": "https://127.0.0.1:3001"
         }
     }
 }

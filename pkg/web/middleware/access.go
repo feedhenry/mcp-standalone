@@ -31,11 +31,13 @@ func buildIgnoreList() []*regexp.Regexp {
 	ping := regexp.MustCompile("^/sys/info/ping")
 	health := regexp.MustCompile("^/sys/info/health")
 	metrics := regexp.MustCompile("^/metrics")
+	oauth := regexp.MustCompile("^/oauth/token")
 	return []*regexp.Regexp{
 		sdk,
 		ping,
 		health,
 		metrics,
+		oauth,
 	}
 }
 
