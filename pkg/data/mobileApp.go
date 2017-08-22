@@ -57,6 +57,7 @@ func (mar *MobileAppRepo) Create(app *mobile.App) error {
 		Data: map[string]string{
 			"name":       app.Name,
 			"clientType": app.ClientType,
+			"apiKey":     app.APIKey,
 		},
 	}
 	if _, err := mar.client.Create(&cm); err != nil {
@@ -107,6 +108,7 @@ func convertConfigMapToMobileApp(m *v1.ConfigMap) *mobile.App {
 	return &mobile.App{
 		Name:       m.Data["name"],
 		ClientType: m.Data["clientType"],
+		APIKey:     m.Data["apiKey"],
 		Labels:     m.Labels,
 	}
 }
@@ -116,6 +118,7 @@ func convertMobileAppToConfigMap(app *mobile.App) *v1.ConfigMap {
 		Data: map[string]string{
 			"name":       app.Name,
 			"clientType": app.ClientType,
+			"apiKey":     app.APIKey,
 		},
 	}
 }

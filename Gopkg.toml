@@ -49,3 +49,7 @@
    name = "k8s.io/client-go"
    revision = "76153773eaa3a268131d3d993290a194a1370585"   
 
+
+[[constraint]]
+  name = "github.com/satori/go.uuid"
+  version = "1.1.0"

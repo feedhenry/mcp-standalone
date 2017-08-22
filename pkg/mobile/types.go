@@ -7,12 +7,21 @@ type App struct {
 	Name       string            `json:"name"`
 	ClientType string            `json:"clientType"`
 	Labels     map[string]string `json:"labels"`
+	APIKey     string            `json:"apiKey"`
 }
 
 type StatusError struct {
 	Message string
 	Code    int
 }
+
+type Service struct {
+	Name   string            `json:"name"`
+	Host   string            `json:"host"`
+	Params map[string]string `json:"params"`
+}
+
+type AttrFilterFunc func(attrs Attributer) bool
 
 func (se *StatusError) Error() string {
 	return se.Message
@@ -40,3 +49,10 @@ func (at AppTypes) String() string {
 
 //ValidAppTypes is a list of valid app types
 var ValidAppTypes = AppTypes{"cordova", "android", "iOS"}
+
+const (
+	//AuthHeader the header where authorisation token is stored
+	AuthHeader = "x-auth"
+	//AppAPIKeyHeader is the header sent by mobile clients when they want to interact with mcp
+	AppAPIKeyHeader = "x-api-key"
+)

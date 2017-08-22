@@ -40,6 +40,7 @@
                 }
             },
             "spec": {
+                "serviceAccountName": "mobile-server",
                 "containers": [
                     {
                         "name": "mobile-server",

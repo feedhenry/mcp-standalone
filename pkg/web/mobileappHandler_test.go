@@ -9,9 +9,9 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/feedhenry/mobile-server/pkg/data"
 	"github.com/feedhenry/mobile-server/pkg/mobile"
+	"github.com/feedhenry/mobile-server/pkg/mobile/client"
 	"github.com/feedhenry/mobile-server/pkg/mock"
 	"github.com/feedhenry/mobile-server/pkg/web"
-	"github.com/feedhenry/mobile-server/pkg/web/middleware"
 	kerror "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -22,17 +22,20 @@ import (
 	ktesting "k8s.io/client-go/testing"
 )
 
-func setupMobileAppHandler(client kubernetes.Interface, cruder corev1.ConfigMapInterface) http.Handler {
+func setupMobileAppHandler(kclient kubernetes.Interface, cruder corev1.ConfigMapInterface, svcCruder corev1.SecretInterface) http.Handler {
 	r := web.NewRouter()
 	logger := logrus.New()
-	handler := web.NewMobileAppHandler(logger)
+
 	cb := &mock.ClientBuilder{
-		Fakeclient: client,
+		Fakeclient: kclient,
 	}
 	appRepoBuilder := data.NewMobileAppRepoBuilder()
 	appRepoBuilder = appRepoBuilder.WithClient(cruder)
-	clientBuilderMW := middleware.NewBuilder(cb, appRepoBuilder, "test")
-	web.MobileAppRoute(r, handler, clientBuilderMW)
+	svcRepoBuilder := data.NewServiceRepoBuilder()
+	svcRepoBuilder = svcRepoBuilder.WithClient(svcCruder)
+	clientBuilder := client.NewTokenScopedClientBuilder(cb, appRepoBuilder, svcRepoBuilder, "test", logger)
+	handler := web.NewMobileAppHandler(logger, clientBuilder)
+	web.MobileAppRoute(r, handler)
 	return web.BuildHTTPHandler(r, nil)
 }
 
@@ -96,7 +99,8 @@ func TestReadMobileApp(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
 			kclient, configmapClient := tc.Clients()
-			handler := setupMobileAppHandler(kclient, configmapClient)
+			secretClient := kclient.CoreV1().Secrets("test")
+			handler := setupMobileAppHandler(kclient, configmapClient, secretClient)
 			server := httptest.NewServer(handler)
 			defer server.Close()
 			req, err := http.NewRequest("GET", server.URL+"/mobileapp/"+tc.App.Name, nil)

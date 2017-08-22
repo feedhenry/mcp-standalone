@@ -13,6 +13,15 @@ type AppCruder interface {
 	Update(app *App) (*App, error)
 }
 
+type ServiceCruder interface {
+	List(AttrFilterFunc) ([]*Service, error)
+}
+
+type Attributer interface {
+	GetName() string
+	GetLabels() map[string]string
+}
+
 type ClientBuilder interface {
 	WithToken(token string) ClientBuilder
 	WithNamespace(ns string) ClientBuilder
@@ -26,4 +35,15 @@ type ClientBuilder interface {
 type AppRepoBuilder interface {
 	WithClient(c corev1.ConfigMapInterface) AppRepoBuilder
 	Build() AppCruder
+}
+
+type ServiceRepoBuilder interface {
+	WithClient(c corev1.SecretInterface) ServiceRepoBuilder
+	Build() ServiceCruder
+}
+
+type TokenScopedClientBuilder interface {
+	K8s(token string) (kubernetes.Interface, error)
+	MobileAppCruder(token string) (AppCruder, error)
+	MobileServiceCruder(token string) (ServiceCruder, error)
 }

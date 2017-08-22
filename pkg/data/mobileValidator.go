@@ -8,7 +8,14 @@ type DefaultMobileAppValidator struct {
 
 // PreCreate checks an App is valid before creating
 func (mv DefaultMobileAppValidator) PreCreate(a *mobile.App) error {
-	return validateClientType(a)
+	err := validateClientType(a)
+	if err != nil {
+		return err
+	}
+	if a.APIKey == "" {
+		return &mobile.StatusError{Message: "apiKey cannot be empty"}
+	}
+	return nil
 }
 
 // PreUpdate checks that an update is valid before it is committed
