@@ -20,4 +20,11 @@ func setupSysHandler() http.Handler {
 func TestPing(t *testing.T) {
 	server := httptest.NewServer(setupSysHandler())
 	defer server.Close()
+	resp, err := http.Get(server.URL + "/sys/info/ping")
+	if err != nil {
+		t.Fatalf("failed to make sys info ping request")
+	}
+	if resp.StatusCode != 200 {
+		t.Fatal("expected a 200 response code from sys/info/ping")
+	}
 }

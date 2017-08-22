@@ -1,0 +1,14 @@
+{
+    "kind": "RoleBinding",
+    "apiVersion": "v1",
+    "metadata": {
+        "name": "namespace-reader-binding"
+    },
+    "roleRef": {
+        "name": "edit",
+        "namespace": "myproject"
+    },
+    "userNames": [
+        "system:serviceaccount:myproject:mobile-server"
+    ]
+}

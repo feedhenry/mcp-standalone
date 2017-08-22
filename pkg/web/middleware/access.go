@@ -3,6 +3,7 @@ package middleware
 import (
 	"fmt"
 	"net/http"
+	"regexp"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/feedhenry/mobile-server/pkg/openshift"
@@ -25,10 +26,32 @@ func NewAccess(logger *logrus.Logger, host string, userCheck UserChecker) *Acces
 	}
 }
 
+func buildIgnoreList() []*regexp.Regexp {
+	r := regexp.MustCompile("^/sdk/mobileapp/.*/config")
+	return []*regexp.Regexp{
+		r,
+	}
+}
+
+var ingnoreList = buildIgnoreList()
+
+func (c Access) shouldIgnore(path string) bool {
+	for _, i := range ingnoreList {
+		if i.Match([]byte(path)) {
+			c.logger.Info("ignoring user access check on path: ", path)
+			return true
+		}
+	}
+	return false
+}
+
 // Handle sets the required headers
 func (c Access) Handle(w http.ResponseWriter, req *http.Request, next http.HandlerFunc) {
 	token := req.Header.Get("x-auth")
-
+	if c.shouldIgnore(req.URL.Path) {
+		next(w, req)
+		return
+	}
 	//todo take config to set skipTLS
 	if err := c.userCheck(c.host, token, true); err != nil {
 		if openshift.IsAuthenticationError(err) {
