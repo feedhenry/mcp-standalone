@@ -7,33 +7,21 @@ import (
 	"testing"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/feedhenry/mobile-server/pkg/data"
 	"github.com/feedhenry/mobile-server/pkg/mobile"
-	"github.com/feedhenry/mobile-server/pkg/mobile/client"
-	"github.com/feedhenry/mobile-server/pkg/mock"
 	"github.com/feedhenry/mobile-server/pkg/web"
 	kerror "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/fake"
-	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	v1 "k8s.io/client-go/pkg/api/v1"
 	ktesting "k8s.io/client-go/testing"
 )
 
-func setupMobileAppHandler(kclient kubernetes.Interface, cruder corev1.ConfigMapInterface, svcCruder corev1.SecretInterface) http.Handler {
+func setupMobileAppHandler(kclient kubernetes.Interface) http.Handler {
 	r := web.NewRouter()
-	logger := logrus.New()
-
-	cb := &mock.ClientBuilder{
-		Fakeclient: kclient,
-	}
-	appRepoBuilder := data.NewMobileAppRepoBuilder()
-	appRepoBuilder = appRepoBuilder.WithClient(cruder)
-	svcRepoBuilder := data.NewServiceRepoBuilder()
-	svcRepoBuilder = svcRepoBuilder.WithClient(svcCruder)
-	clientBuilder := client.NewTokenScopedClientBuilder(cb, appRepoBuilder, svcRepoBuilder, "test", logger)
+	logger := logrus.StandardLogger()
+	clientBuilder := buildDefaultTestTokenClientBuilder(kclient)
 	handler := web.NewMobileAppHandler(logger, clientBuilder)
 	web.MobileAppRoute(r, handler)
 	return web.BuildHTTPHandler(r, nil)
@@ -42,7 +30,7 @@ func setupMobileAppHandler(kclient kubernetes.Interface, cruder corev1.ConfigMap
 func TestReadMobileApp(t *testing.T) {
 	cases := []struct {
 		Name       string
-		Clients    func() (kubernetes.Interface, corev1.ConfigMapInterface)
+		Clients    func() kubernetes.Interface
 		App        *mobile.App
 		StatusCode int
 		Validate   func(app *mobile.App, t *testing.T)
@@ -63,7 +51,7 @@ func TestReadMobileApp(t *testing.T) {
 			App: &mobile.App{
 				Name: "app",
 			},
-			Clients: func() (kubernetes.Interface, corev1.ConfigMapInterface) {
+			Clients: func() kubernetes.Interface {
 				client := &fake.Clientset{}
 				client.AddReactor("get", "configmaps", func(action ktesting.Action) (bool, runtime.Object, error) {
 					return true, &v1.ConfigMap{
@@ -76,7 +64,7 @@ func TestReadMobileApp(t *testing.T) {
 						},
 					}, nil
 				})
-				return client, client.CoreV1().ConfigMaps("test")
+				return client
 			},
 			StatusCode: 200,
 		},
@@ -85,12 +73,12 @@ func TestReadMobileApp(t *testing.T) {
 			App: &mobile.App{
 				Name: "app",
 			},
-			Clients: func() (kubernetes.Interface, corev1.ConfigMapInterface) {
+			Clients: func() kubernetes.Interface {
 				client := &fake.Clientset{}
 				client.AddReactor("get", "configmaps", func(action ktesting.Action) (bool, runtime.Object, error) {
 					return true, nil, &kerror.StatusError{ErrStatus: metav1.Status{Code: 404}}
 				})
-				return client, client.CoreV1().ConfigMaps("test")
+				return client
 			},
 			StatusCode: 404,
 		},
@@ -98,9 +86,8 @@ func TestReadMobileApp(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
-			kclient, configmapClient := tc.Clients()
-			secretClient := kclient.CoreV1().Secrets("test")
-			handler := setupMobileAppHandler(kclient, configmapClient, secretClient)
+			kclient := tc.Clients()
+			handler := setupMobileAppHandler(kclient)
 			server := httptest.NewServer(handler)
 			defer server.Close()
 			req, err := http.NewRequest("GET", server.URL+"/mobileapp/"+tc.App.Name, nil)

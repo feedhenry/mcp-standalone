@@ -12,11 +12,8 @@ import (
 	v1 "k8s.io/client-go/pkg/api/v1"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/feedhenry/mobile-server/pkg/data"
 	"github.com/feedhenry/mobile-server/pkg/mobile"
-	"github.com/feedhenry/mobile-server/pkg/mobile/client"
 	"github.com/feedhenry/mobile-server/pkg/mobile/integration"
-	"github.com/feedhenry/mobile-server/pkg/mock"
 	"github.com/feedhenry/mobile-server/pkg/web"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/fake"
@@ -25,17 +22,8 @@ import (
 
 func setupSDKHandler(kclient kubernetes.Interface) http.Handler {
 	r := web.NewRouter()
-	logger := logrus.New()
-
-	// TODO it is likely most handlers will need the client builder so look at potential to abstract
-	cb := &mock.ClientBuilder{
-		Fakeclient: kclient,
-	}
-	appRepoBuilder := data.NewMobileAppRepoBuilder()
-	appRepoBuilder = appRepoBuilder.WithClient(kclient.CoreV1().ConfigMaps("test"))
-	svcRepoBuilder := data.NewServiceRepoBuilder()
-	svcRepoBuilder = svcRepoBuilder.WithClient(kclient.CoreV1().Secrets("test"))
-	clientBuilder := client.NewTokenScopedClientBuilder(cb, appRepoBuilder, svcRepoBuilder, "test", logger)
+	logger := logrus.StandardLogger()
+	clientBuilder := buildDefaultTestTokenClientBuilder(kclient)
 	ms := &integration.MobileService{}
 	sdkConfigHandler := web.NewSDKConfigHandler(logger, ms, clientBuilder)
 	web.SDKConfigRoute(r, sdkConfigHandler)

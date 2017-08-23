@@ -57,6 +57,11 @@ func SysRoute(r *mux.Router, handler *SysHandler) {
 	r.HandleFunc("/sys/info/health", handler.Health).Methods("GET")
 }
 
+// MobileServiceRoute configures and sets up the /mobileservice routes
+func MobileServiceRoute(r *mux.Router, handler *MobileServiceHandler) {
+	r.HandleFunc("/mobileservice", handler.List).Methods("GET")
+}
+
 //TODO maybe better place to put this
 func handleCommonErrorCases(err error, rw http.ResponseWriter, logger *logrus.Logger) {
 	err = errors.Cause(err)
