@@ -7,6 +7,8 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
+//TODO WE may want to move this out to the data package as it is sepcific to kubnernetes
+
 // TokenScopedClientBuilder builds a client bound to a particular token.
 // if there is token passed it will attempt to use the default sa token
 type TokenScopedClientBuilder struct {

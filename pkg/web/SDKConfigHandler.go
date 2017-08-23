@@ -2,7 +2,6 @@ package web
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/Sirupsen/logrus"
@@ -53,9 +52,7 @@ func (sdk *SDKConfigHandler) Read(rw http.ResponseWriter, req *http.Request) {
 		handleCommonErrorCases(err, rw, sdk.logger)
 		return
 	}
-	fmt.Println(app.APIKey)
 	if apiKey != app.APIKey {
-		sdk.logger.Info(apiKey, app.APIKey)
 		http.Error(rw, "unauthorised ", http.StatusUnauthorized)
 		return
 	}
