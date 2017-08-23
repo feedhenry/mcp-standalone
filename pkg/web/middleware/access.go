@@ -30,10 +30,12 @@ func buildIgnoreList() []*regexp.Regexp {
 	sdk := regexp.MustCompile("^/sdk/mobileapp/.*/config")
 	ping := regexp.MustCompile("^/sys/info/ping")
 	health := regexp.MustCompile("^/sys/info/health")
+	metrics := regexp.MustCompile("^/metrics")
 	return []*regexp.Regexp{
 		sdk,
 		ping,
 		health,
+		metrics,
 	}
 }
 

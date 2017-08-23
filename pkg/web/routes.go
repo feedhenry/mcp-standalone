@@ -10,6 +10,8 @@ import (
 	"github.com/feedhenry/mobile-server/pkg/web/middleware"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	kerror "k8s.io/apimachinery/pkg/api/errors"
 )
 
@@ -33,22 +35,23 @@ func BuildHTTPHandler(r *mux.Router, access *middleware.Access) http.Handler {
 	} else {
 		fmt.Println("access control is turned off ")
 	}
+	r.Handle("/metrics", promhttp.Handler())
 	n.UseHandler(r)
 	return n
 }
 
 // MobileAppRoute configure and setup the /mobileapp route. The middleware.Builder is responsible for building per request instances of clients
 func MobileAppRoute(r *mux.Router, handler *MobileAppHandler) {
-	r.HandleFunc("/mobileapp", handler.Create).Methods("POST")
-	r.HandleFunc("/mobileapp/{id}", handler.Delete).Methods("DELETE")
-	r.HandleFunc("/mobileapp/{id}", handler.Read).Methods("GET")
-	r.HandleFunc("/mobileapp", handler.List).Methods("GET")
-	r.HandleFunc("/mobileapp/{id}", handler.Update).Methods("PUT")
+	r.HandleFunc("/mobileapp", prometheus.InstrumentHandlerFunc("mobileapp create", handler.Create)).Methods("POST")
+	r.HandleFunc("/mobileapp/{id}", prometheus.InstrumentHandlerFunc("mobileapp delete", handler.Delete)).Methods("DELETE")
+	r.HandleFunc("/mobileapp/{id}", prometheus.InstrumentHandlerFunc("mobileapp read", handler.Read)).Methods("GET")
+	r.HandleFunc("/mobileapp", prometheus.InstrumentHandlerFunc("mobileapp list", handler.List)).Methods("GET")
+	r.HandleFunc("/mobileapp/{id}", prometheus.InstrumentHandlerFunc("mobileapp update", handler.Update)).Methods("PUT")
 }
 
 //SDKConfigRoute configures and sets up the /sdk routes
 func SDKConfigRoute(r *mux.Router, handler *SDKConfigHandler) {
-	r.HandleFunc("/sdk/mobileapp/{id}/config", handler.Read).Methods("GET")
+	r.HandleFunc("/sdk/mobileapp/{id}/config", prometheus.InstrumentHandlerFunc("sdk config", handler.Read)).Methods("GET")
 }
 
 // SysRoute congifures and sets up the /sys/* route
@@ -59,7 +62,7 @@ func SysRoute(r *mux.Router, handler *SysHandler) {
 
 // MobileServiceRoute configures and sets up the /mobileservice routes
 func MobileServiceRoute(r *mux.Router, handler *MobileServiceHandler) {
-	r.HandleFunc("/mobileservice", handler.List).Methods("GET")
+	r.HandleFunc("/mobileservice", prometheus.InstrumentHandlerFunc("mobileservices list", handler.List)).Methods("GET")
 }
 
 //TODO maybe better place to put this
