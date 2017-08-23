@@ -12,7 +12,7 @@ Once you have a running openshift you can use the install script:
 ```
 oc new-project myproject
 cd install/openshift
-./install.sh
+./install.sh <namespace>
 ```
 
 ### Local Development

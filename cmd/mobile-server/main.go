@@ -61,6 +61,11 @@ func main() {
 		sdkHandler := web.NewSDKConfigHandler(logger, integrationSvc, tokenClientBuilder)
 		web.SDKConfigRoute(router, sdkHandler)
 	}
+	//sys handler
+	{
+		sysHandler := web.NewSysHandler(logger)
+		web.SysRoute(router, sysHandler)
+	}
 
 	handler := web.BuildHTTPHandler(router, mwAccess)
 	logger.Info("starting server on port " + *port)
