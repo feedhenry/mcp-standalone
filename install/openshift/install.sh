@@ -1,4 +1,4 @@
-namespace="myproject"
+namespace=$1
 oc create -f dc.json
 oc create -f sa.json
 oc create -f svc.json

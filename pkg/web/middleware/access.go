@@ -27,9 +27,13 @@ func NewAccess(logger *logrus.Logger, host string, userCheck UserChecker) *Acces
 }
 
 func buildIgnoreList() []*regexp.Regexp {
-	r := regexp.MustCompile("^/sdk/mobileapp/.*/config")
+	sdk := regexp.MustCompile("^/sdk/mobileapp/.*/config")
+	ping := regexp.MustCompile("^/sys/info/ping")
+	health := regexp.MustCompile("^/sys/info/health")
 	return []*regexp.Regexp{
-		r,
+		sdk,
+		ping,
+		health,
 	}
 }
 
