@@ -19,6 +19,7 @@ import (
 func NewRouter() *mux.Router {
 	r := mux.NewRouter()
 	r.StrictSlash(true)
+
 	return r
 }
 
@@ -38,6 +39,16 @@ func BuildHTTPHandler(r *mux.Router, access *middleware.Access) http.Handler {
 	r.Handle("/metrics", promhttp.Handler())
 	n.UseHandler(r)
 	return n
+}
+
+// StaticRoute configures & sets up the /console route.
+func StaticRoute(handler *StaticHandler) {
+	http.HandleFunc("/console/", handler.Static)
+}
+
+// OAuthRoute configures & sets up the /oauth route.
+func OAuthRoute(r *mux.Router, handler *OAuthHandler) {
+	r.HandleFunc("/oauth/token", handler.OAuthToken)
 }
 
 // MobileAppRoute configure and setup the /mobileapp route. The middleware.Builder is responsible for building per request instances of clients

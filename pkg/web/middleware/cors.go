@@ -13,7 +13,7 @@ func (c Cors) Handle(w http.ResponseWriter, req *http.Request, next http.Handler
 		headers.Add("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE")
 	}
 	if headers.Get("Access-Control-Allow-Headers") == "" {
-		headers.Add("Access-Control-Allow-Headers", "x-auth, content-type")
+		headers.Add("Access-Control-Allow-Headers", "x-auth, content-type, Access-Control-Request-Headers, Authorization")
 	}
 	if req.Method != "OPTIONS" {
 		next(w, req)
