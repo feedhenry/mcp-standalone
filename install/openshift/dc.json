@@ -46,8 +46,7 @@
                         "name": "mobile-server",
                         "image": "feedhenry/mobile-server",
                         "command": [
-                            "./mobile-server",
-                            "-namespace=${NAMESPACE}"
+                            "./mobile-server"
                         ],
                         "env": [
                             {

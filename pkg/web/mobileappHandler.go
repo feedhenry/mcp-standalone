@@ -7,6 +7,7 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/feedhenry/mobile-server/pkg/mobile"
 	"github.com/gorilla/mux"
+	"github.com/pkg/errors"
 	"github.com/satori/go.uuid"
 )
 
@@ -102,10 +103,12 @@ func (m *MobileAppHandler) Create(rw http.ResponseWriter, req *http.Request) {
 	app := &mobile.App{}
 	app.APIKey = uid.String()
 	if err := decoder.Decode(app); err != nil {
+		err = errors.Wrap(err, "mobile app create: Attempted to decode payload in app")
 		handleCommonErrorCases(err, rw, m.logger)
 		return
 	}
 	if err := appRepo.Create(app); err != nil {
+		err = errors.Wrap(err, "mobile app create: Attempted to create app via app repo")
 		handleCommonErrorCases(err, rw, m.logger)
 		return
 	}
