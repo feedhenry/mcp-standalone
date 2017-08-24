@@ -7,6 +7,7 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/feedhenry/mobile-server/pkg/openshift"
+	"github.com/pkg/errors"
 )
 
 type UserChecker func(host, token string, skipTLS bool) error
@@ -63,7 +64,7 @@ func (c Access) Handle(w http.ResponseWriter, req *http.Request, next http.Handl
 	//todo take config to set skipTLS
 	if err := c.userCheck(c.host, token, true); err != nil {
 		if openshift.IsAuthenticationError(err) {
-			c.logger.Error(err.Error(), err)
+			c.logger.Error(errors.Wrap(err, " access check: checking user is authenticated"))
 			http.Error(w, err.Error(), http.StatusUnauthorized)
 			return
 		}
