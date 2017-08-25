@@ -2,10 +2,10 @@
     "kind": "Service",
     "apiVersion": "v1",
     "metadata": {
-        "name": "mobile-server",
+        "name": "mcp-standalone",
         "creationTimestamp": null,
         "labels": {
-            "run": "mobile-server"
+            "run": "mcp-standalone"
         },
         "annotations": {
             "service.alpha.openshift.io/serving-cert-secret-name": "api-serving-cert"
@@ -21,7 +21,7 @@
             }
         ],
         "selector": {
-            "run": "mobile-server"
+            "run": "mcp-standalone"
         },
         "type": "ClusterIP",
         "sessionAffinity": "None"

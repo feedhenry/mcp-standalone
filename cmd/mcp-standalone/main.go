@@ -28,7 +28,7 @@ func main() {
 		key             = flag.String("key", "server.key", "SSL/TLS Private Key for the Certificate")
 		namespace       = flag.String("namespace", os.Getenv("NAMESPACE"), "the namespace to target")
 		saTokenPath     = flag.String("satoken-path", "var/run/secrets/kubernetes.io/serviceaccount/token", "where on disk the service account token to use is ")
-		staticDirectory = flag.String("web-dir", "./web/dist", "Location of static content to serve at /console. index.html will be used as a fallback for requested files that don't exist")
+		staticDirectory = flag.String("web-dir", "./web/app", "Location of static content to serve at /console. index.html will be used as a fallback for requested files that don't exist")
 		k8host          string
 		logger          = logrus.New()
 		appRepoBuilder  = &data.MobileAppRepoBuilder{}
@@ -67,7 +67,7 @@ func main() {
 		kubernetesOauthConfig := &oauth2.Config{
 			// TODO: how to dynamically configure this url from the Route
 			RedirectURL:  "https://127.0.0.1:3001/console/oauth",
-			ClientID:     fmt.Sprintf("system:serviceaccount:%s:mobile-server", *namespace),
+			ClientID:     fmt.Sprintf("system:serviceaccount:%s:mcp-standalone", *namespace),
 			ClientSecret: token,
 			Scopes:       []string{"user:info user:check-access"},
 			Endpoint:     *kubernetesOauthEndpoint,

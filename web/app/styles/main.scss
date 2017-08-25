@@ -1,8 +1,8 @@
 $icon-font-path: "../bower_components/bootstrap-sass-official/assets/fonts/bootstrap/";
 // bower:scss
-@import "bootstrap-sass-official/assets/stylesheets/_bootstrap.scss";
-@import "datatables-colreorder/css/colReorder.dataTables.scss";
-@import "font-awesome/scss/font-awesome.scss";
+@import "../bower_components/bootstrap-sass-official/assets/stylesheets/_bootstrap.scss";
+@import "../bower_components/datatables-colreorder/css/colReorder.dataTables.scss";
+@import "../bower_components/font-awesome/scss/font-awesome.scss";
 // endbower
 
 .browsehappy {

@@ -14,6 +14,7 @@
 
 FROM fedora
 EXPOSE 3001
-ADD ./mobile-server /
-ENTRYPOINT ["/mobile-server"]
+ADD ./mcp-standalone /
+ADD ./web/dist /web
+ENTRYPOINT ["/mcp-standalone"]
 

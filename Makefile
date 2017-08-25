@@ -22,16 +22,21 @@ check-gofmt:
 gofmt:
 	gofmt -w `find . -type f -name '*.go' -not -path "./vendor/*"`
 
-build: test-unit
-	export GOOS=linux && go build ./cmd/mcp-standalone
+.PHONY: web
+web:
+	gem install compass
+	cd web && npm install && ./node_modules/.bin/bower install && grunt build
 
+build: web test-unit
+	export GOOS=linux && go build ./cmd/mcp-standalone
 
 image: build
 	mkdir -p tmp
-	cp ./mobile-server tmp
+	mkdir -p tmp/web/dist
+	cp ./mcp-standalone tmp
 	cp artifacts/Dockerfile tmp
-	docker build -t feedhenry/mcp-standalone:latest tmp
-	docker tag feedhenry/mcp-standalone:latest feedhenry/mcp-standalone:latest
+	cp -R web/dist tmp/web/dist
+	cd tmp && docker build -t feedhenry/mcp-standalone:latest .
 	rm -rf tmp
 
 test: test-unit

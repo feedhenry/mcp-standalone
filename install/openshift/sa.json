@@ -2,9 +2,9 @@
     "kind": "ServiceAccount",
     "apiVersion": "v1",
     "metadata": {
-        "name": "mobile-server",
+        "name": "mcp-standalone",
         "annotations": {
-            "serviceaccounts.openshift.io/oauth-redirecturi.first": "https://127.0.0.1:3001"
+            "serviceaccounts.openshift.io/oauth-redirectreference.mcp-standalone": "{\"kind\":\"OAuthRedirectReference\",\"apiVersion\":\"v1\",\"reference\":{\"kind\":\"Route\",\"name\":\"mcp-standalone\"}}"
         }
     }
 }

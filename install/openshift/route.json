@@ -2,10 +2,10 @@
     "kind": "Route",
     "apiVersion": "v1",
     "metadata": {
-        "name": "mobile-server",
+        "name": "mcp-standalone",
         "creationTimestamp": null,
         "labels": {
-            "run": "mobile-server"
+            "run": "mcp-standalone"
         },
         "annotations": {
             "openshift.io/host.generated": "true"
@@ -15,7 +15,7 @@
         "host": "",
         "to": {
             "kind": "Service",
-            "name": "mobile-server",
+            "name": "mcp-standalone",
             "weight": 100
         },
         "port": {
