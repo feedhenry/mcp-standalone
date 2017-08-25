@@ -22,7 +22,7 @@
             "targetPort": 3001
         },
         "tls":{
-            "termination":"passthrough"
+            "termination":"reencrypt"
         }
     },
     "status": {
