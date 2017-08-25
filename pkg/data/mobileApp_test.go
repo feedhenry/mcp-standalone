@@ -4,8 +4,8 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/feedhenry/mobile-server/pkg/data"
-	"github.com/feedhenry/mobile-server/pkg/mobile"
+	"github.com/feedhenry/mcp-standalone/pkg/data"
+	"github.com/feedhenry/mcp-standalone/pkg/mobile"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"

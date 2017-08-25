@@ -9,13 +9,13 @@ import (
 	"fmt"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/feedhenry/mobile-server/pkg/data"
-	"github.com/feedhenry/mobile-server/pkg/k8s"
-	"github.com/feedhenry/mobile-server/pkg/mobile/client"
-	"github.com/feedhenry/mobile-server/pkg/mobile/integration"
-	"github.com/feedhenry/mobile-server/pkg/openshift"
-	"github.com/feedhenry/mobile-server/pkg/web"
-	"github.com/feedhenry/mobile-server/pkg/web/middleware"
+	"github.com/feedhenry/mcp-standalone/pkg/data"
+	"github.com/feedhenry/mcp-standalone/pkg/k8s"
+	"github.com/feedhenry/mcp-standalone/pkg/mobile/client"
+	"github.com/feedhenry/mcp-standalone/pkg/mobile/integration"
+	"github.com/feedhenry/mcp-standalone/pkg/openshift"
+	"github.com/feedhenry/mcp-standalone/pkg/web"
+	"github.com/feedhenry/mcp-standalone/pkg/web/middleware"
 	"github.com/pkg/errors"
 	"golang.org/x/oauth2"
 )
@@ -26,7 +26,7 @@ func main() {
 		port            = flag.String("port", ":3001", "set the port to listen on")
 		cert            = flag.String("cert", "server.crt", "SSL/TLS Certificate to HTTPS")
 		key             = flag.String("key", "server.key", "SSL/TLS Private Key for the Certificate")
-		namespace       = flag.String("namespace", "", "the namespace to target")
+		namespace       = flag.String("namespace", os.Getenv("NAMESPACE"), "the namespace to target")
 		saTokenPath     = flag.String("satoken-path", "var/run/secrets/kubernetes.io/serviceaccount/token", "where on disk the service account token to use is ")
 		staticDirectory = flag.String("web-dir", "./web/dist", "Location of static content to serve at /console. index.html will be used as a fallback for requested files that don't exist")
 		k8host          string
@@ -36,8 +36,9 @@ func main() {
 	)
 	flag.StringVar(&k8host, "k8-host", "", "kubernetes target")
 	flag.Parse()
+
 	if *namespace == "" {
-		logger.Fatal("-namespace is a required flag")
+		logger.Fatal("-namespace is a required flag or it can be set via NAMESPACE env var")
 	}
 
 	token, err := readSAToken(*saTokenPath)
@@ -101,7 +102,8 @@ func main() {
 
 	handler := web.BuildHTTPHandler(router, mwAccess)
 	http.Handle("/", handler)
-	logger.Info("starting server on port " + *port)
+	logger.Info("starting server on port "+*port, " using key ", *key, " and cert ", *cert, "target namespace is ", *namespace)
+
 	if err := http.ListenAndServeTLS(*port, *cert, *key, nil); err != nil {
 		panic(err)
 	}

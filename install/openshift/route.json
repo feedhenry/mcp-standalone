@@ -21,7 +21,9 @@
         "port": {
             "targetPort": 3001
         },
-        "wildcardPolicy": "None"
+        "tls":{
+            "termination":"reencrypt"
+        }
     },
     "status": {
         "ingress": [

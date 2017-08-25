@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/feedhenry/mobile-server/pkg/mobile"
-	"github.com/feedhenry/mobile-server/pkg/web"
+	"github.com/feedhenry/mcp-standalone/pkg/mobile"
+	"github.com/feedhenry/mcp-standalone/pkg/web"
 	kerror "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"

@@ -3,9 +3,9 @@ package integration_test
 import (
 	"testing"
 
-	"github.com/feedhenry/mobile-server/pkg/data"
-	"github.com/feedhenry/mobile-server/pkg/mobile"
-	"github.com/feedhenry/mobile-server/pkg/mobile/integration"
+	"github.com/feedhenry/mcp-standalone/pkg/data"
+	"github.com/feedhenry/mcp-standalone/pkg/mobile"
+	"github.com/feedhenry/mcp-standalone/pkg/mobile/integration"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes/fake"

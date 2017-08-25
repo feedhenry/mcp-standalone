@@ -12,9 +12,9 @@ import (
 	v1 "k8s.io/client-go/pkg/api/v1"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/feedhenry/mobile-server/pkg/mobile"
-	"github.com/feedhenry/mobile-server/pkg/mobile/integration"
-	"github.com/feedhenry/mobile-server/pkg/web"
+	"github.com/feedhenry/mcp-standalone/pkg/mobile"
+	"github.com/feedhenry/mcp-standalone/pkg/mobile/integration"
+	"github.com/feedhenry/mcp-standalone/pkg/web"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/fake"
 	ktesting "k8s.io/client-go/testing"

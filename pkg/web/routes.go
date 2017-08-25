@@ -6,8 +6,8 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/codegangsta/negroni"
-	"github.com/feedhenry/mobile-server/pkg/mobile"
-	"github.com/feedhenry/mobile-server/pkg/web/middleware"
+	"github.com/feedhenry/mcp-standalone/pkg/mobile"
+	"github.com/feedhenry/mcp-standalone/pkg/web/middleware"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
