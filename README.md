@@ -30,8 +30,8 @@ You will also want to have dep installed for adding new dependencies [Install de
 ```
 mkdir -p $GOPATH/src/github.com/feedhenry
 cd $GOPATH/src/github.com/feedhenry
-git clone git@github.com:feedhenry/mobile-server.git
-cd mobile-server
+git clone git@github.com:feedhenry/mcp-standalone.git
+cd mcp-standalone
 ```
 
 - Use make to run the tests and create a docker image

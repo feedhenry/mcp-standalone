@@ -2,11 +2,11 @@
     "kind": "DeploymentConfig",
     "apiVersion": "v1",
     "metadata": {
-        "name": "mobile-server",
+        "name": "mcp-standalone",
         "generation": 1,
         "creationTimestamp": null,
         "labels": {
-            "run": "mobile-server"
+            "run": "mcp-standalone"
         }
     },
     "spec": {
@@ -30,23 +30,24 @@
         "replicas": 1,
         "test": false,
         "selector": {
-            "run": "mobile-server"
+            "run": "mcp-standalone"
         },
         "template": {
             "metadata": {
                 "creationTimestamp": null,
                 "labels": {
-                    "run": "mobile-server"
+                    "run": "mcp-standalone"
                 }
             },
             "spec": {
-                "serviceAccountName": "mobile-server",
+                "serviceAccountName": "mcp-standalone",
                 "containers": [
                     {
-                        "name": "mobile-server",
-                        "image": "feedhenry/mobile-server",
+                        "name": "mcp-standalone",
+                        "image": "feedhenry/mcp-standalone",
                         "command": [
-                            "./mobile-server",
+                            "./mcp-standalone",
+                            "-web-dir=/web/dist",
                             "-cert=/etc/tls/tls.crt",
                             "-key=/etc/tls/tls.key"
                         ],
