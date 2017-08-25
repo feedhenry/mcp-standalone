@@ -86,7 +86,7 @@ module.exports = function (grunt) {
               connect.static('.tmp'),
               connect().use(
                 '/bower_components',
-                connect.static('./bower_components')
+                connect.static('./app/bower_components')
               ),
               connect().use(
                 '/app/styles',
@@ -106,7 +106,7 @@ module.exports = function (grunt) {
               connect.static('test'),
               connect().use(
                 '/bower_components',
-                connect.static('./bower_components')
+                connect.static('./app/bower_components')
               ),
               connect.static(appConfig.app)
             ];
@@ -229,7 +229,7 @@ module.exports = function (grunt) {
       },
       sass: {
         src: ['<%= yeoman.app %>/styles/{,*/}*.{scss,sass}'],
-        ignorePath: /(\.\.\/){1,2}bower_components\//
+        ignorePath: /(\.\.\/){1,2}app\/bower_components\//
       }
     }, 
 
@@ -242,7 +242,7 @@ module.exports = function (grunt) {
         imagesDir: '<%= yeoman.app %>/images',
         javascriptsDir: '<%= yeoman.app %>/scripts',
         fontsDir: '<%= yeoman.app %>/styles/fonts',
-        importPath: './bower_components',
+        importPath: './app/bower_components',
         httpImagesPath: '/images',
         httpGeneratedImagesPath: '/images/generated',
         httpFontsPath: '/styles/fonts',
@@ -453,7 +453,7 @@ module.exports = function (grunt) {
         }, {
           expand: true,
           cwd: '.',
-          src: 'bower_components/bootstrap-sass-official/assets/fonts/bootstrap/*',
+          src: 'app/bower_components/bootstrap-sass-official/assets/fonts/bootstrap/*',
           dest: '<%= yeoman.dist %>'
         }]
       },

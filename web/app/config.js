@@ -33,7 +33,7 @@
     auth: {
       oauth_authorize_uri: 'https://' + masterPublicHostname + "/oauth/authorize",
       oauth_redirect_base: window.MCP_CONFIG.api.host + "/console",
-      oauth_client_id: "system:serviceaccount:myproject:mobile-server",
+      oauth_client_id: "system:serviceaccount:myproject:mcp-standalone",
       oauth_token_uri: window.MCP_CONFIG.api.host + "/oauth/token",
       logout_uri: ""
     },
