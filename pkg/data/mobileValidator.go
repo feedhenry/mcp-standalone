@@ -1,6 +1,6 @@
 package data
 
-import "github.com/feedhenry/mobile-server/pkg/mobile"
+import "github.com/feedhenry/mcp-standalone/pkg/mobile"
 
 // DefaultMobileAppValidator validates mobile objects
 type DefaultMobileAppValidator struct {

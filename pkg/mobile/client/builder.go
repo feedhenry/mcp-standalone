@@ -2,7 +2,7 @@ package client
 
 import (
 	"github.com/Sirupsen/logrus"
-	"github.com/feedhenry/mobile-server/pkg/mobile"
+	"github.com/feedhenry/mcp-standalone/pkg/mobile"
 	"github.com/pkg/errors"
 	"k8s.io/client-go/kubernetes"
 )

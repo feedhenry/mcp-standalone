@@ -6,7 +6,7 @@ import (
 	"regexp"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/feedhenry/mobile-server/pkg/openshift"
+	"github.com/feedhenry/mcp-standalone/pkg/openshift"
 	"github.com/pkg/errors"
 )
 
