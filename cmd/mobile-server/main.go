@@ -102,13 +102,11 @@ func main() {
 
 	handler := web.BuildHTTPHandler(router, mwAccess)
 	http.Handle("/", handler)
-	logger.Info("starting server on port "+*port, *key, *cert, "target namespace is ", *namespace)
-	if err := http.ListenAndServe(*port, nil); err != nil {
+	logger.Info("starting server on port "+*port, " using key ", *key, " and cert ", *cert, "target namespace is ", *namespace)
+
+	if err := http.ListenAndServeTLS(*port, *cert, *key, nil); err != nil {
 		panic(err)
 	}
-	// if err := http.ListenAndServeTLS(*port, *cert, *key, nil); err != nil {
-	// 	panic(err)
-	// }
 }
 
 func readSAToken(path string) (string, error) {

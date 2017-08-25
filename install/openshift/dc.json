@@ -46,7 +46,9 @@
                         "name": "mobile-server",
                         "image": "feedhenry/mobile-server",
                         "command": [
-                            "./mobile-server"
+                            "./mobile-server",
+                            "-cert=/etc/tls/tls.crt",
+                            "-key=/etc/tls/tls.key"
                         ],
                         "env": [
                             {
@@ -66,7 +68,7 @@
                             "httpGet": {
                                 "path": "/sys/info/ping",
                                 "port": 3001,
-                                "scheme": "HTTP"
+                                "scheme": "HTTPS"
                             },
                             "initialDelaySeconds": 10,
                             "timeoutSeconds": 1,
@@ -78,16 +80,27 @@
                             "httpGet": {
                                 "path": "/sys/info/ping",
                                 "port": 3001,
-                                "scheme": "HTTP"
+                                "scheme": "HTTPS"
                             },
                             "initialDelaySeconds": 5,
                             "timeoutSeconds": 1,
                             "periodSeconds": 10,
                             "successThreshold": 1,
                             "failureThreshold": 3
-                        }
+                        },
+                        "volumeMounts": [{
+                            "name": "tlscert",
+                            "mountPath": "/etc/tls",
+                            "readOnly": true
+                          }]
                     }
                 ],
+                "volumes": [{
+                    "name": "tlscert",
+                    "secret": {
+                      "secretName": "api-serving-cert"
+                    }
+                  }],
                 "restartPolicy": "Always",
                 "terminationGracePeriodSeconds": 30,
                 "dnsPolicy": "ClusterFirst",
