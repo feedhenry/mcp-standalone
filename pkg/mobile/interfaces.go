@@ -1,6 +1,8 @@
 package mobile
 
 import (
+	"net/http"
+
 	"k8s.io/client-go/kubernetes"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
@@ -46,4 +48,15 @@ type TokenScopedClientBuilder interface {
 	K8s(token string) (kubernetes.Interface, error)
 	MobileAppCruder(token string) (AppCruder, error)
 	MobileServiceCruder(token string) (ServiceCruder, error)
+}
+
+type HTTPRequesterBuilder interface {
+	Insecure(i bool) HTTPRequesterBuilder
+	Timeout(t int) HTTPRequesterBuilder
+	Build() ExternalHTTPRequester
+}
+
+type ExternalHTTPRequester interface {
+	Do(req *http.Request) (*http.Response, error)
+	Get(url string) (*http.Response, error)
 }

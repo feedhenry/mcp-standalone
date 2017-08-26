@@ -44,10 +44,10 @@ func buildIgnoreList() []*regexp.Regexp {
 
 var ingnoreList = buildIgnoreList()
 
-func (c Access) shouldIgnore(path string) bool {
+func shouldIgnore(path string) bool {
 	for _, i := range ingnoreList {
 		if i.Match([]byte(path)) {
-			c.logger.Info("ignoring user access check on path: ", path)
+			fmt.Println("ignoring user access check on path: ", path)
 			return true
 		}
 	}
@@ -57,7 +57,7 @@ func (c Access) shouldIgnore(path string) bool {
 // Handle sets the required headers
 func (c Access) Handle(w http.ResponseWriter, req *http.Request, next http.HandlerFunc) {
 	token := req.Header.Get("x-auth")
-	if c.shouldIgnore(req.URL.Path) {
+	if shouldIgnore(req.URL.Path) {
 		next(w, req)
 		return
 	}

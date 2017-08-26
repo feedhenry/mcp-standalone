@@ -28,7 +28,7 @@ func setupMobileServiceHandler(kclient kubernetes.Interface) http.Handler {
 	ms := &integration.MobileService{}
 	handler := web.NewMobileServiceHandler(logger, ms, clientBuilder)
 	web.MobileServiceRoute(r, handler)
-	return web.BuildHTTPHandler(r, nil)
+	return web.BuildHTTPHandler(r, nil, nil)
 }
 
 func buildDefaultTestTokenClientBuilder(kclient kubernetes.Interface) mobile.TokenScopedClientBuilder {

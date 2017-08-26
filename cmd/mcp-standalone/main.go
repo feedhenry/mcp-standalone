@@ -52,6 +52,7 @@ func main() {
 	var k8ClientBuilder = k8s.NewClientBuilder(*namespace, k8host)
 	var (
 		tokenClientBuilder = client.NewTokenScopedClientBuilder(k8ClientBuilder, appRepoBuilder, svcRepoBuilder, *namespace, logger)
+		httpClientBuilder  = client.NewHttpClientBuilder()
 		openshiftUser      = openshift.UserAccess{Logger: logger}
 		mwAccess           = middleware.NewAccess(logger, k8host, openshiftUser.ReadUserFromToken)
 	)
@@ -107,7 +108,10 @@ func main() {
 		web.StaticRoute(staticHandler)
 	}
 
-	handler := web.BuildHTTPHandler(router, mwAccess)
+	//add in the rolebinding mw
+	mrb := middleware.NewRoleBinding(httpClientBuilder, *namespace, logger, k8host)
+
+	handler := web.BuildHTTPHandler(router, mwAccess, mrb)
 	http.Handle("/", handler)
 	logger.Info("starting server on port "+*port, " using key ", *key, " and cert ", *cert, "target namespace is ", *namespace)
 
