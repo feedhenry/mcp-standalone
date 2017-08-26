@@ -20,12 +20,12 @@ func NewHttpClientBuilder() *HttpClientBuilder {
 	}
 }
 
-func (hcb *HttpClientBuilder) Insecure(i bool) *HttpClientBuilder {
+func (hcb *HttpClientBuilder) Insecure(i bool) mobile.HTTPRequesterBuilder {
 	hcb.insecure = i
 	return hcb
 }
 
-func (hcb *HttpClientBuilder) Timeout(t int) *HttpClientBuilder {
+func (hcb *HttpClientBuilder) Timeout(t int) mobile.HTTPRequesterBuilder {
 	hcb.timeout = t
 	return hcb
 }
