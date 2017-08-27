@@ -40,3 +40,11 @@ cd mcp-standalone
 make test image
 ```
 
+- You can also use make to run the server against a running OpenShift target. You can change the target in 
+the Makefile by setting the ```OSCP``` var.
+
+```
+make run_server
+
+```
+
