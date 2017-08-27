@@ -39,6 +39,15 @@ image: build
 	cd tmp && docker build -t feedhenry/mcp-standalone:latest .
 	rm -rf tmp
 
+run:
+	@echo Running Server
+	go install ./cmd/mcp-standalone
+	oc new-project test | true
+	oc create sa mobile-server | true
+	oc sa get-token mobile-server >> token
+	mcp-standalone -namespace=test -k8-host=https://192.168.37.1:8443 -satoken-path=./token
+
+
 test: test-unit
 
 test-unit:
