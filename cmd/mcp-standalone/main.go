@@ -82,6 +82,13 @@ func main() {
 		web.MobileAppRoute(router, appHandler)
 	}
 
+	//mobileservice handler
+	{
+		integrationSvc := &integration.MobileService{}
+		svcHandler := web.NewMobileServiceHandler(logger, integrationSvc, tokenClientBuilder)
+		web.MobileServiceRoute(router, svcHandler)
+	}
+
 	//sdk handler
 	{
 		integrationSvc := &integration.MobileService{}
