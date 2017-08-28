@@ -7,7 +7,7 @@
     "angular-route": "~1.4.0",
     "angular-patternfly": "~4.4.0",
     "urijs": "uri.js#^1.18.12",
-    "origin-web-common": "https://github.com/david-martin/origin-web-common.git#allow-oauth-scope-config"
+    "origin-web-common": "0.0.49"
   },
   "devDependencies": {
     "angular-mocks": "~1.4.0"
@@ -33,7 +33,7 @@
   },
   "resolutions": {
     "angular": "~1.5.11",
-    "jquery": "~2.1.4",
+    "jquery": "~3.2.1",
     "lodash": "~3.10.1",
     "patternfly": "~3.21.0",
     "bootstrap-select": "~1.10.0",
