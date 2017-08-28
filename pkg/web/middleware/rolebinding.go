@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"sync"
 
 	"github.com/Sirupsen/logrus"
@@ -49,6 +50,11 @@ func (sa *RoleBinding) Handle(rw http.ResponseWriter, req *http.Request, next ht
 	sa.Lock()
 	defer sa.Unlock()
 	token := req.Header.Get(mobile.AuthHeader)
+	if os.Getenv(mobile.SkipSARoleBindingHeader) != "" {
+		sa.logger.Debug("skipping sa role binding")
+		next(rw, req)
+		return
+	}
 	if err := sa.createRoleBindingIfNotPresent(token); err != nil {
 		sa.logger.Error("error when setting up rolebinding: ", err)
 		http.Error(rw, err.Error(), http.StatusInternalServerError)

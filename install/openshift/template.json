@@ -1,0 +1,223 @@
+{
+    "kind": "Template",
+    "apiVersion": "v1",
+    "metadata": {
+        "name": "mcp-standalone",
+        "creationTimestamp": null
+    },
+    "objects": [
+        {
+            "kind": "DeploymentConfig",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "mcp-standalone",
+                "generation": 1,
+                "creationTimestamp": null,
+                "labels": {
+                    "run": "mcp-standalone"
+                }
+            },
+            "spec": {
+                "strategy": {
+                    "type": "Rolling",
+                    "rollingParams": {
+                        "updatePeriodSeconds": 1,
+                        "intervalSeconds": 1,
+                        "timeoutSeconds": 600,
+                        "maxUnavailable": "25%",
+                        "maxSurge": "25%"
+                    },
+                    "resources": {},
+                    "activeDeadlineSeconds": 21600
+                },
+                "triggers": [
+                    {
+                        "type": "ConfigChange"
+                    }
+                ],
+                "replicas": 1,
+                "selector": {
+                    "run": "mcp-standalone"
+                },
+                "template": {
+                    "metadata": {
+                        "labels": {
+                            "run": "mcp-standalone"
+                        }
+                    },
+                    "spec": {
+                        "volumes": [
+                            {
+                                "name": "tlscert",
+                                "secret": {
+                                    "secretName": "api-serving-cert"
+                                }
+                            }
+                        ],
+                        "containers": [
+                            {
+                                "name": "mcp-standalone",
+                                "image": "feedhenry/mcp-standalone",
+                                "command": [
+                                    "./mcp-standalone",
+                                    "-web-dir=/web/dist",
+                                    "-cert=/etc/tls/tls.crt",
+                                    "-key=/etc/tls/tls.key"
+                                ],
+                                "env": [
+                                    {
+                                        "name": "NAMESPACE",
+                                        "valueFrom": {
+                                            "fieldRef": {
+                                                "apiVersion": "v1",
+                                                "fieldPath": "metadata.namespace"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "name": "ADMIN_API_KEY",
+                                        "valueFrom": {
+                                            "configMapKeyRef": {
+                                                "name": "mcp-standalone",
+                                                "key": "adminApiKey"
+                                            }
+                                        }
+                                    }
+                                ],
+                                "resources": {},
+                                "volumeMounts": [
+                                    {
+                                        "name": "tlscert",
+                                        "readOnly": true,
+                                        "mountPath": "/etc/tls"
+                                    }
+                                ],
+                                "livenessProbe": {
+                                    "httpGet": {
+                                        "path": "/sys/info/ping",
+                                        "port": 3001,
+                                        "scheme": "HTTPS"
+                                    },
+                                    "initialDelaySeconds": 10,
+                                    "timeoutSeconds": 1,
+                                    "periodSeconds": 10,
+                                    "successThreshold": 1,
+                                    "failureThreshold": 3
+                                },
+                                "readinessProbe": {
+                                    "httpGet": {
+                                        "path": "/sys/info/ping",
+                                        "port": 3001,
+                                        "scheme": "HTTPS"
+                                    },
+                                    "initialDelaySeconds": 5,
+                                    "timeoutSeconds": 1,
+                                    "periodSeconds": 10,
+                                    "successThreshold": 1,
+                                    "failureThreshold": 3
+                                },
+                                "terminationMessagePath": "/dev/termination-log",
+                                "terminationMessagePolicy": "File",
+                                "imagePullPolicy": "Always"
+                            }
+                        ],
+                        "restartPolicy": "Always",
+                        "terminationGracePeriodSeconds": 30,
+                        "dnsPolicy": "ClusterFirst",
+                        "serviceAccountName": "mcp-standalone",
+                        "serviceAccount": "mcp-standalone",
+                        "securityContext": {},
+                        "schedulerName": "default-scheduler"
+                    }
+                }
+            }
+        },
+        {
+            "kind": "ConfigMap",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "mcp-standalone"
+            },
+            "data": {
+                "adminApiKey": "${ADMIN_API_KEY}"
+            }
+        },
+        {
+            "kind": "Service",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "mcp-standalone",
+                "labels": {
+                    "run": "mcp-standalone"
+                },
+                "annotations": {
+                    "service.alpha.openshift.io/serving-cert-secret-name": "api-serving-cert"
+                }
+            },
+            "spec": {
+                "ports": [
+                    {
+                        "name": "secure",
+                        "protocol": "TCP",
+                        "port": 3001,
+                        "targetPort": 3001
+                    }
+                ],
+                "selector": {
+                    "run": "mcp-standalone"
+                },
+                "type": "ClusterIP",
+                "sessionAffinity": "None"
+            },
+            "status": {
+                "loadBalancer": {}
+            }
+        },
+        {
+            "kind": "ServiceAccount",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "mcp-standalone",
+                "annotations": {
+                    "serviceaccounts.openshift.io/oauth-redirectreference.mcp-standalone": "{\"kind\":\"OAuthRedirectReference\",\"apiVersion\":\"v1\",\"reference\":{\"kind\":\"Route\",\"name\":\"mcp-standalone\"}}"
+                }
+            }
+        },
+        {
+            "kind": "Route",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "mcp-standalone",
+                "labels": {
+                    "run": "mcp-standalone"
+                },
+                "annotations": {
+                    "openshift.io/host.generated": "true"
+                }
+            },
+            "spec": {
+                "host": "mcp-standalone-test.192.168.37.1.nip.io",
+                "to": {
+                    "kind": "Service",
+                    "name": "mcp-standalone",
+                    "weight": 100
+                },
+                "port": {
+                    "targetPort": 3001
+                },
+                "tls": {
+                    "termination": "reencrypt"
+                },
+                "wildcardPolicy": "None"
+            }
+        }
+    ],
+    "parameters":[
+        {
+            "name": "ADMIN_API_KEY",
+            "description": "a key for accessing the api without an openshift token",
+            "generate": "expression",
+            "from": "[a-zA-Z0-9]{40}"
+          }
+    ]
+}

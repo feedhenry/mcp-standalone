@@ -61,6 +61,10 @@ func (c Access) Handle(w http.ResponseWriter, req *http.Request, next http.Handl
 		next(w, req)
 		return
 	}
+	if token == "" {
+		http.Error(w, "no token provided access denied", 401)
+		return
+	}
 	//todo take config to set skipTLS
 	if err := c.userCheck(c.host, token, true); err != nil {
 		if openshift.IsAuthenticationError(err) {

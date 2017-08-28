@@ -54,5 +54,9 @@ const (
 	//AuthHeader the header where authorisation token is stored
 	AuthHeader = "x-auth"
 	//AppAPIKeyHeader is the header sent by mobile clients when they want to interact with mcp
-	AppAPIKeyHeader = "x-api-key"
+	AppAPIKeyHeader = "x-app-api-key"
+	//AdminAPIKeyEnvVar is the key under which the admin apikey is stored in the environment
+	AdminAPIKeyEnvVar = "ADMIN_API_KEY"
+	//SkipSARoleBindingHeader is the head the admin api key is sent with
+	SkipSARoleBindingHeader = "x-skip-role-binding"
 )

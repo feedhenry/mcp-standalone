@@ -48,6 +48,7 @@ type TokenScopedClientBuilder interface {
 	K8s(token string) (kubernetes.Interface, error)
 	MobileAppCruder(token string) (AppCruder, error)
 	MobileServiceCruder(token string) (ServiceCruder, error)
+	UseDefaultSAToken() TokenScopedClientBuilder
 }
 
 type HTTPRequesterBuilder interface {

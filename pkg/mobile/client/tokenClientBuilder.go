@@ -17,12 +17,10 @@ type TokenScopedClientBuilder struct {
 	serviceRepoBuilder mobile.ServiceRepoBuilder
 	namespace          string
 	logger             *logrus.Logger
+	useSaToken         bool
 	// this is initialised to the service acount token in the container
 	SAToken string
 }
-
-//UseDefaultSAToken indicates to the builder to use the sa token
-const UseDefaultSAToken = "satoken"
 
 // NewTokenScopedClientBuilder returns a new client builder that builds clients using the token provided
 func NewTokenScopedClientBuilder(cb mobile.ClientBuilder, arb mobile.AppRepoBuilder, srv mobile.ServiceRepoBuilder, namespace string, logger *logrus.Logger) *TokenScopedClientBuilder {
@@ -36,11 +34,18 @@ func NewTokenScopedClientBuilder(cb mobile.ClientBuilder, arb mobile.AppRepoBuil
 }
 
 func (rsb *TokenScopedClientBuilder) token(t string) string {
-	if t == UseDefaultSAToken {
-		rsb.logger.Info("using service account token in client ")
+	if rsb.useSaToken {
+		rsb.logger.Info("TokenScopedClientBuilder ignoring passed token and instead is using service account token for authentication")
 		return rsb.SAToken
 	}
 	return t
+}
+
+//UseDefaultSAToken clones the client builder and sets it to use the service account token
+func (rsb *TokenScopedClientBuilder) UseDefaultSAToken() mobile.TokenScopedClientBuilder {
+	var cloned = *rsb
+	cloned.useSaToken = true
+	return &cloned
 }
 
 // MobileAppCruder returns a token scoped MobileAppCruder
