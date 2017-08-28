@@ -9,7 +9,6 @@ import (
 	"fmt"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/coreos/rkt/tests/testutils/logger"
 	"github.com/feedhenry/mcp-standalone/pkg/data"
 	"github.com/feedhenry/mcp-standalone/pkg/k8s"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile/client"
@@ -38,9 +37,6 @@ func main() {
 	flag.StringVar(&k8host, "k8-host", "", "kubernetes target")
 	flag.Parse()
 
-	if *namespace == "" {
-		logger.Fatal("-namespace is a required flag or it can be set via NAMESPACE env var")
-	}
 	switch *logLevel {
 	case "debug":
 		logrus.SetLevel(logrus.DebugLevel)
@@ -52,6 +48,10 @@ func main() {
 		logrus.SetLevel(logrus.ErrorLevel)
 	}
 	logger := logrus.StandardLogger()
+
+	if *namespace == "" {
+		logger.Fatal("-namespace is a required flag or it can be set via NAMESPACE env var")
+	}
 
 	token, err := readSAToken(*saTokenPath)
 	if err != nil {
