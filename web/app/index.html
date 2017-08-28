@@ -1,5 +1,8 @@
 <!doctype html>
-<html>
+<!--[if lt IE 7]>      <html lang="en" class="no-js lt-ie9 lt-ie8 lt-ie7 layout-pf layout-pf-fixed transitions"> <![endif]-->
+<!--[if IE 7]>         <html lang="en" class="no-js lt-ie9 lt-ie8 layout-pf layout-pf-fixed transitions"> <![endif]-->
+<!--[if IE 8]>         <html lang="en" class="no-js lt-ie9 layout-pf layout-pf-fixed transitions"> <![endif]-->
+<!--[if gt IE 8]><!--> <html lang="en" class="no-js layout-pf layout-pf-fixed transitions"> <!--<![endif]-->
   <head>
     <meta charset="utf-8">
     <link rel="shortcut icon" href="favicon.ico?v=2" type="image/x-icon"> 
@@ -42,33 +45,29 @@
       <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
     <![endif]-->
 
-    <!-- Add your site or application content here -->
-    <div class="header">
-      <div class="navbar navbar-default" role="navigation">
-        <div class="container">
-          <div class="navbar-header">
+    <nav class="navbar navbar-pf-vertical">
 
-            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#js-navbar-collapse">
-              <span class="sr-only">Toggle navigation</span>
-              <span class="icon-bar"></span>
-              <span class="icon-bar"></span>
-              <span class="icon-bar"></span>
-            </button>
+    <div class="navbar-header">
+      <a href="" class="navbar-brand">
+        <img class="navbar-brand-icon" src="images/logo.svg" alt="">Mobile Control Panel
+      </a>
+    </div>
+    </nav> <!--/.navbar-->
 
-            <a class="navbar-brand" href="">FeedHenry Mobile Control Panel</a>
-          </div>
 
-          <div class="collapse navbar-collapse" id="js-navbar-collapse">
-
-            <ul class="nav navbar-nav">
-              <li class="active"><a href="mobileapps">Mobile Apps</a></li>
-            </ul>
-          </div>
-        </div>
-      </div>
+    <div class="nav-pf-vertical nav-pf-vertical-with-sub-menus">
+      <ul class="list-group">
+        <li class="list-group-item">
+          <a href="">
+            <span class="fa fa-dashboard" data-toggle="tooltip" title="Overview"></span>
+            <span class="list-group-item-value">Overview</span>
+          </a>
+        </li>
+      </ul>
     </div>
 
-    <div class="container">
+    <div class="container-fluid container-cards-pf container-pf-nav-pf-vertical">
+
     <div ng-view=""></div>
     </div>
 

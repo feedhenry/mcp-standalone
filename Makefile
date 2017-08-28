@@ -26,7 +26,6 @@ gofmt:
 
 .PHONY: web
 web:
-	gem install compass
 	cd web && npm install && ./node_modules/.bin/bower install && grunt build
 
 build: web test-unit

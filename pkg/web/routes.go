@@ -43,9 +43,13 @@ func BuildHTTPHandler(r *mux.Router, access *middleware.Access, rolebinding *mid
 	return n
 }
 
+func ConsoleConfigRoute(handler *ConsoleConfigHandler) {
+	http.HandleFunc(handler.consoleMountPath+"/config.js", handler.Config)
+}
+
 // StaticRoute configures & sets up the /console route.
 func StaticRoute(handler *StaticHandler) {
-	http.HandleFunc("/console/", handler.Static)
+	http.HandleFunc(handler.prefix+"/", handler.Static)
 }
 
 // OAuthRoute configures & sets up the /oauth route.

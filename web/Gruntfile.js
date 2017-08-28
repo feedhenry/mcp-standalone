@@ -9,6 +9,11 @@
 var modRewrite = require('connect-modrewrite');
 
 module.exports = function (grunt) {
+  grunt.loadNpmTasks('grunt-connect-rewrite');
+  grunt.loadNpmTasks('grunt-connect-proxy');
+  grunt.loadNpmTasks('grunt-contrib-less');
+  var rewriteRulesSnippet = require('grunt-connect-rewrite/lib/utils').rewriteRequest;
+  var proxyRulesSnippet = require('grunt-connect-proxy/lib/utils').proxyRequest;
 
   // Time how long tasks take. Can help when optimizing build times
   require('time-grunt')(grunt);
@@ -32,6 +37,29 @@ module.exports = function (grunt) {
     // Project settings
     yeoman: appConfig,
 
+    configureRewriteRules: {
+      options: {
+        rulesProvider: 'connect.rules'
+      }
+    },
+
+    configureProxies: {
+
+    },
+
+    less: {
+        server: {
+            options: {
+                compress: true,
+                yuicompress: true,
+                optimization: 2
+            },
+            files: {
+                ".tmp/styles/main.css": "app/styles/main.less"
+            }
+        }
+    },
+
     // Watches files for changes and runs tasks based on the changed files
     watch: {
       bower: {
@@ -49,9 +77,9 @@ module.exports = function (grunt) {
         files: ['test/spec/{,*/}*.js'],
         tasks: ['newer:jshint:test', 'newer:jscs:test', 'karma']
       },
-      compass: {
-        files: ['<%= yeoman.app %>/styles/{,*/}*.{scss,sass}'],
-        tasks: ['compass:server', 'postcss:server']
+      less: {
+        files: ['<%= yeoman.app %>/styles/{,*/}*.less'],
+        tasks: ['less:server', 'postcss:server']
       },
       gruntfile: {
         files: ['Gruntfile.js']
@@ -73,16 +101,24 @@ module.exports = function (grunt) {
       options: {
         port: 9000,
         // Change this to '0.0.0.0' to access the server from outside.
-        hostname: 'localhost',
+        hostname: '127.0.0.1',
         livereload: 35729,
         protocol: 'https'
       },
+      rules: [
+        // Internal rewrite
+        {from: '^/console/(.*)$', to: '/$1'}
+      ],
       livereload: {
         options: {
-          open: true,
+          open: {
+            target: "https://127.0.0.1:9000/console"
+          },
           middleware: function (connect) {
             return [
-              modRewrite(['!\\.html|\\.js|\\.svg|\\.css|\\.png$ /index.html [L]']),
+              proxyRulesSnippet,
+              rewriteRulesSnippet,              
+              modRewrite(['!\\.html|\\.js|\\.svg|\\.css|\\.png|\\.woff|\\.woff2|\\.ttf|\\.otf$ /index.html [L]']),
               connect.static('.tmp'),
               connect().use(
                 '/bower_components',
@@ -95,7 +131,16 @@ module.exports = function (grunt) {
               connect.static(appConfig.app)
             ];
           }
-        }
+        },
+        proxies: [{
+          // TODO: is there a catchall that would avoid having to maintain this?
+          context: ['/console/config.js', '/sys', '/oauth', '/mobileapps', '/sdk', '/mobileservice'],
+          host: '127.0.0.1',
+          port: 3001,
+          https: true,
+          secure: false,
+          xforward: true
+        }]
       },
       test: {
         options: {
@@ -232,35 +277,6 @@ module.exports = function (grunt) {
         ignorePath: /(\.\.\/){1,2}app\/bower_components\//
       }
     }, 
-
-    // Compiles Sass to CSS and generates necessary files if requested
-    compass: {
-      options: {
-        sassDir: '<%= yeoman.app %>/styles',
-        cssDir: '.tmp/styles',
-        generatedImagesDir: '.tmp/images/generated',
-        imagesDir: '<%= yeoman.app %>/images',
-        javascriptsDir: '<%= yeoman.app %>/scripts',
-        fontsDir: '<%= yeoman.app %>/styles/fonts',
-        importPath: './app/bower_components',
-        httpImagesPath: '/images',
-        httpGeneratedImagesPath: '/images/generated',
-        httpFontsPath: '/styles/fonts',
-        relativeAssets: false,
-        assetCacheBuster: false,
-        raw: 'Sass::Script::Number.precision = 10\n'
-      },
-      dist: {
-        options: {
-          generatedImagesDir: '<%= yeoman.dist %>/images/generated'
-        }
-      },
-      server: {
-        options: {
-          sourcemap: true
-        }
-      }
-    },
 
     // Renames files for browser caching purposes
     filerev: {
@@ -468,13 +484,13 @@ module.exports = function (grunt) {
     // Run some tasks in parallel to speed up the build process
     concurrent: {
       server: [
-        'compass:server'
+        'less:server'
       ],
       test: [
-        'compass'
+        'less'
       ],
       dist: [
-        'compass:dist',
+        'less:server', // TODO: is this OK for dist?
         'imagemin',
         'svgmin'
       ]
@@ -500,6 +516,8 @@ module.exports = function (grunt) {
       'wiredep',
       'concurrent:server',
       'postcss:server',
+      'configureProxies:livereload',
+      'configureRewriteRules',
       'connect:livereload',
       'watch'
     ]);
