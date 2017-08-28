@@ -44,10 +44,10 @@ image: build
 run_server:
 	@echo Running Server
 	time go install ./cmd/mcp-standalone
-	oc new-project test | true
-	oc create sa mobile-server | true
-	oc sa get-token mobile-server >> token
-	mcp-standalone -namespace=test -k8-host=$(OSCP) -satoken-path=./token
+	oc new-project mcp-standalone | true
+	oc create -f install/openshift/sa.local.json -n  mcp-standalone | true
+	oc sa get-token mcp-standalone -n  mcp-standalone >> token
+	mcp-standalone -namespace=mcp-standalone -k8-host=$(OSCP) -satoken-path=./token
 
 
 test: test-unit
