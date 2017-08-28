@@ -11,6 +11,7 @@ var modRewrite = require('connect-modrewrite');
 module.exports = function (grunt) {
   grunt.loadNpmTasks('grunt-connect-rewrite');
   grunt.loadNpmTasks('grunt-connect-proxy');
+  grunt.loadNpmTasks('grunt-contrib-less');
   var rewriteRulesSnippet = require('grunt-connect-rewrite/lib/utils').rewriteRequest;
   var proxyRulesSnippet = require('grunt-connect-proxy/lib/utils').proxyRequest;
 
@@ -46,6 +47,19 @@ module.exports = function (grunt) {
 
     },
 
+    less: {
+        server: {
+            options: {
+                compress: true,
+                yuicompress: true,
+                optimization: 2
+            },
+            files: {
+                ".tmp/styles/main.css": "app/styles/main.less"
+            }
+        }
+    },
+
     // Watches files for changes and runs tasks based on the changed files
     watch: {
       bower: {
@@ -63,9 +77,9 @@ module.exports = function (grunt) {
         files: ['test/spec/{,*/}*.js'],
         tasks: ['newer:jshint:test', 'newer:jscs:test', 'karma']
       },
-      compass: {
-        files: ['<%= yeoman.app %>/styles/{,*/}*.{scss,sass}'],
-        tasks: ['compass:server', 'postcss:server']
+      less: {
+        files: ['<%= yeoman.app %>/styles/{,*/}*.less'],
+        tasks: ['less:server', 'postcss:server']
       },
       gruntfile: {
         files: ['Gruntfile.js']
@@ -104,7 +118,7 @@ module.exports = function (grunt) {
             return [
               proxyRulesSnippet,
               rewriteRulesSnippet,              
-              modRewrite(['!\\.html|\\.js|\\.svg|\\.css|\\.png$ /index.html [L]']),
+              modRewrite(['!\\.html|\\.js|\\.svg|\\.css|\\.png|\\.woff|\\.woff2|\\.ttf|\\.otf$ /index.html [L]']),
               connect.static('.tmp'),
               connect().use(
                 '/bower_components',
@@ -263,35 +277,6 @@ module.exports = function (grunt) {
         ignorePath: /(\.\.\/){1,2}app\/bower_components\//
       }
     }, 
-
-    // Compiles Sass to CSS and generates necessary files if requested
-    compass: {
-      options: {
-        sassDir: '<%= yeoman.app %>/styles',
-        cssDir: '.tmp/styles',
-        generatedImagesDir: '.tmp/images/generated',
-        imagesDir: '<%= yeoman.app %>/images',
-        javascriptsDir: '<%= yeoman.app %>/scripts',
-        fontsDir: '<%= yeoman.app %>/styles/fonts',
-        importPath: './app/bower_components',
-        httpImagesPath: '/images',
-        httpGeneratedImagesPath: '/images/generated',
-        httpFontsPath: '/styles/fonts',
-        relativeAssets: false,
-        assetCacheBuster: false,
-        raw: 'Sass::Script::Number.precision = 10\n'
-      },
-      dist: {
-        options: {
-          generatedImagesDir: '<%= yeoman.dist %>/images/generated'
-        }
-      },
-      server: {
-        options: {
-          sourcemap: true
-        }
-      }
-    },
 
     // Renames files for browser caching purposes
     filerev: {
@@ -499,13 +484,13 @@ module.exports = function (grunt) {
     // Run some tasks in parallel to speed up the build process
     concurrent: {
       server: [
-        'compass:server'
+        'less:server'
       ],
       test: [
-        'compass'
+        'less'
       ],
       dist: [
-        'compass:dist',
+        'less:server', // TODO: is this OK for dist?
         'imagemin',
         'svgmin'
       ]
