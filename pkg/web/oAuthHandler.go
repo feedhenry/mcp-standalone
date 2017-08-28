@@ -31,6 +31,7 @@ func (oah *OAuthHandler) OAuthToken(w http.ResponseWriter, r *http.Request) {
 	code := r.FormValue("code")
 
 	tr := &http.Transport{
+		// TODO: skipping insecure check is OK for POC only
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
 	sslcli := &http.Client{Transport: tr}
