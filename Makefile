@@ -5,6 +5,8 @@ TEST_DIRS     ?= $(shell sh -c "find $(TOP_SRC_DIRS) -name \\*_test.go \
 BIN_DIR := $(GOPATH)/bin
 GOMETALINTER := $(BIN_DIR)/gometalinter
 SHELL = /bin/bash
+#CHANGE this if using a different url for openshift
+OSCP = https://192.168.37.1:8443
 
 $(GOMETALINTER):
 	go get -u github.com/alecthomas/gometalinter
@@ -38,6 +40,15 @@ image: build
 	cp -R web/dist tmp/web/dist
 	cd tmp && docker build -t feedhenry/mcp-standalone:latest .
 	rm -rf tmp
+
+run_server:
+	@echo Running Server
+	time go install ./cmd/mcp-standalone
+	oc new-project mcp-standalone | true
+	oc create -f install/openshift/sa.local.json -n  mcp-standalone | true
+	oc sa get-token mcp-standalone -n  mcp-standalone > token
+	mcp-standalone -namespace=mcp-standalone -k8-host=$(OSCP) -satoken-path=./token
+
 
 test: test-unit
 

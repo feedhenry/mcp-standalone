@@ -22,11 +22,9 @@
             "resources": {},
             "activeDeadlineSeconds": 21600
         },
-        "triggers": [
-            {
-                "type": "ConfigChange"
-            }
-        ],
+        "triggers": [{
+            "type": "ConfigChange"
+        }],
         "replicas": 1,
         "test": false,
         "selector": {
@@ -41,67 +39,64 @@
             },
             "spec": {
                 "serviceAccountName": "mcp-standalone",
-                "containers": [
-                    {
-                        "name": "mcp-standalone",
-                        "image": "feedhenry/mcp-standalone",
-                        "command": [
-                            "./mcp-standalone",
-                            "-web-dir=/web/dist",
-                            "-cert=/etc/tls/tls.crt",
-                            "-key=/etc/tls/tls.key"
-                        ],
-                        "env": [
-                            {
-                                "name": "NAMESPACE",
-                                "valueFrom": {
-                                    "fieldRef":{ 
-                                        "fieldPath":"metadata.namespace"
-                                    }
+                "containers": [{
+                    "name": "mcp-standalone",
+                    "image": "feedhenry/mcp-standalone",
+                    "command": [
+                        "./mcp-standalone",
+                        "-web-dir=/web/dist",
+                        "-cert=/etc/tls/tls.crt",
+                        "-key=/etc/tls/tls.key"
+                    ],
+                    "env": [{
+                            "name": "NAMESPACE",
+                            "valueFrom": {
+                                "fieldRef": {
+                                    "fieldPath": "metadata.namespace"
                                 }
                             }
-                        ],
-                        "resources": {},
-                        "terminationMessagePath": "/dev/termination-log",
-                        "terminationMessagePolicy": "File",
-                        "imagePullPolicy": "Always",
-                        "livenessProbe": {
-                            "httpGet": {
-                                "path": "/sys/info/ping",
-                                "port": 3001,
-                                "scheme": "HTTPS"
-                            },
-                            "initialDelaySeconds": 10,
-                            "timeoutSeconds": 1,
-                            "periodSeconds": 10,
-                            "successThreshold": 1,
-                            "failureThreshold": 3
+                        }
+                    ],
+                    "resources": {},
+                    "terminationMessagePath": "/dev/termination-log",
+                    "terminationMessagePolicy": "File",
+                    "imagePullPolicy": "Always",
+                    "livenessProbe": {
+                        "httpGet": {
+                            "path": "/sys/info/ping",
+                            "port": 3001,
+                            "scheme": "HTTPS"
                         },
-                        "readinessProbe": {
-                            "httpGet": {
-                                "path": "/sys/info/ping",
-                                "port": 3001,
-                                "scheme": "HTTPS"
-                            },
-                            "initialDelaySeconds": 5,
-                            "timeoutSeconds": 1,
-                            "periodSeconds": 10,
-                            "successThreshold": 1,
-                            "failureThreshold": 3
+                        "initialDelaySeconds": 10,
+                        "timeoutSeconds": 1,
+                        "periodSeconds": 10,
+                        "successThreshold": 1,
+                        "failureThreshold": 3
+                    },
+                    "readinessProbe": {
+                        "httpGet": {
+                            "path": "/sys/info/ping",
+                            "port": 3001,
+                            "scheme": "HTTPS"
                         },
-                        "volumeMounts": [{
-                            "name": "tlscert",
-                            "mountPath": "/etc/tls",
-                            "readOnly": true
-                          }]
-                    }
-                ],
+                        "initialDelaySeconds": 5,
+                        "timeoutSeconds": 1,
+                        "periodSeconds": 10,
+                        "successThreshold": 1,
+                        "failureThreshold": 3
+                    },
+                    "volumeMounts": [{
+                        "name": "tlscert",
+                        "mountPath": "/etc/tls",
+                        "readOnly": true
+                    }]
+                }],
                 "volumes": [{
                     "name": "tlscert",
                     "secret": {
-                      "secretName": "api-serving-cert"
+                        "secretName": "api-serving-cert"
                     }
-                  }],
+                }],
                 "restartPolicy": "Always",
                 "terminationGracePeriodSeconds": 30,
                 "dnsPolicy": "ClusterFirst",

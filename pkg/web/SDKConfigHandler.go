@@ -6,7 +6,6 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
-	"github.com/feedhenry/mcp-standalone/pkg/mobile/client"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile/integration"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
@@ -33,19 +32,23 @@ func (sdk *SDKConfigHandler) Read(rw http.ResponseWriter, req *http.Request) {
 	apiKey := req.Header.Get(mobile.AppAPIKeyHeader)
 	params := mux.Vars(req)
 	id := params["id"]
-	//need sa token here to read and check the app key and svcs
-	appCruder, err := sdk.tokenScopedBuilder.MobileAppCruder(client.UseDefaultSAToken)
+	if apiKey == "" {
+		http.Error(rw, "missing api key", 401)
+	}
+	//need to use the serviceaccount token here to read and check the app key and svcs
+	appCruder, err := sdk.tokenScopedBuilder.UseDefaultSAToken().MobileAppCruder("")
 	if err != nil {
 		err = errors.Wrap(err, "failed to setup mobile app cruder using sa token")
 		handleCommonErrorCases(err, rw, sdk.logger)
 		return
 	}
-	svcCruder, err := sdk.tokenScopedBuilder.MobileServiceCruder(client.UseDefaultSAToken)
+	svcCruder, err := sdk.tokenScopedBuilder.UseDefaultSAToken().MobileServiceCruder("")
 	if err != nil {
 		err = errors.Wrap(err, "failed to create token scoped service client")
 		handleCommonErrorCases(err, rw, sdk.logger)
 		return
 	}
+	//before returning any information check the passed api key is the same as the app objects generated key.
 	//TODO maybe bring this  apiKey check out of this handler
 	app, err := appCruder.ReadByName(id)
 	if err != nil {

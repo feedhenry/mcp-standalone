@@ -24,14 +24,16 @@ func NewRouter() *mux.Router {
 }
 
 // BuildHTTPHandler puts together our HTTPHandler
-func BuildHTTPHandler(r *mux.Router, access *middleware.Access) http.Handler {
+func BuildHTTPHandler(r *mux.Router, access *middleware.Access, rolebinding *middleware.RoleBinding) http.Handler {
 	recovery := negroni.NewRecovery()
 	recovery.PrintStack = false
 	n := negroni.New(recovery)
 	cors := middleware.Cors{}
 	n.UseFunc(cors.Handle)
+	if rolebinding != nil {
+		n.UseFunc(rolebinding.Handle)
+	}
 	if access != nil {
-
 		n.UseFunc(access.Handle)
 	} else {
 		fmt.Println("access control is turned off ")
