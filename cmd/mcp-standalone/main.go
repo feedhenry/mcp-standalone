@@ -59,6 +59,7 @@ func main() {
 	tokenClientBuilder.SAToken = token
 
 	//oauth handler
+	var oauthClientID = fmt.Sprintf("system:serviceaccount:%s:mcp-standalone", *namespace)
 	{
 		kubernetesOauthEndpoint := &oauth2.Endpoint{
 			AuthURL:  k8host + "/oauth/authorize",
@@ -67,8 +68,8 @@ func main() {
 
 		kubernetesOauthConfig := &oauth2.Config{
 			// TODO: how to dynamically configure this url from the Route
-			RedirectURL:  "https://127.0.0.1:3001/console/oauth",
-			ClientID:     fmt.Sprintf("system:serviceaccount:%s:mcp-standalone", *namespace),
+			RedirectURL:  "https://127.0.0.1:9000/console/oauth",
+			ClientID:     oauthClientID,
 			ClientSecret: token,
 			Scopes:       []string{"user:info user:check-access"},
 			Endpoint:     *kubernetesOauthEndpoint,
@@ -102,9 +103,16 @@ func main() {
 		web.SysRoute(router, sysHandler)
 	}
 
+	//console config handler
+	var consoleMountPath = "/console"
+	{
+		consoleConfigHandler := web.NewConsoleConfigHandler(logger, consoleMountPath, k8host, oauthClientID)
+		web.ConsoleConfigRoute(consoleConfigHandler)
+	}
+
 	//static handler
 	{
-		staticHandler := web.NewStaticHandler(logger, *staticDirectory, "/console", "index.html")
+		staticHandler := web.NewStaticHandler(logger, *staticDirectory, consoleMountPath, "index.html")
 		web.StaticRoute(staticHandler)
 	}
 
