@@ -9,6 +9,10 @@
 var modRewrite = require('connect-modrewrite');
 
 module.exports = function (grunt) {
+  grunt.loadNpmTasks('grunt-connect-rewrite');
+  grunt.loadNpmTasks('grunt-connect-proxy');
+  var rewriteRulesSnippet = require('grunt-connect-rewrite/lib/utils').rewriteRequest;
+  var proxyRulesSnippet = require('grunt-connect-proxy/lib/utils').proxyRequest;
 
   // Time how long tasks take. Can help when optimizing build times
   require('time-grunt')(grunt);
@@ -31,6 +35,16 @@ module.exports = function (grunt) {
 
     // Project settings
     yeoman: appConfig,
+
+    configureRewriteRules: {
+      options: {
+        rulesProvider: 'connect.rules'
+      }
+    },
+
+    configureProxies: {
+
+    },
 
     // Watches files for changes and runs tasks based on the changed files
     watch: {
@@ -73,15 +87,23 @@ module.exports = function (grunt) {
       options: {
         port: 9000,
         // Change this to '0.0.0.0' to access the server from outside.
-        hostname: 'localhost',
+        hostname: '127.0.0.1',
         livereload: 35729,
         protocol: 'https'
       },
+      rules: [
+        // Internal rewrite
+        {from: '^/console/(.*)$', to: '/$1'}
+      ],
       livereload: {
         options: {
-          open: true,
+          open: {
+            target: "https://127.0.0.1:9000/console"
+          },
           middleware: function (connect) {
             return [
+              proxyRulesSnippet,
+              rewriteRulesSnippet,              
               modRewrite(['!\\.html|\\.js|\\.svg|\\.css|\\.png$ /index.html [L]']),
               connect.static('.tmp'),
               connect().use(
@@ -95,7 +117,16 @@ module.exports = function (grunt) {
               connect.static(appConfig.app)
             ];
           }
-        }
+        },
+        proxies: [{
+          // TODO: is there a catchall that would avoid having to maintain this?
+          context: ['/console/config.js', '/sys', '/oauth', '/mobileapps', '/sdk', '/mobileservice'],
+          host: '127.0.0.1',
+          port: 3001,
+          https: true,
+          secure: false,
+          xforward: true
+        }]
       },
       test: {
         options: {
@@ -500,6 +531,8 @@ module.exports = function (grunt) {
       'wiredep',
       'concurrent:server',
       'postcss:server',
+      'configureProxies:livereload',
+      'configureRewriteRules',
       'connect:livereload',
       'watch'
     ]);
