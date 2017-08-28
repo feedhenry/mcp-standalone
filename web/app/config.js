@@ -7,9 +7,12 @@
   //
   // To change configuration for local development, copy this file to
   // assets/app/config.local.js and edit the copy.
-  var masterPublicHostname = '127.0.0.1:8443';
+  var masterPublicHostname = '172.17.0.1:8443';
 
   window.MCP_CONFIG = {
+    web: {
+      host: 'https://127.0.0.1:9000'
+    },
     api: {
       host: 'https://127.0.0.1:3001'
     }
@@ -32,7 +35,7 @@
     },
     auth: {
       oauth_authorize_uri: 'https://' + masterPublicHostname + "/oauth/authorize",
-      oauth_redirect_base: window.MCP_CONFIG.api.host + "/console",
+      oauth_redirect_base: window.MCP_CONFIG.web.host + "/console",
       oauth_client_id: "system:serviceaccount:myproject:mcp-standalone",
       oauth_token_uri: window.MCP_CONFIG.api.host + "/oauth/token",
       logout_uri: ""

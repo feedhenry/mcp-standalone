@@ -9,6 +9,8 @@
 var modRewrite = require('connect-modrewrite');
 
 module.exports = function (grunt) {
+  grunt.loadNpmTasks('grunt-connect-rewrite');
+  var rewriteRulesSnippet = require('grunt-connect-rewrite/lib/utils').rewriteRequest;
 
   // Time how long tasks take. Can help when optimizing build times
   require('time-grunt')(grunt);
@@ -31,6 +33,12 @@ module.exports = function (grunt) {
 
     // Project settings
     yeoman: appConfig,
+
+    configureRewriteRules: {
+      options: {
+        rulesProvider: 'connect.rules'
+      }
+    },
 
     // Watches files for changes and runs tasks based on the changed files
     watch: {
@@ -73,15 +81,22 @@ module.exports = function (grunt) {
       options: {
         port: 9000,
         // Change this to '0.0.0.0' to access the server from outside.
-        hostname: 'localhost',
+        hostname: '127.0.0.1',
         livereload: 35729,
         protocol: 'https'
       },
+      rules: [
+        // Internal rewrite
+        {from: '^/console/(.*)$', to: '/$1'}
+      ],
       livereload: {
         options: {
-          open: true,
+          open: {
+            target: "https://127.0.0.1:9000/console"
+          },
           middleware: function (connect) {
             return [
+              rewriteRulesSnippet,              
               modRewrite(['!\\.html|\\.js|\\.svg|\\.css|\\.png$ /index.html [L]']),
               connect.static('.tmp'),
               connect().use(
@@ -500,6 +515,7 @@ module.exports = function (grunt) {
       'wiredep',
       'concurrent:server',
       'postcss:server',
+      'configureRewriteRules',
       'connect:livereload',
       'watch'
     ]);

@@ -66,7 +66,7 @@ func main() {
 
 		kubernetesOauthConfig := &oauth2.Config{
 			// TODO: how to dynamically configure this url from the Route
-			RedirectURL:  "https://127.0.0.1:3001/console/oauth",
+			RedirectURL:  "https://127.0.0.1:9000/console/oauth",
 			ClientID:     fmt.Sprintf("system:serviceaccount:%s:mcp-standalone", *namespace),
 			ClientSecret: token,
 			Scopes:       []string{"user:info user:check-access"},
