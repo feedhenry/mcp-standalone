@@ -1,0 +1,34 @@
+- name: check_exists
+  shell: "oc get routes mcp-standalone -n '{{ namespace }}' | grep -v NAME | awk '{print $2}'"
+  register: mobile_route
+
+- name: provision
+  shell: | 
+    oc new-app -f /opt/ansible/roles/provision-cordova-apb/templates/template.json -n '{{namespace}}'
+  when: mobile_route.stdout == ""
+
+- name: check_exists_again
+  shell: "oc get routes mcp-standalone -n '{{ namespace }}' | grep -v NAME | awk '{print $2}'"
+  register: mobile_route
+
+
+- name: retrieve_token
+  shell: oc whoami -t
+  register: satoken
+
+- name: create_app
+  uri:
+    url: "https://{{ mobile_route.stdout }}/mobileapp"
+    method: POST
+    headers:
+      x-auth: "{{satoken.stdout}}"
+      x-skip-role-binding: "true"
+    body: {"name":"{{appName}}","clientType":"cordova"}
+    validate_certs: no
+    body_format: json
+    status_code: 201
+  register: response  
+  until: response.status == 201
+  retries: 10
+  delay: 4  
+  when: mobile_route.stdout != ""

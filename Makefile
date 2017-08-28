@@ -46,7 +46,7 @@ run_server:
 	oc new-project mcp-standalone | true
 	oc create -f install/openshift/sa.local.json -n  mcp-standalone | true
 	oc sa get-token mcp-standalone -n  mcp-standalone > token
-	mcp-standalone -namespace=mcp-standalone -k8-host=$(OSCP) -satoken-path=./token
+	mcp-standalone -namespace=mcp-standalone -k8-host=$(OSCP) -satoken-path=./token -log-level=debug
 
 
 test: test-unit
@@ -55,4 +55,13 @@ test-unit:
 	@echo Running tests:
 	go test -cover $(UNIT_TEST_FLAGS) \
 	  $(addprefix $(PKG)/,$(TEST_DIRS))
-	
+
+apbs:
+	cp install/openshift/template.json cmd/android-apb/roles/provision-android-app/templates
+	cp install/openshift/template.json cmd/cordova-apb/roles/provision-cordova-apb/templates	
+	cp install/openshift/template.json cmd/ios-apb/roles/provision-ios-apb/templates
+	cp install/openshift/template.json cmd/mcp-apb/roles/provision-mcp-apb/templates
+	cd cmd/mcp-apb && make build_and_push 		
+	cd cmd/android-apb && make build_and_push 		
+	cd cmd/ios-apb && make build_and_push 		
+	cd cmd/cordova-apb && make build_and_push 					

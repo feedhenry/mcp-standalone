@@ -9,6 +9,7 @@ import (
 	"fmt"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/coreos/rkt/tests/testutils/logger"
 	"github.com/feedhenry/mcp-standalone/pkg/data"
 	"github.com/feedhenry/mcp-standalone/pkg/k8s"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile/client"
@@ -27,10 +28,10 @@ func main() {
 		cert            = flag.String("cert", "server.crt", "SSL/TLS Certificate to HTTPS")
 		key             = flag.String("key", "server.key", "SSL/TLS Private Key for the Certificate")
 		namespace       = flag.String("namespace", os.Getenv("NAMESPACE"), "the namespace to target")
+		logLevel        = flag.String("log-level", "error", "the level to log at")
 		saTokenPath     = flag.String("satoken-path", "var/run/secrets/kubernetes.io/serviceaccount/token", "where on disk the service account token to use is ")
 		staticDirectory = flag.String("web-dir", "./web/app", "Location of static content to serve at /console. index.html will be used as a fallback for requested files that don't exist")
 		k8host          string
-		logger          = logrus.New()
 		appRepoBuilder  = &data.MobileAppRepoBuilder{}
 		svcRepoBuilder  = &data.MobileServiceRepoBuilder{}
 	)
@@ -40,6 +41,17 @@ func main() {
 	if *namespace == "" {
 		logger.Fatal("-namespace is a required flag or it can be set via NAMESPACE env var")
 	}
+	switch *logLevel {
+	case "debug":
+		logrus.SetLevel(logrus.DebugLevel)
+	case "info":
+		logrus.SetLevel(logrus.InfoLevel)
+	case "error":
+		logrus.SetLevel(logrus.ErrorLevel)
+	default:
+		logrus.SetLevel(logrus.ErrorLevel)
+	}
+	logger := logrus.StandardLogger()
 
 	token, err := readSAToken(*saTokenPath)
 	if err != nil {

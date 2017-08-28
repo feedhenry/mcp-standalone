@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"os"
 	"sync"
 
 	"github.com/Sirupsen/logrus"
@@ -49,8 +48,9 @@ func (sa *RoleBinding) Handle(rw http.ResponseWriter, req *http.Request, next ht
 	// only want one request at a time trying to do this.
 	sa.Lock()
 	defer sa.Unlock()
+	sa.logger.Debug("headers", req.Header)
 	token := req.Header.Get(mobile.AuthHeader)
-	if os.Getenv(mobile.SkipSARoleBindingHeader) != "" {
+	if req.Header.Get(mobile.SkipSARoleBindingHeader) != "" {
 		sa.logger.Debug("skipping sa role binding")
 		next(rw, req)
 		return
