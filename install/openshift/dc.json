@@ -55,15 +55,6 @@
                                     "fieldPath": "metadata.namespace"
                                 }
                             }
-                        },
-                        {
-                            "name": "ADMIN_API_KEY",
-                            "valueFrom": {
-                                "configMapKeyRef": {
-                                    "name": "mcp-standalone",
-                                    "key": "adminApiKey"
-                                }
-                            }
                         }
                     ],
                     "resources": {},

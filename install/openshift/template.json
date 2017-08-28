@@ -73,15 +73,6 @@
                                                 "fieldPath": "metadata.namespace"
                                             }
                                         }
-                                    },
-                                    {
-                                        "name": "ADMIN_API_KEY",
-                                        "valueFrom": {
-                                            "configMapKeyRef": {
-                                                "name": "mcp-standalone",
-                                                "key": "adminApiKey"
-                                            }
-                                        }
                                     }
                                 ],
                                 "resources": {},
@@ -130,16 +121,6 @@
                         "schedulerName": "default-scheduler"
                     }
                 }
-            }
-        },
-        {
-            "kind": "ConfigMap",
-            "apiVersion": "v1",
-            "metadata": {
-                "name": "mcp-standalone"
-            },
-            "data": {
-                "adminApiKey": "${ADMIN_API_KEY}"
             }
         },
         {
@@ -213,11 +194,6 @@
         }
     ],
     "parameters":[
-        {
-            "name": "ADMIN_API_KEY",
-            "description": "a key for accessing the api without an openshift token",
-            "generate": "expression",
-            "from": "[a-zA-Z0-9]{40}"
-          }
+       
     ]
 }

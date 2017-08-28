@@ -87,7 +87,7 @@ func (sa *RoleBinding) createRoleBindingIfNotPresent(token string) error {
 		Subjects: []v1beta1.Subject{
 			{
 				Kind:      "ServiceAccount",
-				Name:      "mobile-sever",
+				Name:      "mcp-standalone",
 				Namespace: sa.namespace,
 			},
 		},
