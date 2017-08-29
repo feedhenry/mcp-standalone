@@ -61,7 +61,7 @@ func TestListMobileServices(t *testing.T) {
 							{
 								Data: map[string][]byte{
 									"uri":  []byte("http://test.com"),
-									"name": []byte("fh-sync"),
+									"name": []byte("fh-sync-server"),
 								},
 							},
 						}}, nil
@@ -76,8 +76,8 @@ func TestListMobileServices(t *testing.T) {
 					t.Fatalf("expected 1 mobile service but got %d ", len(svs))
 				}
 				s := svs[0]
-				if s.Name != "fh-sync" {
-					t.Fatal("expected the mobile service name to be fh-sync")
+				if s.Name != "fh-sync-server" {
+					t.Fatal("expected the mobile service name to be fh-sync-server")
 				}
 			},
 			StatusCode: http.StatusOK,

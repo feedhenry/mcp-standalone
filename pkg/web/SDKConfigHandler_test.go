@@ -60,7 +60,7 @@ func TestSDKConifg(t *testing.T) {
 							{
 								Data: map[string][]byte{
 									"uri":  []byte("http://test.com"),
-									"name": []byte("fh-sync"),
+									"name": []byte("fh-sync-server"),
 								},
 							},
 						}}, nil
@@ -95,8 +95,8 @@ func TestSDKConifg(t *testing.T) {
 				if err := decoder.Decode(&data); err != nil {
 					t.Fatal("did not expect an error decoding the config response ", err)
 				}
-				if _, ok := data["fh-sync"]; !ok {
-					t.Fatal("expected fh-sync to be in the config response but it was missing ")
+				if _, ok := data["fh-sync-server"]; !ok {
+					t.Fatal("expected fh-sync-server to be in the config response but it was missing ")
 				}
 			}
 		})

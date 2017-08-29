@@ -31,7 +31,7 @@ func TestListMobileServices(t *testing.T) {
 							{
 								Data: map[string][]byte{
 									"uri":  []byte("http://test.com"),
-									"name": []byte("fh-sync"),
+									"name": []byte("fh-sync-server"),
 								},
 							},
 							{
@@ -53,8 +53,8 @@ func TestListMobileServices(t *testing.T) {
 					t.Fatalf("expected 1 service to be returned but got %v ", len(svs))
 				}
 				s := svs[0]
-				if s.Name != "fh-sync" {
-					t.Fatalf("expected the service to be fh-sync but got %s ", s.Name)
+				if s.Name != "fh-sync-server" {
+					t.Fatalf("expected the service to be fh-sync-server but got %s ", s.Name)
 				}
 			},
 		},
@@ -81,7 +81,7 @@ func TestListMobileServices(t *testing.T) {
 			client := tc.Client().CoreV1().Secrets("test")
 			mobileRepo := data.NewMobileServiceRepo(client)
 			svc, err := mobileRepo.List(func(a mobile.Attributer) bool {
-				return a.GetName() == "fh-sync"
+				return a.GetName() == "fh-sync-server"
 			})
 			if tc.ExpectError && err == nil {
 				t.Fatal("expected an error but got none")
