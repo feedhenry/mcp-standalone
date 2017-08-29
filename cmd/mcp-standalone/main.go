@@ -70,12 +70,17 @@ func main() {
 	)
 	tokenClientBuilder.SAToken = token
 
+	k8sMetadata, err := k8s.GetMetadata(k8host, httpClientBuilder.Insecure(true).Build())
+	if err != nil {
+		panic(err)
+	}
+
 	//oauth handler
 	var oauthClientID = fmt.Sprintf("system:serviceaccount:%s:mcp-standalone", *namespace)
 	{
 		kubernetesOauthEndpoint := &oauth2.Endpoint{
-			AuthURL:  k8host + "/oauth/authorize",
-			TokenURL: k8host + "/oauth/token",
+			AuthURL:  k8sMetadata.AuthorizationEndpoint,
+			TokenURL: k8sMetadata.TokenEndpoint,
 		}
 
 		kubernetesOauthConfig := &oauth2.Config{
@@ -118,7 +123,11 @@ func main() {
 	//console config handler
 	var consoleMountPath = "/console"
 	{
-		consoleConfigHandler := web.NewConsoleConfigHandler(logger, consoleMountPath, k8host, oauthClientID)
+		k8MetaHost, err := k8sMetadata.GetK8IssuerHost()
+		if err != nil {
+			panic(err)
+		}
+		consoleConfigHandler := web.NewConsoleConfigHandler(logger, consoleMountPath, k8MetaHost, k8sMetadata.AuthorizationEndpoint, oauthClientID)
 		web.ConsoleConfigRoute(consoleConfigHandler)
 	}
 
