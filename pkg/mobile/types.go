@@ -16,9 +16,10 @@ type StatusError struct {
 }
 
 type Service struct {
-	Name   string            `json:"name"`
-	Host   string            `json:"host"`
-	Params map[string]string `json:"params"`
+	Name              string            `json:"name"`
+	Host              string            `json:"host"`
+	Params            map[string]string `json:"params"`
+	BindingSecretName string            `json:"binding_secret_name"`
 }
 
 type AttrFilterFunc func(attrs Attributer) bool
