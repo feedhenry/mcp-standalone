@@ -27,15 +27,27 @@ func main() {
 		cert            = flag.String("cert", "server.crt", "SSL/TLS Certificate to HTTPS")
 		key             = flag.String("key", "server.key", "SSL/TLS Private Key for the Certificate")
 		namespace       = flag.String("namespace", os.Getenv("NAMESPACE"), "the namespace to target")
+		logLevel        = flag.String("log-level", "error", "the level to log at")
 		saTokenPath     = flag.String("satoken-path", "var/run/secrets/kubernetes.io/serviceaccount/token", "where on disk the service account token to use is ")
 		staticDirectory = flag.String("web-dir", "./web/app", "Location of static content to serve at /console. index.html will be used as a fallback for requested files that don't exist")
 		k8host          string
-		logger          = logrus.New()
 		appRepoBuilder  = &data.MobileAppRepoBuilder{}
 		svcRepoBuilder  = &data.MobileServiceRepoBuilder{}
 	)
 	flag.StringVar(&k8host, "k8-host", "", "kubernetes target")
 	flag.Parse()
+
+	switch *logLevel {
+	case "debug":
+		logrus.SetLevel(logrus.DebugLevel)
+	case "info":
+		logrus.SetLevel(logrus.InfoLevel)
+	case "error":
+		logrus.SetLevel(logrus.ErrorLevel)
+	default:
+		logrus.SetLevel(logrus.ErrorLevel)
+	}
+	logger := logrus.StandardLogger()
 
 	if *namespace == "" {
 		logger.Fatal("-namespace is a required flag or it can be set via NAMESPACE env var")

@@ -1,0 +1,22 @@
+- name: check_exists
+  shell: "oc get routes mcp-standalone -n '{{ namespace }}' | grep -v NAME | awk '{print $2}'"
+  register: mobile_route
+
+- name: retrieve_token
+  shell: oc whoami -t
+  register: satoken
+
+- name: delete_app
+  uri:
+    url: "https://{{ mobile_route.stdout }}/mobileapp/{{appName}}"
+    method: DELETE
+    headers:
+      x-auth: "{{satoken.stdout}}"
+      x-skip-role-binding: "true"
+    validate_certs: no
+    status_code: 200
+  register: response  
+  until: response.status == 200
+  retries: 6
+  delay: 10  
+  when: mobile_route.stdout != ""

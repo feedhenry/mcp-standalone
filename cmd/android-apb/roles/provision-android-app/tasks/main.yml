@@ -1,0 +1,55 @@
+##############################################################################
+## Provision android-app
+## This role executes much of the needed functionality to provision an
+## application using an Ansible Playbook Bundle.  Included in the comments
+## below are some sample resources for getting started deploying an application
+## to OpenShift.
+##############################################################################
+
+
+##############################################################################
+## An OpenShift Origin deployment configuration provides a replication
+## controller, spins up pods, and also provides the ability to transition from
+## one deployment of an image to a new one.
+## https://docs.openshift.org/latest/architecture/core_concepts/deployments.html#deployments-and-deployment-configurations
+##############################################################################
+
+- name: check_exists
+  shell: "oc get routes mcp-standalone -n '{{ namespace }}' | grep -v NAME | awk '{print $2}'"
+  register: mobile_route
+
+- name: provision
+  shell: | 
+    oc new-app -f /opt/ansible/roles/provision-android-app/templates/template.json -n '{{namespace}}'
+  when: mobile_route.stdout == ""
+
+- name: check_exists_again
+  shell: "oc get routes mcp-standalone -n '{{ namespace }}' | grep -v NAME | awk '{print $2}'"
+  register: mobile_route
+
+
+- name: retrieve_token
+  shell: oc whoami -t
+  register: satoken
+
+- name: create_app
+  uri:
+    url: "https://{{ mobile_route.stdout }}/mobileapp"
+    method: POST
+    headers:
+      x-auth: "{{satoken.stdout}}"
+      x-skip-role-binding: "true"
+    body: {"name":"{{appName}}","clientType":"android"}
+    validate_certs: no
+    body_format: json
+    status_code: 201
+  register: response  
+  until: response.status == 201
+  retries: 100
+  delay: 10  
+  when: mobile_route.stdout != ""
+
+
+
+
+
