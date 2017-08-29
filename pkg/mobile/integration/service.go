@@ -12,7 +12,7 @@ type MobileService struct {
 // DiscoverMobileServices will discover mobile services configured in the current namespace
 func (ms *MobileService) DiscoverMobileServices(serviceCruder mobile.ServiceCruder) ([]*mobile.Service, error) {
 	//todo move to config
-	serviceNames := []string{"fh-sync", "keycloak"}
+	serviceNames := []string{"fh-sync-server", "keycloak"}
 	filter := func(att mobile.Attributer) bool {
 		for _, sn := range serviceNames {
 			if sn == att.GetName() {

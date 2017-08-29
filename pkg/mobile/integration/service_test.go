@@ -33,7 +33,7 @@ func TestMobileServiceDiscovery(t *testing.T) {
 								},
 								Data: map[string][]byte{
 									"uri":  []byte("http://fh-sync.com"),
-									"name": []byte("fh-sync"),
+									"name": []byte("fh-sync-server"),
 								},
 							},
 							{
@@ -58,8 +58,8 @@ func TestMobileServiceDiscovery(t *testing.T) {
 				if svc.Host != "http://fh-sync.com" {
 					t.Fatalf("unexpected host %s", svc.Host)
 				}
-				if svc.Name != "fh-sync" {
-					t.Fatalf("expected svc name to be fh-sync but got %s", svc.Name)
+				if svc.Name != "fh-sync-server" {
+					t.Fatalf("expected svc name to be fh-sync-server but got %s", svc.Name)
 				}
 			},
 		},
