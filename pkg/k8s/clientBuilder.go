@@ -4,7 +4,6 @@ import (
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
 	"github.com/pkg/errors"
 	"k8s.io/client-go/kubernetes"
-	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
@@ -59,36 +58,6 @@ func (cb *ClientBuilder) BuildClient() (kubernetes.Interface, error) {
 		return ClientForInCluster(cb.token)
 	}
 	return ClientForOutsideCluster(cb.host, cb.token)
-}
-
-func (cb *ClientBuilder) BuildConfigMapClent() (corev1.ConfigMapInterface, error) {
-	if cb.inCluster {
-		client, err := ClientForInCluster(cb.token)
-		if err != nil {
-			return nil, err
-		}
-		return client.CoreV1().ConfigMaps(cb.namespace), nil
-	}
-	client, err := ClientForOutsideCluster("", cb.token)
-	if err != nil {
-		return nil, err
-	}
-	return client.CoreV1().ConfigMaps(cb.namespace), nil
-}
-
-func (cb *ClientBuilder) BuildSecretClent() (corev1.SecretInterface, error) {
-	if cb.inCluster {
-		client, err := ClientForInCluster(cb.token)
-		if err != nil {
-			return nil, err
-		}
-		return client.CoreV1().Secrets(cb.namespace), nil
-	}
-	client, err := ClientForOutsideCluster("", cb.token)
-	if err != nil {
-		return nil, err
-	}
-	return client.CoreV1().Secrets(cb.namespace), nil
 }
 
 func ClientForInCluster(token string) (kubernetes.Interface, error) {
