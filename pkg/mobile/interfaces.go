@@ -17,6 +17,7 @@ type AppCruder interface {
 
 type ServiceCruder interface {
 	List(AttrFilterFunc) ([]*Service, error)
+	ListConfigs(AttrFilterFunc) ([]*ServiceConfig, error)
 }
 
 type Attributer interface {

@@ -21,6 +21,21 @@ type Service struct {
 	Params map[string]string `json:"params"`
 }
 
+type ServiceConfig struct {
+	Config interface{} `json:"config"`
+	Name   string      `json:"name"`
+}
+
+type KeycloakConfig struct {
+	SSLRequired   string `json:"ssl-required"`
+	AuthServerURL string `json:"auth-server-url"`
+	Realm         string `json:"realm"`
+	Resource      string `json:"resource"`
+	Credentials   struct {
+		Secret string `json:"secret"`
+	} `json:"credentials"`
+}
+
 type AttrFilterFunc func(attrs Attributer) bool
 
 func (se *StatusError) Error() string {

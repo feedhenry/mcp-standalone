@@ -59,17 +59,13 @@ func (sdk *SDKConfigHandler) Read(rw http.ResponseWriter, req *http.Request) {
 		http.Error(rw, "unauthorised ", http.StatusUnauthorized)
 		return
 	}
-	svcs, err := sdk.mobileIntegrationService.DiscoverMobileServices(svcCruder)
+	configs, err := sdk.mobileIntegrationService.GenerateMobileServiceConfigs(svcCruder)
 	if err != nil {
 		handleCommonErrorCases(err, rw, sdk.logger)
 		return
 	}
-	config := map[string]*mobile.Service{}
-	for _, s := range svcs {
-		config[s.Name] = s
-	}
 	encoder := json.NewEncoder(rw)
-	if err := encoder.Encode(config); err != nil {
+	if err := encoder.Encode(configs); err != nil {
 		handleCommonErrorCases(err, rw, sdk.logger)
 		return
 	}
