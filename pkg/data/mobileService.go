@@ -43,10 +43,17 @@ func (msr *MobileServiceRepo) List(f mobile.AttrFilterFunc) ([]*mobile.Service, 
 }
 
 func convertSecretToMobileService(s v1.Secret) *mobile.Service {
+	params := map[string]string{}
+	for key, value := range s.Data {
+		if key != "uri" && key != "name" {
+			params[key] = string(value)
+		}
+	}
 	return &mobile.Service{
-		Name:   strings.TrimSpace(string(s.Data["name"])),
-		Host:   string(s.Data["uri"]),
-		Params: map[string]string{},
+		Name:              strings.TrimSpace(string(s.Data["name"])),
+		Host:              string(s.Data["uri"]),
+		BindingSecretName: s.GetName(),
+		Params:            params,
 	}
 }
 
@@ -60,9 +67,9 @@ type MobileServiceRepoBuilder struct {
 }
 
 // WithClient sets the client to use
-func (marb *MobileServiceRepoBuilder) WithClient(c corev1.SecretInterface) mobile.ServiceRepoBuilder {
+func (marb *MobileServiceRepoBuilder) WithClient(client corev1.SecretInterface) mobile.ServiceRepoBuilder {
 	return &MobileServiceRepoBuilder{
-		client: c,
+		client: client,
 	}
 }
 
