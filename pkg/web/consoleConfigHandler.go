@@ -8,7 +8,6 @@ import (
 	"fmt"
 
 	"github.com/Sirupsen/logrus"
-	"net/url"
 )
 
 // ConsoleConfigHandler handle console config route
@@ -72,23 +71,18 @@ type mcpConsoleConfig struct {
 }
 
 // NewConsoleConfigHandler returns a new console config handler
-func NewConsoleConfigHandler(logger *logrus.Logger, consoleMountPath string, k8host string, oauthClientID string) *ConsoleConfigHandler {
-	k8MasterUrlParsed, err := url.Parse(k8host)
-	if err != nil {
-		panic(fmt.Sprintf("Error parsing k8host %v", err))
-	}
-	oauthAuthorizeUri := fmt.Sprintf("%s/oauth/authorize", k8host)
-	oauthTokenUri := fmt.Sprintf("%s/oauth/token", "https://127.0.0.1:3001")
+func NewConsoleConfigHandler(logger *logrus.Logger, consoleMountPath string, k8sHost string, k8sAuthorizeEndpoint string, oauthClientID string) *ConsoleConfigHandler {
+	oauthTokenUri := fmt.Sprintf("%s/oauth/token", "https://127.0.0.1:9000")
 	oauthRedirectBase := fmt.Sprintf("%s/console", "https://127.0.0.1:9000")
 
 	mcpConsoleConfig := mcpConsoleConfig{
-		APIGroupAddr:      k8MasterUrlParsed.Host,
+		APIGroupAddr:      k8sHost,
 		APIGroupPrefix:    "/apis",
-		MasterAddr:        k8MasterUrlParsed.Host,
+		MasterAddr:        k8sHost,
 		MasterPrefix:      "/oapi",
-		KubernetesAddr:    k8MasterUrlParsed.Host,
+		KubernetesAddr:    k8sHost,
 		KubernetesPrefix:  "/api",
-		OAuthAuthorizeURI: oauthAuthorizeUri,
+		OAuthAuthorizeURI: k8sAuthorizeEndpoint,
 		OAuthTokenURI:     oauthTokenUri,
 		OAuthRedirectBase: oauthRedirectBase,
 		OAuthClientID:     oauthClientID,

@@ -10,10 +10,11 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
+	"github.com/feedhenry/mcp-standalone/pkg/mock"
 )
 
 type mockHTTPClientBuilder struct {
-	requester *mockRequester
+	requester *mock.Requester
 }
 
 func (mcb *mockHTTPClientBuilder) Insecure(i bool) mobile.HTTPRequesterBuilder {
@@ -28,29 +29,16 @@ func (mcb *mockHTTPClientBuilder) Build() mobile.ExternalHTTPRequester {
 	return mcb.requester
 }
 
-type mockRequester struct {
-	test       *testing.T
-	responsder func(path string, method string, t *testing.T) (*http.Response, error)
-}
-
-func (mr *mockRequester) Do(req *http.Request) (*http.Response, error) {
-	return mr.responsder(req.URL.Path, req.Method, mr.test)
-}
-
-func (mr *mockRequester) Get(url string) (*http.Response, error) {
-	return mr.responsder(url, "GET", mr.test)
-}
-
 func TestRolbindingMiddleware(t *testing.T) {
 	var buf bytes.Buffer
 	cases := []struct {
 		Name            string
 		ExpectError     bool
-		RequestResponse func(path string, method string, t *testing.T) (*http.Response, error)
+		RequestResponse func(host string, path string, method string, t *testing.T) (*http.Response, error)
 	}{
 		{
 			Name: "test rolebinding ok when doesn't exist",
-			RequestResponse: func(path string, method string, t *testing.T) (*http.Response, error) {
+			RequestResponse: func(host string, path string, method string, t *testing.T) (*http.Response, error) {
 				if path == "/oapi/v1/namespaces/test/rolebindings/edit" {
 					return &http.Response{
 						StatusCode: 404,
@@ -68,7 +56,7 @@ func TestRolbindingMiddleware(t *testing.T) {
 		},
 		{
 			Name: "test rolebinding ok when rolebinding already exists",
-			RequestResponse: func(path string, method string, t *testing.T) (*http.Response, error) {
+			RequestResponse: func(host string, path string, method string, t *testing.T) (*http.Response, error) {
 				if path == "/oapi/v1/namespaces/test/rolebindings/edit" {
 					return &http.Response{
 						StatusCode: 200,
@@ -83,7 +71,7 @@ func TestRolbindingMiddleware(t *testing.T) {
 		},
 		{
 			Name: "test rolebinding fails when unauthorised",
-			RequestResponse: func(path string, method string, t *testing.T) (*http.Response, error) {
+			RequestResponse: func(host string, path string, method string, t *testing.T) (*http.Response, error) {
 				if path == "/oapi/v1/namespaces/test/rolebindings/edit" {
 					return &http.Response{
 						StatusCode: 401,
@@ -102,7 +90,7 @@ func TestRolbindingMiddleware(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
 			rb := &RoleBinding{
-				clientBuilder: &mockHTTPClientBuilder{requester: &mockRequester{responsder: tc.RequestResponse}},
+				clientBuilder: &mockHTTPClientBuilder{requester: &mock.Requester{Responder: tc.RequestResponse}},
 				namespace:     "test",
 				khost:         "http://k8s.io",
 				logger:        logrus.StandardLogger(),
