@@ -1,6 +1,6 @@
-## Mobile Server
+## MCP (mobile control panel) Standalone 
 
-The mobile server is PoC for a per Namespace service that helps developers create and integrate mobile applications on OpenShift.
+The MCP Standalone is PoC for a per Namespace service that helps developers create and integrate mobile applications on OpenShift.
 
 
 ### Install
