@@ -74,7 +74,7 @@ type mcpConsoleConfig struct {
 }
 
 // NewConsoleConfigHandler returns a new console config handler
-func NewConsoleConfigHandler(logger *logrus.Logger, consoleMountPath string, k8sHost string, k8sAuthorizeEndpoint string, oauthClientID string) *ConsoleConfigHandler {
+func NewConsoleConfigHandler(logger *logrus.Logger, k8sHost string, k8sAuthorizeEndpoint string, oauthClientID string) *ConsoleConfigHandler {
 	mcpConsoleConfig := mcpConsoleConfig{
 		APIGroupAddr:      k8sHost,
 		APIGroupPrefix:    "/apis",
@@ -91,7 +91,6 @@ func NewConsoleConfigHandler(logger *logrus.Logger, consoleMountPath string, k8s
 
 	return &ConsoleConfigHandler{
 		logger:           logger,
-		consoleMountPath: consoleMountPath,
 		mcpConsoleConfig: mcpConsoleConfig,
 	}
 }
@@ -102,7 +101,7 @@ func (cch ConsoleConfigHandler) Config(res http.ResponseWriter, req *http.Reques
 		handleCommonErrorCases(err, res, cch.logger)
 	}
 	cch.mcpConsoleConfig.OAuthTokenURI = fmt.Sprintf("%s/oauth/token", baseUrl)
-	cch.mcpConsoleConfig.OAuthRedirectBase = fmt.Sprintf("%s/console", baseUrl)
+	cch.mcpConsoleConfig.OAuthRedirectBase = baseUrl
 
 	var buffer bytes.Buffer
 	if err := configTemplate.Execute(&buffer, cch.mcpConsoleConfig); err != nil {

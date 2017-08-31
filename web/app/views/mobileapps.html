@@ -1,5 +1,58 @@
-<h1>Mobile Apps</h1>
-<div ng-repeat="mobileapp in mobileapps">
-  <h2>{{mobileapp.name}}</h2>
-  <p>{{mobileapp.clientType}}</p>
+<div class="row">
+  <div class="col-md-12">
+    <span ng-if="mobileapps.length > 0" style="font-size: 20px;">Mobile Apps</span>
+    <a ng-href="/#appcreate" class="btn btn-md btn-primary pull-right">Create App</a>
+  </div>
+</div>
+<div ng-if="mobileapps.length > 0" class="row row-cards-pf">
+  <div ng-repeat="mobileapp in mobileapps" class="col-xs-12 col-sm-4 col-md-3 col-lg-2">
+    <div class="card-pf card-pf-view" style="cursor:pointer;" ng-click="openApp(mobileapp.id)">
+      <div class="card-pf-body" style="height: 204px;">
+        <div class="card-pf-top-element">
+          <span class="fa icon {{mobileapp.metadata.icon}} card-pf-icon-circle"></span>
+        </div>
+        <h2 class="card-pf-title text-center">
+          {{mobileapp.name}}
+        </h2>
+        <p class="card-pf-info text-center"><strong>Created</strong> {{mobileapp.metadata.created}}</p>
+        <p class="card-pf-info text-center"><strong>Description:</strong> {{mobileapp.description}}</p>
+        <a class="pull-right" style="font-size:10px;" ng-click="openApp(mobileapp.id)" href=""> Details ></a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-12">
+    <span ng-if="services.length > 0" style="font-size: 20px;">Mobile Services</span>
+  </div>
+</div>
+<div ng-if="services.length > 0" class="row row-cards-pf">
+  <div ng-repeat="service in services" class="col-xs-12 col-sm-4 col-md-4 col-lg-2">
+    <div class="card-pf card-pf-view" style="cursor:pointer;" ng-click="openService(service.id)">
+      <div class="card-pf-body" style="height: 204px;">
+        <div class="card-pf-top-element">
+          <span class="fa icon card-pf-icon-circle"></span>
+        </div>
+        <p class="card-pf-info text-center">
+        <h2 class="card-pf-title text-center">
+          {{service.name}}
+        </h2>
+        </p>
+        <p class="card-pf-info text-center">
+          <h6>Capabilities:</h6>
+          <span style="color: blueviolet; font-size: 8px;"> Authentication,</span>
+          <span style="color: blueviolet; font-size: 8px;"> Authorisation</span>
+      
+      
+          <h6>Integrations:</h6>
+          <span style="color: blueviolet; font-size: 8px;"> fh-sync,</span>
+          <span style="color: blueviolet; font-size: 8px;"> mobile clients</span>
+          
+        <a class="pull-right" style="font-size:10px;" ng-click="openApp(mobileapp.id)" href=""> Details ></a>
+        </p>
+
+      </div>
+    </div>
+  </div>
 </div>

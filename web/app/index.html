@@ -7,7 +7,7 @@
     <meta charset="utf-8">
     <link rel="shortcut icon" href="favicon.ico?v=2" type="image/x-icon"> 
     <title>Mobile Control Panel</title>
-    <base href="/console/">
+    <base href="/"/>
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width">
     <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
@@ -40,7 +40,7 @@
     <link rel="stylesheet" href="styles/main.css">
     <!-- endbuild -->
   </head>
-  <body ng-app="mobileControlPanelApp">
+  <body>
     <!--[if lte IE 8]>
       <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
     <![endif]-->
@@ -58,11 +58,17 @@
     <div class="nav-pf-vertical nav-pf-vertical-with-sub-menus">
       <ul class="list-group">
         <li class="list-group-item">
-          <a href="">
+          <a href="/apps">
             <span class="fa fa-dashboard" data-toggle="tooltip" title="Overview"></span>
             <span class="list-group-item-value">Overview</span>
           </a>
         </li>
+        <li class="list-group-item">
+            <a href="/services">
+              <span class="glyphicon glyphicon-random" data-toggle="tooltip" title="Services"></span>
+              <span class="list-group-item-value">Integrations</span>
+            </a>
+          </li>
       </ul>
     </div>
 
@@ -156,10 +162,14 @@
 
         <!-- build:js({.tmp,app}) scripts/scripts.js -->
         <script src="scripts/app.js"></script>
+        <script src="scripts/services/mcp-api.js"></script>
+        <script src="scripts/controllers/appcreate.js"></script>
         <script src="scripts/controllers/mobileapps.js"></script>
         <script src="scripts/controllers/mobileapp.js"></script>
         <script src="scripts/controllers/oauth.js"></script>
         <script src="scripts/controllers/error.js"></script>
+        
+        <script src="scripts/controllers/services.js"></script>
         <!-- endbuild -->
 </body>
 </html>
