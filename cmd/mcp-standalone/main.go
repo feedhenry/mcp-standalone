@@ -77,7 +77,7 @@ func main() {
 	//oauth handler
 	var oauthClientID = fmt.Sprintf("system:serviceaccount:%s:mcp-standalone", *namespace)
 	{
-		oauthHandler := web.NewOauthHandler(logger, *k8sMetadata, oauthClientID, token)
+		oauthHandler := web.NewOauthHandler(logger, *k8sMetadata, oauthClientID, token, *namespace)
 		web.OAuthRoute(router, oauthHandler)
 	}
 
@@ -107,14 +107,14 @@ func main() {
 	}
 
 	//console config handler
-	var consoleMountPath = "/console"
+	var consoleMountPath = ""
 	{
 		k8MetaHost, err := k8sMetadata.GetK8IssuerHost()
 		if err != nil {
 			panic(err)
 		}
-		consoleConfigHandler := web.NewConsoleConfigHandler(logger, consoleMountPath, k8MetaHost, k8sMetadata.AuthorizationEndpoint, oauthClientID)
-		web.ConsoleConfigRoute(consoleConfigHandler)
+		consoleConfigHandler := web.NewConsoleConfigHandler(logger, k8MetaHost, k8sMetadata.AuthorizationEndpoint, oauthClientID)
+		web.ConsoleConfigRoute(router, consoleConfigHandler)
 	}
 
 	//static handler
@@ -123,14 +123,10 @@ func main() {
 		web.StaticRoute(staticHandler)
 	}
 
-	//add in the rolebinding mw
-	mrb := middleware.NewRoleBinding(httpClientBuilder, *namespace, logger, k8host)
-
-	handler := web.BuildHTTPHandler(router, mwAccess, mrb)
-	http.Handle("/", handler)
+	handler := web.BuildHTTPHandler(router, mwAccess)
 	logger.Info("starting server on port "+*port, " using key ", *key, " and cert ", *cert, "target namespace is ", *namespace)
 
-	if err := http.ListenAndServeTLS(*port, *cert, *key, nil); err != nil {
+	if err := http.ListenAndServeTLS(*port, *cert, *key, handler); err != nil {
 		panic(err)
 	}
 }

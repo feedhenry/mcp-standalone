@@ -27,7 +27,7 @@ func setupSDKHandler(kclient kubernetes.Interface) http.Handler {
 	ms := &integration.MobileService{}
 	sdkConfigHandler := web.NewSDKConfigHandler(logger, ms, clientBuilder)
 	web.SDKConfigRoute(r, sdkConfigHandler)
-	return web.BuildHTTPHandler(r, nil, nil)
+	return web.BuildHTTPHandler(r, nil)
 }
 
 func TestSDKConifg(t *testing.T) {

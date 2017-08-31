@@ -13,18 +13,22 @@ angular
     'ngRoute',
     'openshiftCommonServices'
   ])
-  .config(['$locationProvider', '$routeProvider', 'RedirectLoginServiceProvider', function ($locationProvider, $routeProvider, RedirectLoginServiceProvider) {
-    $locationProvider.html5Mode(true);
-
+  .config(['$routeProvider', '$locationProvider','RedirectLoginServiceProvider', function ($routeProvider, $locationProvider ,RedirectLoginServiceProvider) {
+    $locationProvider.html5Mode(true)
     $routeProvider
-      .when('/mobileapps', {
-        templateUrl: 'views/mobileapps.html',
+      .when('/apps', {
+        templateUrl: '/views/mobileapps.html',
         controller: 'MobileappsCtrl',
         requireAuthentication: true
       })
-      .when('/mobileapp', {
+      .when('/apps/:id', {
         templateUrl: 'views/mobileapp.html',
         controller: 'MobileappCtrl',
+        requireAuthentication: true
+      })
+      .when('/appcreate', {
+        templateUrl: '/views/appcreate.html',
+        controller: 'AppCreateCtrl',
         requireAuthentication: true
       })
       .when('/oauth', {
@@ -35,11 +39,16 @@ angular
         templateUrl: 'views/error.html',
         controller: 'ErrorCtrl'
       })
+      .when('/services', {
+        templateUrl: 'views/services.html',
+        controller: 'ServicesCtrl',
+        controllerAs: 'services'
+      })
       .otherwise({
-        redirectTo: '/mobileapps'
+        redirectTo: '/apps'
       });
 
-      RedirectLoginServiceProvider.OAuthScope('user:info user:check-access');
+      RedirectLoginServiceProvider.OAuthScope('user:info user:check-access role:edit:project:!');
   }])
   .filter('debug', function() {
     return function(input) {
@@ -49,6 +58,7 @@ angular
   })
   .run(['$rootScope', '$location', 'AuthService', function ($rootScope, $location, AuthService) {
     $rootScope.$on('$routeChangeStart', function (event, url) {
+      debugger;
       if (url.requireAuthentication) {
         AuthService.withUser().then(function() {
           // no further action. Login check was successful
@@ -58,4 +68,3 @@ angular
 }]);
 
 hawtioPluginLoader.addModule('mobileControlPanelApp');
-

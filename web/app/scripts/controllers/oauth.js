@@ -10,7 +10,7 @@
 angular.module('mobileControlPanelApp')
   .controller('OauthCtrl', function ($scope, $location, $q, RedirectLoginService, DataService, AuthService, Logger) {
     var authLogger = Logger.get("auth");
-
+    debugger;
     // Initialize to a no-op function.
     // Needed to let the view confirm a login when the state is unverified. 
     $scope.completeLogin = function(){};

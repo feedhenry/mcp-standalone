@@ -20,10 +20,11 @@ type OAuthHandler struct {
 	oauthClientID string
 	oauthEndpoint oauth2.Endpoint
 	token         string
+	namespace     string
 }
 
 // NewOauthHandler returns a new oauth handler
-func NewOauthHandler(logger *logrus.Logger, k8sMetadata k8s.Metadata, oauthClientID string, token string) *OAuthHandler {
+func NewOauthHandler(logger *logrus.Logger, k8sMetadata k8s.Metadata, oauthClientID, token, namespace string) *OAuthHandler {
 	// OpenShift OAuth requires client id & secret in request parameters
 	oauthEndpoint := oauth2.Endpoint{
 		AuthURL:  k8sMetadata.AuthorizationEndpoint,
@@ -37,6 +38,7 @@ func NewOauthHandler(logger *logrus.Logger, k8sMetadata k8s.Metadata, oauthClien
 		oauthClientID: oauthClientID,
 		oauthEndpoint: oauthEndpoint,
 		token:         token,
+		namespace:     namespace,
 	}
 }
 
@@ -47,10 +49,10 @@ func (oah *OAuthHandler) OAuthToken(w http.ResponseWriter, r *http.Request) {
 	}
 
 	config := &oauth2.Config{
-		RedirectURL:  fmt.Sprintf("%s/console/oauth", baseUrl),
+		RedirectURL:  fmt.Sprintf("%s/oauth", baseUrl),
 		ClientID:     oah.oauthClientID,
 		ClientSecret: oah.token,
-		Scopes:       []string{"user:info user:check-access"},
+		Scopes:       []string{"user:info user:check-access role:edit:" + oah.namespace + ":!"},
 		Endpoint:     oah.oauthEndpoint,
 	}
 
