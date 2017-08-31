@@ -29,12 +29,6 @@ func (cb *ClientBuilder) BuildClient() (kubernetes.Interface, error) {
 	return cb.Fakeclient, nil
 
 }
-func (cb *ClientBuilder) BuildConfigMapClent() (corev1.ConfigMapInterface, error) {
-	return cb.Fakeclient.CoreV1().ConfigMaps(cb.namespace), nil
-}
-func (cb *ClientBuilder) BuildSecretClent() (corev1.SecretInterface, error) {
-	return cb.Fakeclient.CoreV1().Secrets(cb.namespace), nil
-}
 
 type AppRepoBuilder struct {
 	AppCruder *MockAppCruder

@@ -12,19 +12,32 @@ type MobileService struct {
 // DiscoverMobileServices will discover mobile services configured in the current namespace
 func (ms *MobileService) DiscoverMobileServices(serviceCruder mobile.ServiceCruder) ([]*mobile.Service, error) {
 	//todo move to config
-	serviceNames := []string{"fh-sync-server", "keycloak"}
-	filter := func(att mobile.Attributer) bool {
-		for _, sn := range serviceNames {
-			if sn == att.GetName() {
-				return true
-			}
-		}
-		return false
-	}
-
-	svc, err := serviceCruder.List(filter)
+	svc, err := serviceCruder.List(ms.filterServices)
 	if err != nil {
 		return nil, errors.Wrap(err, "Attempting to discover mobile services.")
 	}
 	return svc, nil
+}
+
+func (ms *MobileService) filterServices(att mobile.Attributer) bool {
+	var serviceNames = []string{"fh-sync-server", "keycloak"}
+	for _, sn := range serviceNames {
+		if sn == att.GetName() {
+			return true
+		}
+	}
+	return false
+}
+
+// GenerateMobileServiceConfigs will return a map of services and their mobile configs
+func (ms *MobileService) GenerateMobileServiceConfigs(serviceCruder mobile.ServiceCruder) (map[string]*mobile.ServiceConfig, error) {
+	svcConfigs, err := serviceCruder.ListConfigs(ms.filterServices)
+	if err != nil {
+		return nil, errors.Wrap(err, "GenerateMobileServiceConfigs failed during a list of configs")
+	}
+	configs := map[string]*mobile.ServiceConfig{}
+	for _, sc := range svcConfigs {
+		configs[sc.Name] = sc
+	}
+	return configs, nil
 }
