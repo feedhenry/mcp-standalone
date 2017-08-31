@@ -62,9 +62,9 @@ type MobileServiceRepo struct {
 func NewMobileServiceRepo(client corev1.SecretInterface) *MobileServiceRepo {
 	return &MobileServiceRepo{
 		client: client,
+		// if a secret needs a special convertor it is added here otherwise the default convertor will be used
 		convertors: map[string]SecretConvertor{
-			"fh-sync-server": defaultSecretConvertor{},
-			"keycloak":       keycloakSecretConvertor{},
+			"keycloak": keycloakSecretConvertor{},
 		},
 		logger: logrus.StandardLogger(),
 	}
@@ -94,19 +94,26 @@ func (msr *MobileServiceRepo) ListConfigs(filter mobile.AttrFilterFunc) ([]*mobi
 	ret := []*mobile.ServiceConfig{}
 	for _, item := range svs.Items {
 		if filter(&secretAttributer{&item}) {
+			var svcConifg *mobile.ServiceConfig
 			svc := convertSecretToMobileService(item)
 			if _, ok := msr.convertors[svc.Name]; !ok {
-				msr.logger.Info("failed to find converter for ", svc.Name)
-			} else {
-				// we can only convert what is available
-				convertor := msr.convertors[svc.Name]
-				svcConifg, err := convertor.Convert(item)
+				msr.logger.Info("failed to find converter for ", svc.Name, "using default convertor")
+				convertor := defaultSecretConvertor{}
+				svcConifg, err = convertor.Convert(item)
 				if err != nil {
 					//bail out here as now our config may not be compelete?
 					return nil, errors.Wrap(err, "failed to convert config for service: "+svc.Name)
 				}
-				ret = append(ret, svcConifg)
+			} else {
+				// we can only convert what is available
+				convertor := msr.convertors[svc.Name]
+				svcConifg, err = convertor.Convert(item)
+				if err != nil {
+					//bail out here as now our config may not be compelete?
+					return nil, errors.Wrap(err, "failed to convert config for service: "+svc.Name)
+				}
 			}
+			ret = append(ret, svcConifg)
 		}
 	}
 	return ret, nil

@@ -9,8 +9,6 @@ import (
 type MobileService struct {
 }
 
-var serviceNames = []string{"fh-sync-server", "keycloak"}
-
 // DiscoverMobileServices will discover mobile services configured in the current namespace
 func (ms *MobileService) DiscoverMobileServices(serviceCruder mobile.ServiceCruder) ([]*mobile.Service, error) {
 	//todo move to config
@@ -22,6 +20,7 @@ func (ms *MobileService) DiscoverMobileServices(serviceCruder mobile.ServiceCrud
 }
 
 func (ms *MobileService) filterServices(att mobile.Attributer) bool {
+	var serviceNames = []string{"fh-sync-server", "keycloak"}
 	for _, sn := range serviceNames {
 		if sn == att.GetName() {
 			return true
