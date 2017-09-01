@@ -8,13 +8,16 @@ import (
 	"fmt"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/pkg/errors"
+
+	"github.com/feedhenry/mcp-standalone/pkg/web/headers"
 )
 
 // ConsoleConfigHandler handle console config route
 type ConsoleConfigHandler struct {
 	logger           *logrus.Logger
 	consoleMountPath string
-	config           []byte
+	mcpConsoleConfig mcpConsoleConfig
 }
 
 var configTemplate = template.Must(template.New("mcpConsoleConfig").Parse(`
@@ -72,9 +75,6 @@ type mcpConsoleConfig struct {
 
 // NewConsoleConfigHandler returns a new console config handler
 func NewConsoleConfigHandler(logger *logrus.Logger, consoleMountPath string, k8sHost string, k8sAuthorizeEndpoint string, oauthClientID string) *ConsoleConfigHandler {
-	oauthTokenUri := fmt.Sprintf("%s/oauth/token", "https://127.0.0.1:9000")
-	oauthRedirectBase := fmt.Sprintf("%s/console", "https://127.0.0.1:9000")
-
 	mcpConsoleConfig := mcpConsoleConfig{
 		APIGroupAddr:      k8sHost,
 		APIGroupPrefix:    "/apis",
@@ -83,29 +83,37 @@ func NewConsoleConfigHandler(logger *logrus.Logger, consoleMountPath string, k8s
 		KubernetesAddr:    k8sHost,
 		KubernetesPrefix:  "/api",
 		OAuthAuthorizeURI: k8sAuthorizeEndpoint,
-		OAuthTokenURI:     oauthTokenUri,
-		OAuthRedirectBase: oauthRedirectBase,
+		OAuthTokenURI:     "",
+		OAuthRedirectBase: "",
 		OAuthClientID:     oauthClientID,
 		LogoutURI:         "",
 	}
-	var buffer bytes.Buffer
-	if err := configTemplate.Execute(&buffer, mcpConsoleConfig); err != nil {
-		panic(fmt.Sprintf("Error executing console config template %v", err))
-	}
-
-	config := buffer.Bytes()
 
 	return &ConsoleConfigHandler{
 		logger:           logger,
 		consoleMountPath: consoleMountPath,
-		config:           config,
+		mcpConsoleConfig: mcpConsoleConfig,
 	}
 }
 
 func (cch ConsoleConfigHandler) Config(res http.ResponseWriter, req *http.Request) {
+	baseUrl, err := headers.ParseBaseUrl(req)
+	if err != nil {
+		handleCommonErrorCases(err, res, cch.logger)
+	}
+	cch.mcpConsoleConfig.OAuthTokenURI = fmt.Sprintf("%s/oauth/token", baseUrl)
+	cch.mcpConsoleConfig.OAuthRedirectBase = fmt.Sprintf("%s/console", baseUrl)
+
+	var buffer bytes.Buffer
+	if err := configTemplate.Execute(&buffer, cch.mcpConsoleConfig); err != nil {
+		handleCommonErrorCases(errors.Wrap(err, "Error executing console config template"), res, cch.logger)
+	}
+
+	config := buffer.Bytes()
+
 	res.Header().Add("Cache-Control", "no-cache, no-store")
 	res.Header().Add("Content-Type", "application/javascript")
-	if _, err := res.Write(cch.config); err != nil {
+	if _, err := res.Write(config); err != nil {
 		handleCommonErrorCases(err, res, cch.logger)
 		return
 	}

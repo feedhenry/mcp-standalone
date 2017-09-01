@@ -17,7 +17,6 @@ import (
 	"github.com/feedhenry/mcp-standalone/pkg/web"
 	"github.com/feedhenry/mcp-standalone/pkg/web/middleware"
 	"github.com/pkg/errors"
-	"golang.org/x/oauth2"
 )
 
 func main() {
@@ -78,20 +77,7 @@ func main() {
 	//oauth handler
 	var oauthClientID = fmt.Sprintf("system:serviceaccount:%s:mcp-standalone", *namespace)
 	{
-		kubernetesOauthEndpoint := &oauth2.Endpoint{
-			AuthURL:  k8sMetadata.AuthorizationEndpoint,
-			TokenURL: k8sMetadata.TokenEndpoint,
-		}
-
-		kubernetesOauthConfig := &oauth2.Config{
-			// TODO: how to dynamically configure this url from the Route
-			RedirectURL:  "https://127.0.0.1:9000/console/oauth",
-			ClientID:     oauthClientID,
-			ClientSecret: token,
-			Scopes:       []string{"user:info user:check-access"},
-			Endpoint:     *kubernetesOauthEndpoint,
-		}
-		oauthHandler := web.NewOauthHandler(logger, kubernetesOauthConfig)
+		oauthHandler := web.NewOauthHandler(logger, *k8sMetadata, oauthClientID, token)
 		web.OAuthRoute(router, oauthHandler)
 	}
 
