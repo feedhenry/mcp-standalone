@@ -136,6 +136,7 @@ func TestCreateMobileApp(t *testing.T) {
 				Name:       "app",
 				ClientType: "android",
 				APIKey:     "akey",
+				MetaData:   map[string]string{},
 			},
 			Client: func() corev1.ConfigMapInterface {
 				c := fake.Clientset{}
@@ -159,6 +160,7 @@ func TestCreateMobileApp(t *testing.T) {
 			App: &mobile.App{
 				Name:       "app",
 				ClientType: "android",
+				MetaData:   map[string]string{},
 			},
 			Client: func() corev1.ConfigMapInterface {
 				c := fake.Clientset{}

@@ -2,7 +2,6 @@ package web
 
 import (
 	"net/http"
-	"strings"
 
 	"github.com/Sirupsen/logrus"
 )
@@ -33,12 +32,7 @@ func (sh StaticHandler) Static(res http.ResponseWriter, req *http.Request) {
 	}
 	file := req.URL.Path
 	// if we have a prefix, filter requests by stripping the prefix
-	if !strings.HasPrefix(file, sh.prefix) {
-		sh.logger.Errorf("Requested file doesn't have prefix:%s file:%s", sh.prefix, file)
-		http.Error(res, "Not Found", 404)
-		return
-	}
-	file = file[len(sh.prefix):]
+	// /../../
 	f, err := dir.Open(file)
 	if err != nil {
 		// try fallback before giving up
