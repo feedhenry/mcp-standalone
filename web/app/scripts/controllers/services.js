@@ -11,10 +11,9 @@ angular.module('mobileControlPanelApp')
   .controller('ServicesCtrl', ['$scope','mcpApi',function ($scope, mcpApi) {
     mcpApi.mobileServices()
     .then(s=>{
-      console.log("got services ", s);
       $scope.services = s;
     })
     .catch(e =>{
       console.error("error getting services ", e);
-    })
+    });
   }]);

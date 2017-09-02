@@ -13,7 +13,6 @@ angular.module('mobileControlPanelApp')
     $scope.services = [];
     mcpApi.mobileApps()
       .then((apps) => {
-        console.log("apps", apps);
         $scope.mobileapps = apps;
       })
       .catch(e => {
@@ -22,15 +21,13 @@ angular.module('mobileControlPanelApp')
 
       mcpApi.mobileServices()
       .then(s=>{
-        console.log("got services ", s);
         $scope.services = s;
       })
       .catch(e =>{
         console.error("error getting services ", e);
-      })
+      });
 
     $scope.openApp = function (id) {
-      console.log("open app ", id);
       $location.path("/apps/" + id);
     };
   }]);

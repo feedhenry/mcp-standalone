@@ -14,8 +14,7 @@
         <h2 class="card-pf-title text-center">
           {{mobileapp.name}}
         </h2>
-        <p class="card-pf-info text-center"><strong>Created</strong> {{mobileapp.metadata.created}}</p>
-        <p class="card-pf-info text-center"><strong>Description:</strong> {{mobileapp.description}}</p>
+        <p class="card-pf-info text-center"> {{mobileapp.description}}</p>
         <a class="pull-right" style="font-size:10px;" ng-click="openApp(mobileapp.id)" href=""> Details ></a>
       </div>
     </div>
@@ -24,7 +23,7 @@
 
 <div class="row">
   <div class="col-md-12">
-    <span ng-if="services.length > 0" style="font-size: 20px;">Mobile Services</span>
+    <span ng-if="services.length > 0" style="font-size: 20px;">Provisioned Mobile Services</span>
   </div>
 </div>
 <div ng-if="services.length > 0" class="row row-cards-pf">

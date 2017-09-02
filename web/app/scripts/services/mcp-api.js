@@ -10,13 +10,12 @@
 angular.module('mobileControlPanelApp')
   .service('mcpApi', ['$http','AuthService',function ($http,AuthService) {
     
-    let mobileAppsURL = "/mobileapp"
-    let mobileServicesURL = "/mobileservice"
+    let mobileAppsURL = "/mobileapp";
+    let mobileServicesURL = "/mobileservice";
     // AngularJS will instantiate a singleton by calling "new" on this function
-    let requestConfig = {"headers":{}}
-    AuthService.addAuthToRequest(requestConfig)
+    let requestConfig = {"headers":{}};
+    AuthService.addAuthToRequest(requestConfig);
     
-
     return{
       "mobileApps" : function(){
         return $http.get(mobileAppsURL,requestConfig)
@@ -24,7 +23,7 @@ angular.module('mobileControlPanelApp')
           return res.data;
         })
         .catch(err=>{
-          return err
+          return err;
         });
       },
       "mobileApp": function(id){
@@ -33,7 +32,7 @@ angular.module('mobileControlPanelApp')
           return res.data;
         })
         .catch(err=>{
-          return err
+          return err;
         });
       },
       "createMobileApp":function(mobileApp){
@@ -42,7 +41,7 @@ angular.module('mobileControlPanelApp')
           return res.data;
         })
         .catch(err=>{
-          return err
+          return err;
         });
       },
       "mobileServices": function(){
@@ -51,9 +50,8 @@ angular.module('mobileControlPanelApp')
           return res.data;
         })
         .catch(err=>{
-          return err
+          return err;
         });
       }
-    }
-
+    };
   }]);

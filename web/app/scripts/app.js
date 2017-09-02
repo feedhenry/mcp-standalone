@@ -14,7 +14,7 @@ angular
     'openshiftCommonServices'
   ])
   .config(['$routeProvider', '$locationProvider','RedirectLoginServiceProvider', function ($routeProvider, $locationProvider ,RedirectLoginServiceProvider) {
-    $locationProvider.html5Mode(true)
+    $locationProvider.html5Mode(true);
     $routeProvider
       .when('/apps', {
         templateUrl: '/views/mobileapps.html',
@@ -52,13 +52,12 @@ angular
   }])
   .filter('debug', function() {
     return function(input) {
-      if (input === '') return 'empty string';
+      if (input === ''){ return 'empty string';}
       return input ? input : ('' + input);
     };
   })
   .run(['$rootScope', '$location', 'AuthService', function ($rootScope, $location, AuthService) {
     $rootScope.$on('$routeChangeStart', function (event, url) {
-      debugger;
       if (url.requireAuthentication) {
         AuthService.withUser().then(function() {
           // no further action. Login check was successful
