@@ -31,6 +31,8 @@ type KeycloakConfig struct {
 	AuthServerURL string `json:"auth-server-url"`
 	Realm         string `json:"realm"`
 	Resource      string `json:"resource"`
+	ClientID      string `json:"clientId"`
+	URL           string `json:"url"`
 	Credentials   struct {
 		Secret string `json:"secret"`
 	} `json:"credentials"`
