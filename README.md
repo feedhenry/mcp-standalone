@@ -15,6 +15,12 @@ cd install/openshift
 ./install.sh <namespace>
 ```
 
+### Setup the cli 
+
+there is a very basic cli at ```cmd/cli``` you can build this and use it by running
+``` make build_cli ``` this will drop a binary in your current dir which you can then use to exercise the api.
+
+
 ### Local Development
 
 - install go

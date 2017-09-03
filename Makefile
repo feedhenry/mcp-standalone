@@ -28,8 +28,11 @@ gofmt:
 web:
 	cd web && npm install && ./node_modules/.bin/bower install && grunt build
 
+build_cli:
+	go build -o mcp ./cmd/mcp-cli
+
 build: web test-unit
-	export GOOS=linux && go build ./cmd/mcp-standalone
+	export GOOS=linux && go build ./cmd/mcp-api
 
 image: build
 	mkdir -p tmp
@@ -42,12 +45,12 @@ image: build
 
 run_server:
 	@echo Running Server
-	time go install ./cmd/mcp-standalone
+	time go install ./cmd/mcp-api
 	oc new-project $(NAMESPACE) | true
 	oc create -f install/openshift/sa.local.json -n  $(NAMESPACE) | true
 	oc policy add-role-to-user edit system:serviceaccount:$(NAMESPACE):mcp-standalone -n  $(NAMESPACE) | true
 	oc sa get-token mcp-standalone -n  $(NAMESPACE) > token
-	mcp-standalone -namespace=$(NAMESPACE) -k8-host=$(OSCP) -satoken-path=./token -log-level=debug
+	mcp-api -namespace=$(NAMESPACE) -k8-host=$(OSCP) -satoken-path=./token -log-level=debug
 
 
 test: test-unit
