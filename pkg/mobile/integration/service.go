@@ -27,21 +27,14 @@ func (ms *MobileService) FindByNames(names []string, serviceCruder mobile.Servic
 				return true
 			}
 		}
+		return false
 	}
-	return nil, false
-}
 
-// GenerateMobileServiceConfigs will return a map of services and their mobile configs
-func (ms *MobileService) GenerateMobileServiceConfigs(serviceCruder mobile.ServiceCruder) (map[string]*mobile.ServiceConfig, error) {
-	svcConfigs, err := serviceCruder.ListConfigs(ms.filterServices)
+	svc, err := serviceCruder.List(filter)
 	if err != nil {
-		return nil, errors.Wrap(err, "GenerateMobileServiceConfigs failed during a list of configs")
+		return nil, errors.Wrap(err, "Attempting to discover mobile services.")
 	}
-	configs := map[string]*mobile.ServiceConfig{}
-	for _, sc := range svcConfigs {
-		configs[sc.Name] = sc
-	}
-	return configs, nil
+	return svc, nil
 }
 
 //MountSecretForComponent will work within namespace and mount secretName into componentName, so it can be configured to use serviceName, returning the modified deployment
