@@ -17,8 +17,9 @@ angular
     $locationProvider.html5Mode(true);
 
     $routeProvider
-      .when('/mobileapps', {
-        templateUrl: 'views/mobileapps.html',
+      .when('/apps', {
+        templateUrl: '/views/mobileapps.html',
+        //todo change the name of the controller
         controller: 'MobileappsCtrl',
         requireAuthentication: true
       })

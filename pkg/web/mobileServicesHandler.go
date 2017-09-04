@@ -70,12 +70,13 @@ func (msh *MobileServiceHandler) Configure(rw http.ResponseWriter, req *http.Req
 
 	conf.Component = strings.ToLower(conf.Component)
 	conf.Service = strings.ToLower(conf.Service)
-	// TODO move this out of the handler
+
 	serviceCruder, err := msh.tokenClientBuilder.MobileServiceCruder(token)
 	if err != nil {
 		handleCommonErrorCases(err, rw, msh.logger)
 		return
 	}
+	// TODO move this out of the handler
 	services, err := msh.mobileIntegrationService.FindByNames([]string{conf.Service}, serviceCruder)
 	if err != nil {
 		err = errors.Wrap(err, "attempted to list mobile services")
