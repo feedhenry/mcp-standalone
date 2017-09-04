@@ -31,7 +31,7 @@ web:
 build_cli:
 	go build -o mcp ./cmd/mcp-cli
 
-build: web test-unit
+build: web build_cli test-unit
 	export GOOS=linux && go build ./cmd/mcp-api
 
 image: build
