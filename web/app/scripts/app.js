@@ -48,7 +48,7 @@ angular
         redirectTo: '/apps'
       });
 
-      RedirectLoginServiceProvider.OAuthScope('user:info user:check-access role:edit:project:!');
+      RedirectLoginServiceProvider.OAuthScope(window.OPENSHIFT_CONFIG.auth.scope);
   }])
   .filter('debug', function() {
     return function(input) {
