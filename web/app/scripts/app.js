@@ -13,9 +13,8 @@ angular
     'ngRoute',
     'openshiftCommonServices'
   ])
-  .config(['$locationProvider', '$routeProvider', 'RedirectLoginServiceProvider', function ($locationProvider, $routeProvider, RedirectLoginServiceProvider) {
+  .config(['$routeProvider', '$locationProvider','RedirectLoginServiceProvider', function ($routeProvider, $locationProvider ,RedirectLoginServiceProvider) {
     $locationProvider.html5Mode(true);
-
     $routeProvider
       .when('/apps', {
         templateUrl: '/views/mobileapps.html',
@@ -23,9 +22,14 @@ angular
         controller: 'MobileappsCtrl',
         requireAuthentication: true
       })
-      .when('/mobileapp', {
+      .when('/apps/:id', {
         templateUrl: 'views/mobileapp.html',
         controller: 'MobileappCtrl',
+        requireAuthentication: true
+      })
+      .when('/appcreate', {
+        templateUrl: '/views/appcreate.html',
+        controller: 'AppCreateCtrl',
         requireAuthentication: true
       })
       .when('/oauth', {
@@ -36,15 +40,25 @@ angular
         templateUrl: 'views/error.html',
         controller: 'ErrorCtrl'
       })
+      .when('/integrations', {
+        templateUrl: 'views/integrations.html',
+        controller: 'IntegrationsCtrl',
+        controllerAs: 'integrations'
+      })
+      .when('/integrations/:service', {
+        templateUrl: 'views/integration.html',
+        controller: 'IntegrationCtrl',
+        controllerAs: 'integration'
+      })
       .otherwise({
-        redirectTo: '/mobileapps'
+        redirectTo: '/apps'
       });
 
-      RedirectLoginServiceProvider.OAuthScope('user:info user:check-access');
+      RedirectLoginServiceProvider.OAuthScope(window.OPENSHIFT_CONFIG.auth.scope);
   }])
   .filter('debug', function() {
     return function(input) {
-      if (input === '') return 'empty string';
+      if (input === ''){ return 'empty string';}
       return input ? input : ('' + input);
     };
   })
@@ -59,4 +73,3 @@ angular
 }]);
 
 hawtioPluginLoader.addModule('mobileControlPanelApp');
-

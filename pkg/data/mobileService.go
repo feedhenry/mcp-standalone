@@ -48,7 +48,12 @@ type secretAttributer struct {
 }
 
 func (sa *secretAttributer) GetName() string {
-	return strings.TrimSpace(string(sa.Secret.Data["name"]))
+	var name = strings.TrimSpace(string(sa.Secret.Data["name"]))
+	if "" == name {
+		//remove once we fix keycloak apb
+		name = strings.TrimSpace(string(sa.Secret.Data["NAME"]))
+	}
+	return name
 }
 
 // MobileServiceRepo implments the mobile.ServiceCruder interface. it backed by the secret resource in kubernetes
@@ -83,6 +88,15 @@ func (msr *MobileServiceRepo) List(filter mobile.AttrFilterFunc) ([]*mobile.Serv
 		}
 	}
 	return ret, nil
+}
+
+// Read the mobile service
+func (msr *MobileServiceRepo) Read(name string) (*mobile.Service, error) {
+	svc, err := msr.client.Get(name, meta_v1.GetOptions{})
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get backing secret in repo Read ")
+	}
+	return convertSecretToMobileService(*svc), nil
 }
 
 // ListConfigs will build a list of configs based on the available services that are represented by secrets in the namespace
@@ -127,10 +141,12 @@ func convertSecretToMobileService(s v1.Secret) *mobile.Service {
 		}
 	}
 	return &mobile.Service{
+		ID:                s.Name,
 		Name:              strings.TrimSpace(string(s.Data["name"])),
 		Host:              string(s.Data["uri"]),
 		BindingSecretName: s.GetName(),
 		Params:            params,
+		Integrations:      map[string]*mobile.ServiceIntegration{},
 	}
 }
 

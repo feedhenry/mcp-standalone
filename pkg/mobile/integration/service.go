@@ -1,8 +1,11 @@
 package integration
 
 import (
+	"fmt"
+
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
 	"github.com/pkg/errors"
+	kerror "k8s.io/apimachinery/pkg/api/errors"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	v1 "k8s.io/client-go/pkg/api/v1"
@@ -11,40 +14,92 @@ import (
 
 // MobileService holds the business logic for dealing with the mobile services and integrations with those services
 type MobileService struct {
+	namespace string
+}
+
+func NewMobileSevice(ns string) *MobileService {
+	return &MobileService{
+		namespace: ns,
+	}
 }
 
 //FindByNames will return all services with a name that matches the provided name
 func (ms *MobileService) FindByNames(names []string, serviceCruder mobile.ServiceCruder) ([]*mobile.Service, error) {
-	svc, err := serviceCruder.List(ms.filterServices)
+	svc, err := serviceCruder.List(ms.filterServices(names))
 	if err != nil {
 		return nil, errors.Wrap(err, "Attempting to discover mobile services.")
 	}
 	return svc, nil
 }
+
+// TODO move to the secret data read when discovering the services
+var capabilities = map[string]map[string][]string{
+	"fh-sync-server": map[string][]string{
+		"capabilities": {"data storage, data syncronisation"},
+		"integrations": {"keycloak"},
+	},
+	"keycloak": map[string][]string{
+		"capabilities": {"authentication, authorisation"},
+		"integrations": {"fh-sync"},
+	},
+}
+
+var serviceNames = []string{"fh-sync-server", "keycloak"}
 
 // DiscoverMobileServices will discover mobile services configured in the current namespace
 func (ms *MobileService) DiscoverMobileServices(serviceCruder mobile.ServiceCruder) ([]*mobile.Service, error) {
 	//todo move to config
-	svc, err := serviceCruder.List(ms.filterServices)
+
+	svc, err := serviceCruder.List(ms.filterServices(serviceNames))
 	if err != nil {
 		return nil, errors.Wrap(err, "Attempting to discover mobile services.")
+	}
+	for _, s := range svc {
+		s.Capabilities = capabilities[s.Name]
 	}
 	return svc, nil
 }
 
-func (ms *MobileService) filterServices(att mobile.Attributer) bool {
-	var serviceNames = []string{"fh-sync-server", "keycloak"}
-	for _, sn := range serviceNames {
-		if sn == att.GetName() {
-			return true
+// ReadMoileServiceAndIntegrations read servuce and any available service it can integrate with
+func (ms *MobileService) ReadMoileServiceAndIntegrations(serviceCruder mobile.ServiceCruder, name string) (*mobile.Service, error) {
+	//todo move to config
+	svc, err := serviceCruder.Read(name)
+	if err != nil {
+		return nil, errors.Wrap(err, "Attempting to discover mobile services.")
+	}
+	svc.Capabilities = capabilities[svc.Name]
+	if svc.Capabilities != nil {
+		integrations := svc.Capabilities["integrations"]
+		for _, v := range integrations {
+			isvs, err := serviceCruder.List(ms.filterServices([]string{v}))
+			if err != nil && !kerror.IsNotFound(err) {
+				return nil, errors.Wrap(err, "failed attempting to discover mobile services.")
+			}
+			is := isvs[0]
+			svc.Integrations[v] = &mobile.ServiceIntegration{
+				Component: svc.Name,
+				Namespace: ms.namespace,
+				Service:   is.ID,
+			}
 		}
 	}
-	return false
+	return svc, nil
+}
+
+func (ms *MobileService) filterServices(serviceNames []string) func(att mobile.Attributer) bool {
+	return func(att mobile.Attributer) bool {
+		for _, sn := range serviceNames {
+			if sn == att.GetName() {
+				return true
+			}
+		}
+		return false
+	}
 }
 
 // GenerateMobileServiceConfigs will return a map of services and their mobile configs
 func (ms *MobileService) GenerateMobileServiceConfigs(serviceCruder mobile.ServiceCruder) (map[string]*mobile.ServiceConfig, error) {
-	svcConfigs, err := serviceCruder.ListConfigs(ms.filterServices)
+	svcConfigs, err := serviceCruder.ListConfigs(ms.filterServices(serviceNames))
 	if err != nil {
 		return nil, errors.Wrap(err, "GenerateMobileServiceConfigs failed during a list of configs")
 	}
@@ -57,6 +112,7 @@ func (ms *MobileService) GenerateMobileServiceConfigs(serviceCruder mobile.Servi
 
 //MountSecretForComponent will work within namespace and mount secretName into componentName, so it can be configured to use serviceName, returning the modified deployment
 func (ms *MobileService) MountSecretForComponent(k8s kubernetes.Interface, secretName, componentName, serviceName, namespace string) (*v1beta1.Deployment, error) {
+	fmt.Println("mounting secret ", secretName, "into component ", componentName, serviceName)
 	deploy, err := k8s.AppsV1beta1().Deployments(namespace).Get(componentName, meta_v1.GetOptions{})
 	if err != nil {
 		return nil, err
@@ -84,7 +140,10 @@ func (ms *MobileService) MountSecretForComponent(k8s kubernetes.Interface, secre
 		deploy.Spec.Template.Spec.Containers[id].VolumeMounts = append(deploy.Spec.Template.Spec.Containers[id].VolumeMounts, newMount)
 	}
 
-	k8s.AppsV1beta1().Deployments(namespace).Update(deploy)
+	deploy, err = k8s.AppsV1beta1().Deployments(namespace).Update(deploy)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to update deployment when mounting sercret for service integration with "+componentName)
+	}
 
 	return deploy, nil
 }

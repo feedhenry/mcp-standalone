@@ -1,0 +1,32 @@
+<span style="font-size:22px;">{{service.name}}</span>
+
+<p ng-if="service.name == 'fh-sync-server'">
+  Sync provides data syncronisation between clients and cloud.
+</p>
+<br/>
+
+<h3 class="text-align-center">Available Mobile Service Integrations</h3>
+
+<ul class="list-group">
+  <li class="list-group-item">
+    <input ng-model="service.integrations.keycloak.enabled" ng-change="enableIntegration(service.integrations.keycloak)" id="bootstrap-switch-state" type="checkbox"> Auth via keycloak enabled:
+  </li>
+</ul>
+
+
+<h3 class="text-align-center">Mobile Client Integrations</h3>
+
+<ul class="nav nav-tabs nav-justified">
+  <li ng-repeat="c in clients" role="presentation"><a ng-click="installationOpt(c)" href="#">{{c}}</a></li>
+</ul>
+
+
+<pre>
+    npm install --save fh-sync-js@1.0.4
+</pre>    
+
+
+<script>
+  jQuery(".bootstrap-switch").bootstrapSwitch();
+
+</script>

@@ -4,10 +4,13 @@ import "strings"
 
 // App represents a mobile app
 type App struct {
-	Name       string            `json:"name"`
-	ClientType string            `json:"clientType"`
-	Labels     map[string]string `json:"labels"`
-	APIKey     string            `json:"apiKey"`
+	ID          string            `json:"id"`
+	Name        string            `json:"name"`
+	Description string            `json:"description"`
+	ClientType  string            `json:"clientType"`
+	Labels      map[string]string `json:"labels"`
+	APIKey      string            `json:"apiKey"`
+	MetaData    map[string]string `json:"metadata"`
 }
 
 type StatusError struct {
@@ -16,10 +19,21 @@ type StatusError struct {
 }
 
 type Service struct {
-	Name              string            `json:"name"`
-	Host              string            `json:"host"`
-	Params            map[string]string `json:"params"`
-	BindingSecretName string            `json:"binding_secret_name"`
+	ID                string                         `json:"id"`
+	Name              string                         `json:"name"`
+	Host              string                         `json:"host"`
+	Description       string                         `json:"description"`
+	Capabilities      map[string][]string            `json:"capabilities"`
+	Params            map[string]string              `json:"params"`
+	BindingSecretName string                         `json:"binding_secret_name"`
+	Integrations      map[string]*ServiceIntegration `json:"integrations"`
+}
+
+type ServiceIntegration struct {
+	Enabled   bool   `json:"enabled"`
+	Component string `json:"component"`
+	Service   string `json:"service"`
+	Namespace string `json:"namespace"`
 }
 
 type ServiceConfig struct {
@@ -69,8 +83,6 @@ func (at AppTypes) String() string {
 var ValidAppTypes = AppTypes{"cordova", "android", "iOS"}
 
 const (
-	//AuthHeader the header where authorisation token is stored
-	AuthHeader = "x-auth"
 	//AppAPIKeyHeader is the header sent by mobile clients when they want to interact with mcp
 	AppAPIKeyHeader = "x-app-api-key"
 	//SkipSARoleBindingHeader is the head the admin api key is sent with

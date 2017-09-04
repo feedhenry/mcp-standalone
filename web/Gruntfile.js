@@ -134,7 +134,7 @@ module.exports = function (grunt) {
         },
         proxies: [{
           // TODO: is there a catchall that would avoid having to maintain this?
-          context: ['/console/config.js', '/sys', '/oauth', '/mobileapps', '/sdk', '/mobileservice'],
+          context: ['/config.js', '/sys', '/oauth/token', '/mobileapp', '/sdk', '/mobileservice'],
           host: '127.0.0.1',
           port: 3001,
           https: true,
@@ -300,7 +300,7 @@ module.exports = function (grunt) {
         flow: {
           html: {
             steps: {
-              js: ['concat', 'uglifyjs'],
+              js: ['concat'],
               css: ['cssmin']
             },
             post: {}
@@ -548,7 +548,6 @@ module.exports = function (grunt) {
     'copy:dist',
     'cdnify',
     'cssmin',
-    'uglify',
     'filerev',
     'usemin',
     'htmlmin'

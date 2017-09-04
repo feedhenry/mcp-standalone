@@ -2,12 +2,15 @@ package web
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile/integration"
+	"github.com/feedhenry/mcp-standalone/pkg/web/headers"
+	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 )
 
@@ -36,7 +39,7 @@ type mobileServiceConfigurationRequest struct {
 
 // List allows you to list mobile services
 func (msh *MobileServiceHandler) List(rw http.ResponseWriter, req *http.Request) {
-	token := req.Header.Get(mobile.AuthHeader)
+	token := headers.DefaultTokenRetriever(req.Header)
 	serviceCruder, err := msh.tokenClientBuilder.MobileServiceCruder(token)
 	if err != nil {
 		handleCommonErrorCases(err, rw, msh.logger)
@@ -55,10 +58,51 @@ func (msh *MobileServiceHandler) List(rw http.ResponseWriter, req *http.Request)
 	}
 }
 
+func (msh *MobileServiceHandler) Read(rw http.ResponseWriter, req *http.Request) {
+	token := headers.DefaultTokenRetriever(req.Header)
+	params := mux.Vars(req)
+	serviceName := params["name"]
+	fmt.Println(req.URL.Query())
+	withIntegrations := req.URL.Query().Get("withIntegrations")
+	var ms *mobile.Service
+	var err error
+	if serviceName == "" {
+		http.Error(rw, "service name cannot be empty ", http.StatusBadRequest)
+		return
+	}
+	serviceCruder, err := msh.tokenClientBuilder.MobileServiceCruder(token)
+	if err != nil {
+		handleCommonErrorCases(err, rw, msh.logger)
+		return
+	}
+
+	if withIntegrations != "" {
+		fmt.Println("with Integrations", serviceName)
+		ms, err = msh.mobileIntegrationService.ReadMoileServiceAndIntegrations(serviceCruder, serviceName)
+		if err != nil {
+			handleCommonErrorCases(err, rw, msh.logger)
+			return
+		}
+	} else {
+		ms, err = serviceCruder.Read(serviceName)
+		if err != nil {
+			err = errors.Wrap(err, "MobileServiceHandler : failed to read mobile service ")
+			handleCommonErrorCases(err, rw, msh.logger)
+			return
+		}
+	}
+	encoder := json.NewEncoder(rw)
+	if err := encoder.Encode(ms); err != nil {
+		err = errors.Wrap(err, "MobileServiceHandler: failed to encode response")
+		handleCommonErrorCases(err, rw, msh.logger)
+		return
+	}
+}
+
 // Configure configures components binding
 func (msh *MobileServiceHandler) Configure(rw http.ResponseWriter, req *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
-	token := req.Header.Get(mobile.AuthHeader)
+	token := headers.DefaultTokenRetriever(req.Header)
 
 	decoder := json.NewDecoder(req.Body)
 	var conf mobileServiceConfigurationRequest
@@ -71,38 +115,11 @@ func (msh *MobileServiceHandler) Configure(rw http.ResponseWriter, req *http.Req
 	conf.Component = strings.ToLower(conf.Component)
 	conf.Service = strings.ToLower(conf.Service)
 
-	serviceCruder, err := msh.tokenClientBuilder.MobileServiceCruder(token)
-	if err != nil {
-		handleCommonErrorCases(err, rw, msh.logger)
-		return
-	}
 	// TODO move this out of the handler
-	services, err := msh.mobileIntegrationService.FindByNames([]string{conf.Service}, serviceCruder)
-	if err != nil {
-		err = errors.Wrap(err, "attempted to list mobile services")
-		handleCommonErrorCases(err, rw, msh.logger)
-		return
-	}
-	if len(services) == 0 {
-		err = errors.New("service to configure not found")
-		handleCommonErrorCases(err, rw, msh.logger)
-		return
-	}
-	components, err := msh.mobileIntegrationService.FindByNames([]string{conf.Component}, serviceCruder)
-	if err != nil {
-		err = errors.Wrap(err, "attempted to list mobile services")
-		handleCommonErrorCases(err, rw, msh.logger)
-		return
-	}
-	if len(components) == 0 {
-		err = errors.New("component to configure not found")
-		handleCommonErrorCases(err, rw, msh.logger)
-		return
-	}
 
 	k8sClient, err := msh.tokenClientBuilder.K8s(token)
 
-	deploy, err := msh.mobileIntegrationService.MountSecretForComponent(k8sClient, services[0].BindingSecretName, conf.Component, conf.Service, conf.Namespace)
+	deploy, err := msh.mobileIntegrationService.MountSecretForComponent(k8sClient, conf.Service, conf.Component, conf.Service, conf.Namespace)
 	if err != nil {
 		handleCommonErrorCases(err, rw, msh.logger)
 		return

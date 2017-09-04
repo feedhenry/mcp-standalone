@@ -45,6 +45,7 @@ run_server:
 	time go install ./cmd/mcp-standalone
 	oc new-project $(NAMESPACE) | true
 	oc create -f install/openshift/sa.local.json -n  $(NAMESPACE) | true
+	oc policy add-role-to-user edit system:serviceaccount:$(NAMESPACE):mcp-standalone -n  $(NAMESPACE) | true
 	oc sa get-token mcp-standalone -n  $(NAMESPACE) > token
 	mcp-standalone -namespace=$(NAMESPACE) -k8-host=$(OSCP) -satoken-path=./token -log-level=debug
 
