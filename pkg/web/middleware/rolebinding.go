@@ -56,7 +56,7 @@ func (sa *RoleBinding) Handle(rw http.ResponseWriter, req *http.Request, next ht
 		return
 	}
 	if err := sa.createRoleBindingIfNotPresent(token); err != nil {
-		sa.logger.Error("error when setting up rolebinding: ", err)
+		sa.logger.Error(fmt.Sprintf("error when setting up rolebinding: %+v", err))
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
 		return
 	}

@@ -17,6 +17,7 @@ type AppCruder interface {
 
 type ServiceCruder interface {
 	List(AttrFilterFunc) ([]*Service, error)
+	ListConfigs(AttrFilterFunc) ([]*ServiceConfig, error)
 }
 
 type Attributer interface {
@@ -30,8 +31,6 @@ type ClientBuilder interface {
 	WithHost(host string) ClientBuilder
 	WithHostAndNamespace(host, ns string) ClientBuilder
 	BuildClient() (kubernetes.Interface, error)
-	BuildConfigMapClent() (corev1.ConfigMapInterface, error)
-	BuildSecretClent() (corev1.SecretInterface, error)
 }
 
 type AppRepoBuilder interface {

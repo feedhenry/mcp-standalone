@@ -30,9 +30,9 @@ func BuildHTTPHandler(r *mux.Router, access *middleware.Access, rolebinding *mid
 	n := negroni.New(recovery)
 	cors := middleware.Cors{}
 	n.UseFunc(cors.Handle)
-	if rolebinding != nil {
-		n.UseFunc(rolebinding.Handle)
-	}
+	// if rolebinding != nil {
+	// 	n.UseFunc(rolebinding.Handle)
+	// }
 	if access != nil {
 		n.UseFunc(access.Handle)
 	} else {

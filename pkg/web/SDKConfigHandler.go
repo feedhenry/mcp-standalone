@@ -35,6 +35,7 @@ func (sdk *SDKConfigHandler) Read(rw http.ResponseWriter, req *http.Request) {
 	if apiKey == "" {
 		http.Error(rw, "missing api key", 401)
 	}
+	//TODO maybe bring this  apiKey check out of this handler
 	//need to use the serviceaccount token here to read and check the app key and svcs
 	appCruder, err := sdk.tokenScopedBuilder.UseDefaultSAToken().MobileAppCruder("")
 	if err != nil {
@@ -49,7 +50,6 @@ func (sdk *SDKConfigHandler) Read(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 	//before returning any information check the passed api key is the same as the app objects generated key.
-	//TODO maybe bring this  apiKey check out of this handler
 	app, err := appCruder.ReadByName(id)
 	if err != nil {
 		handleCommonErrorCases(err, rw, sdk.logger)
@@ -59,17 +59,13 @@ func (sdk *SDKConfigHandler) Read(rw http.ResponseWriter, req *http.Request) {
 		http.Error(rw, "unauthorised ", http.StatusUnauthorized)
 		return
 	}
-	svcs, err := sdk.mobileIntegrationService.DiscoverMobileServices(svcCruder)
+	configs, err := sdk.mobileIntegrationService.GenerateMobileServiceConfigs(svcCruder)
 	if err != nil {
 		handleCommonErrorCases(err, rw, sdk.logger)
 		return
 	}
-	config := map[string]*mobile.Service{}
-	for _, s := range svcs {
-		config[s.Name] = s
-	}
 	encoder := json.NewEncoder(rw)
-	if err := encoder.Encode(config); err != nil {
+	if err := encoder.Encode(configs); err != nil {
 		handleCommonErrorCases(err, rw, sdk.logger)
 		return
 	}

@@ -70,7 +70,7 @@ func (msh *MobileServiceHandler) Configure(rw http.ResponseWriter, req *http.Req
 
 	conf.Component = strings.ToLower(conf.Component)
 	conf.Service = strings.ToLower(conf.Service)
-
+	// TODO move this out of the handler
 	serviceCruder, err := msh.tokenClientBuilder.MobileServiceCruder(token)
 	if err != nil {
 		handleCommonErrorCases(err, rw, msh.logger)

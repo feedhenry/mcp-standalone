@@ -6,6 +6,7 @@ import (
 
 	"github.com/feedhenry/mcp-standalone/pkg/data"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
+	"github.com/feedhenry/mcp-standalone/pkg/mock"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
@@ -82,6 +83,71 @@ func TestListMobileServices(t *testing.T) {
 			mobileRepo := data.NewMobileServiceRepo(client)
 			svc, err := mobileRepo.List(func(a mobile.Attributer) bool {
 				return a.GetName() == "fh-sync-server"
+			})
+			if tc.ExpectError && err == nil {
+				t.Fatal("expected an error but got none")
+			}
+			if !tc.ExpectError && err != nil {
+				t.Fatalf("did not expect an error but got %v ", err)
+			}
+			tc.Validate(svc, t)
+		})
+	}
+}
+
+func TestListMobileServiceConfigs(t *testing.T) {
+	cases := []struct {
+		Name        string
+		Client      func() kubernetes.Interface
+		ExpectError bool
+		Validate    func(svs []*mobile.ServiceConfig, t *testing.T)
+	}{
+		{
+			Name: "test listing service configs is ok",
+			Client: func() kubernetes.Interface {
+				client := &fake.Clientset{}
+				client.AddReactor("list", "secrets", func(a ktesting.Action) (bool, runtime.Object, error) {
+					return true, &v1.SecretList{
+						Items: []v1.Secret{
+							{
+								Data: map[string][]byte{
+									"uri":  []byte("http://test.com"),
+									"name": []byte("fh-sync-server"),
+								},
+							},
+							mock.KeycloakSecret(),
+						},
+					}, nil
+				})
+				return client
+			},
+			Validate: func(svc []*mobile.ServiceConfig, t *testing.T) {
+				if len(svc) != 2 {
+					t.Fatalf("expected 2 service configs but got %v ", len(svc))
+				}
+				foundSync := false
+				foundKeyCloak := false
+				for _, sc := range svc {
+					if sc.Name == "fh-sync-server" {
+						foundSync = true
+					}
+					if sc.Name == "keycloak" {
+						foundKeyCloak = true
+					}
+				}
+				if !foundSync || !foundKeyCloak {
+					t.Fatal("expected to find keycloak and sync configs but didn't ", svc)
+				}
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.Name, func(t *testing.T) {
+			client := tc.Client().CoreV1().Secrets("test")
+			mobileRepo := data.NewMobileServiceRepo(client)
+			svc, err := mobileRepo.ListConfigs(func(a mobile.Attributer) bool {
+				return a.GetName() == "fh-sync-server" || a.GetName() == "keycloak"
 			})
 			if tc.ExpectError && err == nil {
 				t.Fatal("expected an error but got none")
