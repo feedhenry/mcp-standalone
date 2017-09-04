@@ -6,6 +6,7 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
+	"github.com/feedhenry/mcp-standalone/pkg/web/headers"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/satori/go.uuid"
@@ -28,7 +29,7 @@ func NewMobileAppHandler(logger *logrus.Logger, tokenClientBuilder mobile.TokenS
 // Read reads a mobileapp based on an id
 func (m *MobileAppHandler) Read(rw http.ResponseWriter, req *http.Request) {
 	// we return the actul request handleing function now that it has been configured.
-	token := req.Header.Get(mobile.AuthHeader)
+	token := headers.DefaultTokenRetriever(req.Header)
 	appRepo, err := m.tokenClientBuilder.MobileAppCruder(token)
 	if err != nil {
 		handleCommonErrorCases(err, rw, m.logger)
@@ -54,7 +55,7 @@ func (m *MobileAppHandler) Read(rw http.ResponseWriter, req *http.Request) {
 
 // List will list mobile apps
 func (m *MobileAppHandler) List(rw http.ResponseWriter, req *http.Request) {
-	token := req.Header.Get(mobile.AuthHeader)
+	token := headers.DefaultTokenRetriever(req.Header)
 	appRepo, err := m.tokenClientBuilder.MobileAppCruder(token)
 	if err != nil {
 		handleCommonErrorCases(err, rw, m.logger)
@@ -75,7 +76,7 @@ func (m *MobileAppHandler) List(rw http.ResponseWriter, req *http.Request) {
 
 // Delete will delete a mobile app
 func (m *MobileAppHandler) Delete(rw http.ResponseWriter, req *http.Request) {
-	token := req.Header.Get(mobile.AuthHeader)
+	token := headers.DefaultTokenRetriever(req.Header)
 	appRepo, err := m.tokenClientBuilder.MobileAppCruder(token)
 	if err != nil {
 		handleCommonErrorCases(err, rw, m.logger)
@@ -92,7 +93,7 @@ func (m *MobileAppHandler) Delete(rw http.ResponseWriter, req *http.Request) {
 
 // Create creates a mobileapp
 func (m *MobileAppHandler) Create(rw http.ResponseWriter, req *http.Request) {
-	token := req.Header.Get(mobile.AuthHeader)
+	token := headers.DefaultTokenRetriever(req.Header)
 	appRepo, err := m.tokenClientBuilder.MobileAppCruder(token)
 	if err != nil {
 		handleCommonErrorCases(err, rw, m.logger)
@@ -100,13 +101,28 @@ func (m *MobileAppHandler) Create(rw http.ResponseWriter, req *http.Request) {
 	}
 	uid := uuid.NewV4()
 	decoder := json.NewDecoder(req.Body)
-	app := &mobile.App{}
-	app.APIKey = uid.String()
+
+	app := &mobile.App{MetaData: map[string]string{}}
+
 	if err := decoder.Decode(app); err != nil {
 		err = errors.Wrap(err, "mobile app create: Attempted to decode payload in app")
 		handleCommonErrorCases(err, rw, m.logger)
 		return
 	}
+	//todo logic is creeping in here should only be for parsing and rendering. Move to mobile package
+	app.APIKey = uid.String()
+	switch app.ClientType {
+	case "android":
+		app.MetaData["icon"] = "fa-android"
+		break
+	case "iOS":
+		app.MetaData["icon"] = "fa-apple"
+		break
+	case "cordova":
+		app.MetaData["icon"] = "icon-cordova"
+		break
+	}
+
 	if err := appRepo.Create(app); err != nil {
 		err = errors.Wrap(err, "mobile app create: Attempted to create app via app repo")
 		handleCommonErrorCases(err, rw, m.logger)

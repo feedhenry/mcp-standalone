@@ -1,6 +1,9 @@
 package data
 
 import (
+	"fmt"
+	"time"
+
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
 	"github.com/pkg/errors"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -46,21 +49,9 @@ func (mar *MobileAppRepo) Create(app *mobile.App) error {
 	if err := mar.validator.PreCreate(app); err != nil {
 		return errors.Wrap(err, "validation failed during create")
 	}
-	cm := v1.ConfigMap{
-		ObjectMeta: meta_v1.ObjectMeta{
-			Name: app.Name,
-			Labels: map[string]string{
-				"group": "mobileapp",
-			},
-		},
-
-		Data: map[string]string{
-			"name":       app.Name,
-			"clientType": app.ClientType,
-			"apiKey":     app.APIKey,
-		},
-	}
-	if _, err := mar.client.Create(&cm); err != nil {
+	app.MetaData["created"] = time.Now().Format("2006-01-02 15:04:05")
+	cm := convertMobileAppToConfigMap(app)
+	if _, err := mar.client.Create(cm); err != nil {
 		return errors.Wrap(err, "failed to create underlying configmap for mobile app")
 	}
 	return nil
@@ -106,19 +97,37 @@ func (mar *MobileAppRepo) Update(app *mobile.App) (*mobile.App, error) {
 
 func convertConfigMapToMobileApp(m *v1.ConfigMap) *mobile.App {
 	return &mobile.App{
-		Name:       m.Data["name"],
-		ClientType: m.Data["clientType"],
-		APIKey:     m.Data["apiKey"],
-		Labels:     m.Labels,
+		ID:          m.Name,
+		Name:        m.Data["name"],
+		ClientType:  m.Data["clientType"],
+		APIKey:      m.Data["apiKey"],
+		Labels:      m.Labels,
+		Description: m.Data["description"],
+		MetaData: map[string]string{
+			"icon":    m.Annotations["icon"],
+			"created": m.Annotations["created"],
+		},
 	}
 }
 
 func convertMobileAppToConfigMap(app *mobile.App) *v1.ConfigMap {
 	return &v1.ConfigMap{
+		ObjectMeta: meta_v1.ObjectMeta{
+			Name: app.Name + "-" + fmt.Sprintf("%v", time.Now().Unix()),
+			Labels: map[string]string{
+				"group": "mobileapp",
+				"name":  app.Name,
+			},
+			Annotations: map[string]string{
+				"icon":    app.MetaData["icon"],
+				"created": app.MetaData["created"],
+			},
+		},
 		Data: map[string]string{
-			"name":       app.Name,
-			"clientType": app.ClientType,
-			"apiKey":     app.APIKey,
+			"name":        app.Name,
+			"clientType":  app.ClientType,
+			"apiKey":      app.APIKey,
+			"description": app.Description,
 		},
 	}
 }

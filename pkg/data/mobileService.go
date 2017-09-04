@@ -48,7 +48,12 @@ type secretAttributer struct {
 }
 
 func (sa *secretAttributer) GetName() string {
-	return strings.TrimSpace(string(sa.Secret.Data["name"]))
+	var name = strings.TrimSpace(string(sa.Secret.Data["name"]))
+	if "" == name {
+		//remove once we fix keycloak apb
+		name = strings.TrimSpace(string(sa.Secret.Data["NAME"]))
+	}
+	return name
 }
 
 // MobileServiceRepo implments the mobile.ServiceCruder interface. it backed by the secret resource in kubernetes

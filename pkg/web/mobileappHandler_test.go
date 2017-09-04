@@ -24,7 +24,7 @@ func setupMobileAppHandler(kclient kubernetes.Interface) http.Handler {
 	clientBuilder := buildDefaultTestTokenClientBuilder(kclient)
 	handler := web.NewMobileAppHandler(logger, clientBuilder)
 	web.MobileAppRoute(r, handler)
-	return web.BuildHTTPHandler(r, nil, nil)
+	return web.BuildHTTPHandler(r, nil)
 }
 
 func TestReadMobileApp(t *testing.T) {

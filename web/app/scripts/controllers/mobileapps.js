@@ -8,13 +8,26 @@
  * Controller of the mobileControlPanelApp
  */
 angular.module('mobileControlPanelApp')
-  .controller('MobileappsCtrl', ['$scope', function($scope) {
-  // TODO: read mobile apps from the mobile server
-  $scope.mobileapps = [{
-    "name": "Mock Cordova App",
-    "clientType": "cordova"
-  }, {
-    "name": "Mock Android App",
-    "clientType": "android"
-  }];
-}]);
+  .controller('MobileappsCtrl', ['$scope', 'mcpApi', '$location', function ($scope, mcpApi, $location) {
+    $scope.mobileapps = [];
+    $scope.services = [];
+    mcpApi.mobileApps()
+      .then((apps) => {
+        $scope.mobileapps = apps;
+      })
+      .catch(e => {
+        console.error(e);
+      });
+
+      mcpApi.mobileServices()
+      .then(s=>{
+        $scope.services = s;
+      })
+      .catch(e =>{
+        console.error("error getting services ", e);
+      });
+
+    $scope.openApp = function (id) {
+      $location.path("/apps/" + id);
+    };
+  }]);

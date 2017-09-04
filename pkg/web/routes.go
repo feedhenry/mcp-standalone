@@ -24,15 +24,12 @@ func NewRouter() *mux.Router {
 }
 
 // BuildHTTPHandler puts together our HTTPHandler
-func BuildHTTPHandler(r *mux.Router, access *middleware.Access, rolebinding *middleware.RoleBinding) http.Handler {
+func BuildHTTPHandler(r *mux.Router, access *middleware.Access) http.Handler {
 	recovery := negroni.NewRecovery()
 	recovery.PrintStack = false
 	n := negroni.New(recovery)
 	cors := middleware.Cors{}
 	n.UseFunc(cors.Handle)
-	// if rolebinding != nil {
-	// 	n.UseFunc(rolebinding.Handle)
-	// }
 	if access != nil {
 		n.UseFunc(access.Handle)
 	} else {
@@ -43,8 +40,8 @@ func BuildHTTPHandler(r *mux.Router, access *middleware.Access, rolebinding *mid
 	return n
 }
 
-func ConsoleConfigRoute(handler *ConsoleConfigHandler) {
-	http.HandleFunc(handler.consoleMountPath+"/config.js", handler.Config)
+func ConsoleConfigRoute(r *mux.Router, handler *ConsoleConfigHandler) {
+	r.HandleFunc("/config.js", handler.Config)
 }
 
 // StaticRoute configures & sets up the /console route.

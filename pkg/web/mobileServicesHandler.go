@@ -7,6 +7,7 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile/integration"
+	"github.com/feedhenry/mcp-standalone/pkg/web/headers"
 	"github.com/pkg/errors"
 )
 
@@ -29,7 +30,7 @@ func NewMobileServiceHandler(logger *logrus.Logger, integrationService *integrat
 
 // List allows you to list mobile services
 func (msh *MobileServiceHandler) List(rw http.ResponseWriter, req *http.Request) {
-	token := req.Header.Get(mobile.AuthHeader)
+	token := headers.DefaultTokenRetriever(req.Header)
 	serviceCruder, err := msh.tokenClientBuilder.MobileServiceCruder(token)
 	if err != nil {
 		handleCommonErrorCases(err, rw, msh.logger)

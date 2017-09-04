@@ -7,6 +7,7 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/feedhenry/mcp-standalone/pkg/openshift"
+	"github.com/feedhenry/mcp-standalone/pkg/web/headers"
 	"github.com/pkg/errors"
 )
 
@@ -28,12 +29,14 @@ func NewAccess(logger *logrus.Logger, host string, userCheck UserChecker) *Acces
 }
 
 func buildIgnoreList() []*regexp.Regexp {
+	cfg := regexp.MustCompile("^/config.js")
 	sdk := regexp.MustCompile("^/sdk/mobileapp/.*/config")
 	ping := regexp.MustCompile("^/sys/info/ping")
 	health := regexp.MustCompile("^/sys/info/health")
 	metrics := regexp.MustCompile("^/metrics")
 	oauth := regexp.MustCompile("^/oauth/token")
 	return []*regexp.Regexp{
+		cfg,
 		sdk,
 		ping,
 		health,
@@ -56,7 +59,7 @@ func shouldIgnore(path string) bool {
 
 // Handle sets the required headers
 func (c Access) Handle(w http.ResponseWriter, req *http.Request, next http.HandlerFunc) {
-	token := req.Header.Get("x-auth")
+	token := headers.DefaultTokenRetriever(req.Header)
 	if shouldIgnore(req.URL.Path) {
 		next(w, req)
 		return
