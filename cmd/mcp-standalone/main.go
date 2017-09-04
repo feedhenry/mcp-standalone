@@ -113,7 +113,7 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		consoleConfigHandler := web.NewConsoleConfigHandler(logger, k8MetaHost, k8sMetadata.AuthorizationEndpoint, oauthClientID)
+		consoleConfigHandler := web.NewConsoleConfigHandler(logger, k8MetaHost, k8sMetadata.AuthorizationEndpoint, oauthClientID, *namespace)
 		web.ConsoleConfigRoute(router, consoleConfigHandler)
 	}
 
