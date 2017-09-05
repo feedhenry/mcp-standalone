@@ -1,0 +1,77 @@
+---
+
+- name: Create alias for lo0
+  shell: ifconfig lo0 alias {{ cluster_public_hostname }}
+  become: yes
+  changed_when: false
+  when: ansible_os_family == "Darwin"
+
+- set_fact:
+    routing_suffix: "{{ cluster_public_hostname }}.nip.io"
+    public_hostname: "{{ cluster_public_hostname }}"
+  when: ansible_os_family == "Darwin"
+
+# TODO: This code path isn't tested yet
+- name: Get public IP for linux
+  shell: ip addr show docker0 | grep -Po 'inet \K[\d.]+'
+  register: docker0
+  when: ansible_os_family in ["RedHat", "Debian"]
+
+- set_fact:
+    routing_suffix: "{{ docker0.stdout }}.nip.io"
+    public_hostname: "{{ docker0.stdout }}"
+  when: ansible_os_family in ["RedHat", "Debian"]
+
+- name: Obtain status of oc cluster
+  shell: oc cluster status
+  register: oc_cluster_status
+  failed_when:
+  - oc_cluster_status.rc != 0
+  - oc_cluster_status.stdout.find('OpenShift cluster is not running') == -1
+  changed_when: false
+
+- block:
+  - set_fact:
+      cluster_up_command: oc cluster up
+
+  - set_fact:
+      cluster_up_command: "{{ cluster_up_command }} --service-catalog={{ service_catalog }}"
+    when:
+    - service_catalog is defined
+
+  - set_fact:
+      cluster_up_command: "{{ cluster_up_command }} --host-config-dir={{ host_config_dir }}"
+    when:
+    - host_config_dir is defined
+    - host_config_dir != ''
+
+  - set_fact:
+      cluster_up_command: "{{ cluster_up_command }} --use-existing-config={{ use_existing_config }}"
+    when:
+    - use_existing_config is defined
+
+  - set_fact:
+      cluster_up_command: "{{ cluster_up_command }} --routing-suffix={{ routing_suffix }}"
+    when:
+    - routing_suffix is defined
+    - routing_suffix != ''
+
+  - set_fact:
+      cluster_up_command: "{{ cluster_up_command }} --public-hostname={{ public_hostname }}"
+    when:
+    - public_hostname is defined
+    - public_hostname != ''
+
+  - set_fact:
+      cluster_up_command: "{{ cluster_up_command }} --version={{ cluster_version }}"
+    when:
+    - cluster_version is defined
+    - cluster_version != ''
+
+  - debug: msg="Executing oc cluster up command - {{ cluster_up_command }}"
+
+  - name: Cluster up
+    shell: "{{ cluster_up_command }}"
+    register: oc_cluster_up
+    changed_when: false
+  when: oc_cluster_status.stdout.find('OpenShift cluster is not running') > -1
