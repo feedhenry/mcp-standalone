@@ -30,4 +30,8 @@ angular.module('mobileControlPanelApp')
     $scope.openApp = function (id) {
       $location.path("/apps/" + id);
     };
+
+    $scope.openService = function (id) {
+      $location.path("/services/" + id);
+    }
   }]);
