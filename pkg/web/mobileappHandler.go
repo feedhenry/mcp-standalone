@@ -2,7 +2,6 @@ package web
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/Sirupsen/logrus"
@@ -115,7 +114,6 @@ func (m *MobileAppHandler) Create(rw http.ResponseWriter, req *http.Request) {
 	switch app.ClientType {
 	case "android":
 		app.MetaData["icon"] = "fa-android"
-		fmt.Println("app meta andoid ", app, app.MetaData)
 		break
 	case "iOS":
 		app.MetaData["icon"] = "fa-apple"

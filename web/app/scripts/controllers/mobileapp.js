@@ -10,9 +10,9 @@
 angular.module('mobileControlPanelApp')
   .controller('MobileappCtrl', ['mcpApi', '$routeParams','$scope','$location',function (mcpApi,$routeParams,$scope,$location) {
     $scope.installType = "";
-    $scope.route = window.location.host;
-    $scope.integrations = [];
-
+    var url = new URL(window.location.href)
+    $scope.route = url.origin;
+    
     mcpApi.mobileApp($routeParams.id)
     .then(app=>{
       $scope.app = app;
