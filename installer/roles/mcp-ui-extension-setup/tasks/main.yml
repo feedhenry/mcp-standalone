@@ -1,0 +1,35 @@
+---
+# tasks file for mobile-control-panel-setup
+
+- name: Execute MCP UI installer
+  shell: "{{ mcp_local_dir }}/ui/install.sh"
+  changed_when: false
+
+# TODO: Use Ansible module here, not oc from shell
+- name: Login as system:admin
+  shell: "oc login -u system:admin"
+  register: oc_login
+  changed_when: false
+  until: oc_login.rc == 0
+  poll: 5
+  retries: 30
+
+- name: Ensure origin container is restarted
+  shell: docker restart origin
+  changed_when: false
+
+- name: Ensure origin container is running
+  shell: "docker inspect --format='{% raw %}{{.State.Status}}{% endraw %}' origin"
+  register: docker_inspect
+  changed_when: false
+  until: docker_inspect.stdout == 'running'
+  poll: 5
+  retries: 30
+
+- name: Ensure oc cluster is up
+  shell: oc cluster status
+  register: oc_cluster_status
+  changed_when: false
+  until: oc_cluster_status.rc == 0
+  poll: 5
+  retries: 30

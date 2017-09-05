@@ -1,0 +1,4 @@
+---
+# defaults file for mobile-control-panel-setup
+
+mcp_local_dir: "{{playbook_dir}}/.."
