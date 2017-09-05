@@ -1,0 +1,4 @@
+---
+# defaults file for ansible-service-broker-setup
+dockerhub_org: feedhenry
+launch_apb_on_bind: true

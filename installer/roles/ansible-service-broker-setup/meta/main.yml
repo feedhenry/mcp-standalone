@@ -1,0 +1,31 @@
+galaxy_info:
+  author: FeedHenry
+  description: Setup Ansible Service Broker in OpenShift
+
+  issue_tracker_url: https://github.com/feedhenry/mobile-control-panel/issues
+
+  license: license (MIT)
+
+  min_ansible_version: 2.2
+
+  platforms:
+  - name: macOS
+    versions:
+    - all
+  - name: OSX
+    versions:
+    - all
+  - name: Fedora
+    versions:
+    - 26
+    - 25
+
+  galaxy_tags:
+  - feedhenry
+  - openshift
+  - ansible
+  - service
+  - broker
+  - asb
+
+dependencies: []
