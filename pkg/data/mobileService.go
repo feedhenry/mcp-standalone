@@ -133,6 +133,25 @@ func (msr *MobileServiceRepo) ListConfigs(filter mobile.AttrFilterFunc) ([]*mobi
 	return ret, nil
 }
 
+// UpdateEnabledIntegrations will set labels on the underlying secret to indicate if an integration is enabled (it is really used as a que to the ui)
+func (msr *MobileServiceRepo) UpdateEnabledIntegrations(svcName string, integrations map[string]string) error {
+	secret, err := msr.client.Get(svcName, meta_v1.GetOptions{})
+	if err != nil {
+		return errors.Wrap(err, "failed to read secret while updating enabled integrations")
+	}
+	if secret.Labels == nil {
+		secret.Labels = map[string]string{}
+	}
+	for k, v := range integrations {
+		secret.Labels[k] = v
+	}
+	_, err = msr.client.Update(secret)
+	if err != nil {
+		return errors.Wrap(err, "failed to update enabled integrations")
+	}
+	return nil
+}
+
 func convertSecretToMobileService(s v1.Secret) *mobile.Service {
 	params := map[string]string{}
 	for key, value := range s.Data {
@@ -142,6 +161,7 @@ func convertSecretToMobileService(s v1.Secret) *mobile.Service {
 	}
 	return &mobile.Service{
 		ID:                s.Name,
+		Labels:            s.Labels,
 		Name:              strings.TrimSpace(string(s.Data["name"])),
 		Host:              string(s.Data["uri"]),
 		BindingSecretName: s.GetName(),

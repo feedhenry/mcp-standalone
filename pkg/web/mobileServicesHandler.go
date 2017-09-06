@@ -31,12 +31,6 @@ func NewMobileServiceHandler(logger *logrus.Logger, integrationService *integrat
 	}
 }
 
-type mobileServiceConfigurationRequest struct {
-	Component string `json:"component"`
-	Service   string `json:"service"`
-	Namespace string `json:"namespace"`
-}
-
 // List allows you to list mobile services
 func (msh *MobileServiceHandler) List(rw http.ResponseWriter, req *http.Request) {
 	token := headers.DefaultTokenRetriever(req.Header)
@@ -99,13 +93,13 @@ func (msh *MobileServiceHandler) Read(rw http.ResponseWriter, req *http.Request)
 	}
 }
 
-// Configure configures components binding
+// Configure configures components binding TODO NEEDS A REFACTOR
 func (msh *MobileServiceHandler) Configure(rw http.ResponseWriter, req *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	token := headers.DefaultTokenRetriever(req.Header)
 
 	decoder := json.NewDecoder(req.Body)
-	var conf mobileServiceConfigurationRequest
+	var conf mobile.ServiceIntegration
 	err := decoder.Decode(&conf)
 	if err != nil {
 		handleCommonErrorCases(err, rw, msh.logger)
@@ -118,8 +112,16 @@ func (msh *MobileServiceHandler) Configure(rw http.ResponseWriter, req *http.Req
 	// TODO move this out of the handler
 
 	k8sClient, err := msh.tokenClientBuilder.K8s(token)
-
-	deploy, err := msh.mobileIntegrationService.MountSecretForComponent(k8sClient, conf.Service, conf.Component, conf.Service, conf.Namespace)
+	if err != nil {
+		handleCommonErrorCases(err, rw, msh.logger)
+		return
+	}
+	svcCruder, err := msh.tokenClientBuilder.MobileServiceCruder(token)
+	if err != nil {
+		handleCommonErrorCases(err, rw, msh.logger)
+		return
+	}
+	deploy, err := msh.mobileIntegrationService.MountSecretForComponent(svcCruder, k8sClient, conf.Service, conf.Component, conf.Service, conf.Namespace, conf.ComponentSecret)
 	if err != nil {
 		handleCommonErrorCases(err, rw, msh.logger)
 		return

@@ -75,11 +75,17 @@ func (ms *MobileService) ReadMoileServiceAndIntegrations(serviceCruder mobile.Se
 			if err != nil && !kerror.IsNotFound(err) {
 				return nil, errors.Wrap(err, "failed attempting to discover mobile services.")
 			}
-			is := isvs[0]
-			svc.Integrations[v] = &mobile.ServiceIntegration{
-				Component: svc.Name,
-				Namespace: ms.namespace,
-				Service:   is.ID,
+			if len(isvs) != 0 {
+				is := isvs[0]
+				fmt.Println("svc label is ", is.Name, svc.Labels[is.Name])
+				enabled := svc.Labels[is.Name] == "true"
+				svc.Integrations[v] = &mobile.ServiceIntegration{
+					ComponentSecret: svc.ID,
+					Component:       svc.Name,
+					Namespace:       ms.namespace,
+					Service:         is.ID,
+					Enabled:         enabled,
+				}
 			}
 		}
 	}
@@ -110,8 +116,9 @@ func (ms *MobileService) GenerateMobileServiceConfigs(serviceCruder mobile.Servi
 	return configs, nil
 }
 
+// TODO REFACTOR!!
 //MountSecretForComponent will work within namespace and mount secretName into componentName, so it can be configured to use serviceName, returning the modified deployment
-func (ms *MobileService) MountSecretForComponent(k8s kubernetes.Interface, secretName, componentName, serviceName, namespace string) (*v1beta1.Deployment, error) {
+func (ms *MobileService) MountSecretForComponent(svcCruder mobile.ServiceCruder, k8s kubernetes.Interface, secretName, componentName, serviceName, namespace string, componentSecretName string) (*v1beta1.Deployment, error) {
 	fmt.Println("mounting secret ", secretName, "into component ", componentName, serviceName)
 	deploy, err := k8s.AppsV1beta1().Deployments(namespace).Get(componentName, meta_v1.GetOptions{})
 	if err != nil {
@@ -144,7 +151,15 @@ func (ms *MobileService) MountSecretForComponent(k8s kubernetes.Interface, secre
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to update deployment when mounting sercret for service integration with "+componentName)
 	}
-
+	//update secret with integration enabled
+	bs, err := svcCruder.Read(serviceName)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to read service secret")
+	}
+	enabled := map[string]string{bs.Name: "true"}
+	if err := svcCruder.UpdateEnabledIntegrations(componentSecretName, enabled); err != nil {
+		return nil, errors.Wrap(err, "failed to update enabled services after mounting secret")
+	}
 	return deploy, nil
 }
 

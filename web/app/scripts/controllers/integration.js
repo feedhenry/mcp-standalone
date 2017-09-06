@@ -30,8 +30,12 @@ angular.module('mobileControlPanelApp')
       .catch(e => {
         console.error(e);
       });  
-
-
+      $scope.enabled = function(service){
+        if(!service){
+          return false;
+        }
+        return service.enabled == true;
+      };
       $scope.enableIntegration = function(service){
         console.log("enableing integration",service);
         mcpApi.integrateService(service)
@@ -43,4 +47,10 @@ angular.module('mobileControlPanelApp')
         })
         return true;
       };
+
+      
+      $scope.installationOpt = function(type){
+        $scope.clientType = type;
+      };
+
   }]);

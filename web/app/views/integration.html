@@ -8,8 +8,8 @@
 <h3 class="text-align-center">Available Mobile Service Integrations</h3>
 
 <ul class="list-group">
-  <li class="list-group-item">
-    <input ng-model="service.integrations.keycloak.enabled" ng-change="enableIntegration(service.integrations.keycloak)" id="bootstrap-switch-state" type="checkbox"> Auth via keycloak enabled:
+  <li class="list-group-item" ng-repeat='(key, value) in service.integrations'>
+      {{key}} enabled: <input ng-model="service.integrations[key].enabled" ng-change="enableIntegration(service.integrations[key])" ng-checked="enabled(service.integrations[key])" id="bootstrap-switch-state" type="checkbox">
   </li>
 </ul>
 
@@ -21,9 +21,30 @@
 </ul>
 
 
-<pre>
+<pre ng-if="clientType == 'cordova'">
+    npm install --save mobile-core
     npm install --save fh-sync-js@1.0.4
 </pre>    
+
+<pre>
+    const mobileSdk =  require('mobile-core');
+    const sdk = mobileSdk(config);
+    sdk.configure()
+    .then((conf)=>{
+        let syncConf = conf.forService('fh-sync');
+    })
+    .catch((e)=>console.error);
+</pre>
+
+<!-- INTEGRATIONS WOULD LIKELY BECOME A DIRECTIVE AND NOT HARD CODED -->
+<div ng-if="clientType == 'cordova' && service.integrations.keycloak && service.integrations.keycloak.enabled == true">
+<pre >
+    npm install --save keycloakjs@1.2.3
+</pre>
+<pre>
+    var keycloak = Keycloak(core.keycloak.config());
+</pre>      
+</div>
 
 
 <script>
