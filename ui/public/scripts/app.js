@@ -1,6 +1,6 @@
 'use strict';
 
-console.log('Mobile Control Panel Extension Loaded');
+console.log('MCP Extension Loaded');
 
 // Add 'Mobile' to the left nav
 window.OPENSHIFT_CONSTANTS.PROJECT_NAVIGATION.splice(1, 0, {
@@ -32,9 +32,6 @@ window.OPENSHIFT_CONSTANTS.SERVICE_CATALOG_CATEGORIES.splice(
     ]
   }
 );
-
-// TODO: check if local dev for server enabled
-window.MCP_URL = 'https://127.0.0.1:3001';
 
 var resolveMCPRoute = {
   MCPRoute: [

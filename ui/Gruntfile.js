@@ -1,13 +1,14 @@
 // Generated on 2017-08-30 using generator-angular 0.16.0
 'use strict';
 
+var ADD_CONFIG_LOCAL = false;
+
 // # Globbing
 // for performance reasons we're only matching one level down:
 // 'test/spec/{,*/}*.js'
 // use this if you want to recursively match all subfolders:
 // 'test/spec/**/*.js'
-module.exports = function (grunt) {
-
+module.exports = function(grunt) {
   // Time how long tasks take. Can help when optimizing build times
   require('time-grunt')(grunt);
 
@@ -24,7 +25,6 @@ module.exports = function (grunt) {
 
   // Define the configuration for all the tasks
   grunt.initConfig({
-
     // Project settings
     yeoman: appConfig,
 
@@ -36,69 +36,34 @@ module.exports = function (grunt) {
       },
       js: {
         files: ['<%= yeoman.app %>/scripts/{,*/}*.js'],
-        tasks: ['newer:jshint:all', 'newer:jscs:all', 'build']
+        tasks: ['build']
       },
       jsTest: {
         files: ['test/spec/{,*/}*.js'],
-        tasks: ['newer:jshint:test', 'newer:jscs:test', 'karma']
+        tasks: ['karma']
       },
       styles: {
         files: ['<%= yeoman.app %>/styles/{,*/}*.css'],
-        tasks: ['newer:copy:styles', 'postcss']
+        tasks: ['copy:styles', 'postcss']
       },
       gruntfile: {
         files: ['Gruntfile.js']
       }
     },
 
-    // Make sure there are no obvious mistakes
-    jshint: {
-      options: {
-        jshintrc: '.jshintrc',
-        reporter: require('jshint-stylish')
-      },
-      all: {
-        src: [
-          'Gruntfile.js',
-          '<%= yeoman.app %>/scripts/{,*/}*.js'
-        ]
-      },
-      test: {
-        options: {
-          jshintrc: 'test/.jshintrc'
-        },
-        src: ['test/spec/{,*/}*.js']
-      }
-    },
-
-    // Make sure code styles are up to par
-    jscs: {
-      options: {
-        config: '.jscsrc',
-        verbose: true
-      },
-      all: {
-        src: [
-          'Gruntfile.js',
-          '<%= yeoman.app %>/scripts/{,*/}*.js'
-        ]
-      },
-      test: {
-        src: ['test/spec/{,*/}*.js']
-      }
-    },
-
     // Empties folders to start fresh
     clean: {
       dist: {
-        files: [{
-          dot: true,
-          src: [
-            '.tmp',
-            '<%= yeoman.dist %>/{,*/}*',
-            '!<%= yeoman.dist %>/.git{,*/}*'
-          ]
-        }]
+        files: [
+          {
+            dot: true,
+            src: [
+              '.tmp',
+              '<%= yeoman.dist %>/{,*/}*',
+              '!<%= yeoman.dist %>/.git{,*/}*'
+            ]
+          }
+        ]
       },
       server: '.tmp'
     },
@@ -107,27 +72,31 @@ module.exports = function (grunt) {
     postcss: {
       options: {
         processors: [
-          require('autoprefixer-core')({browsers: ['last 1 version']})
+          require('autoprefixer-core')({ browsers: ['last 1 version'] })
         ]
       },
       server: {
         options: {
           map: true
         },
-        files: [{
-          expand: true,
-          cwd: '.tmp/styles/',
-          src: '{,*/}*.css',
-          dest: '.tmp/styles/'
-        }]
+        files: [
+          {
+            expand: true,
+            cwd: '.tmp/styles/',
+            src: '{,*/}*.css',
+            dest: '.tmp/styles/'
+          }
+        ]
       },
       dist: {
-        files: [{
-          expand: true,
-          cwd: '.tmp/styles/',
-          src: '{,*/}*.css',
-          dest: '.tmp/styles/'
-        }]
+        files: [
+          {
+            expand: true,
+            cwd: '.tmp/styles/',
+            src: '{,*/}*.css',
+            dest: '.tmp/styles/'
+          }
+        ]
       }
     },
 
@@ -135,25 +104,25 @@ module.exports = function (grunt) {
     wiredep: {
       app: {
         src: ['<%= yeoman.app %>/index.html'],
-        ignorePath:  /\.\.\//
+        ignorePath: /\.\.\//
       },
       test: {
         devDependencies: true,
         src: '<%= karma.unit.configFile %>',
-        ignorePath:  /\.\.\//,
-        fileTypes:{
+        ignorePath: /\.\.\//,
+        fileTypes: {
           js: {
             block: /(([\s\t]*)\/{2}\s*?bower:\s*?(\S*))(\n|\r|.)*?(\/{2}\s*endbower)/gi,
-              detect: {
-                js: /'(.*\.js)'/gi
-              },
-              replace: {
-                js: '\'{{filePath}}\','
-              }
+            detect: {
+              js: /'(.*\.js)'/gi
+            },
+            replace: {
+              js: "'{{filePath}}',"
             }
           }
+        }
       }
-    }, 
+    },
 
     // Renames files for browser caching purposes
     filerev: {
@@ -199,75 +168,71 @@ module.exports = function (grunt) {
           '<%= yeoman.dist %>/styles'
         ],
         patterns: {
-          js: [[/(images\/[^''""]*\.(png|jpg|jpeg|gif|webp|svg))/g, 'Replacing references to images']]
+          js: [
+            [
+              /(images\/[^''""]*\.(png|jpg|jpeg|gif|webp|svg))/g,
+              'Replacing references to images'
+            ]
+          ]
         }
       }
     },
 
-    // concat: {
-    //   dist: {}
-    // },
-
     imagemin: {
       dist: {
-        files: [{
-          expand: true,
-          cwd: '<%= yeoman.app %>/images',
-          src: '{,*/}*.{png,jpg,jpeg,gif}',
-          dest: '<%= yeoman.dist %>/images'
-        }]
+        files: [
+          {
+            expand: true,
+            cwd: '<%= yeoman.app %>/images',
+            src: '{,*/}*.{png,jpg,jpeg,gif}',
+            dest: '<%= yeoman.dist %>/images'
+          }
+        ]
       }
     },
 
     svgmin: {
       dist: {
-        files: [{
-          expand: true,
-          cwd: '<%= yeoman.app %>/images',
-          src: '{,*/}*.svg',
-          dest: '<%= yeoman.dist %>/images'
-        }]
-      }
-    },
-
-    // ng-annotate tries to make the code safe for minification automatically
-    // by using the Angular long form for dependency injection.
-    ngAnnotate: {
-      dist: {
-        files: [{
-          expand: true,
-          cwd: '.tmp/concat/scripts',
-          src: '*.js',
-          dest: '.tmp/concat/scripts'
-        }]
+        files: [
+          {
+            expand: true,
+            cwd: '<%= yeoman.app %>/images',
+            src: '{,*/}*.svg',
+            dest: '<%= yeoman.dist %>/images'
+          }
+        ]
       }
     },
 
     // Copies remaining files to places other tasks can use
     copy: {
       dist: {
-        files: [{
-          expand: true,
-          dot: true,
-          cwd: '<%= yeoman.app %>',
-          dest: '<%= yeoman.dist %>',
-          src: [
-            '*.{ico,png,txt}',
-            '*.html',
-            'images/{,*/}*.{webp}',
-            'styles/fonts/{,*/}*.*'
-          ]
-        }, {
-          expand: true,
-          cwd: '.tmp/images',
-          dest: '<%= yeoman.dist %>/images',
-          src: ['generated/*']
-        }, {
-          expand: true,
-          cwd: 'bower_components/bootstrap/dist',
-          src: 'fonts/*',
-          dest: '<%= yeoman.dist %>'
-        }]
+        files: [
+          {
+            expand: true,
+            dot: true,
+            cwd: '<%= yeoman.app %>',
+            dest: '<%= yeoman.dist %>',
+            src: [
+              '*.{ico,png,txt}',
+              '*.html',
+              'images/{,*/}*.{webp}',
+              'styles/fonts/{,*/}*.*'
+            ]
+          },
+          {
+            expand: true,
+            cwd: '.tmp/images',
+            dest: '<%= yeoman.dist %>/images',
+            src: ['generated/*']
+          },
+          {
+            expand: true,
+            cwd: 'bower_components/bootstrap/dist',
+            src: 'fonts/*',
+            dest: '<%= yeoman.dist %>'
+          }
+        ]
       },
       styles: {
         expand: true,
@@ -279,17 +244,9 @@ module.exports = function (grunt) {
 
     // Run some tasks in parallel to speed up the build process
     concurrent: {
-      server: [
-        'copy:styles'
-      ],
-      test: [
-        'copy:styles'
-      ],
-      dist: [
-        'copy:styles',
-        'imagemin',
-        'svgmin'
-      ]
+      server: ['copy:styles'],
+      test: ['copy:styles'],
+      dist: ['copy:styles', 'imagemin', 'svgmin']
     },
 
     // Test settings
@@ -301,25 +258,94 @@ module.exports = function (grunt) {
     }
   });
 
-  grunt.registerTask('build', [
-    'clean:dist',
-    'wiredep',
-    'useminPrepare',
-    'concurrent:dist',
-    'postcss',
-    'concat',
-    'ngAnnotate',
-    'copy:dist',
-    'cssmin',
-    'uglify',
-    'filerev',
-    'usemin'
-  ]);
+  grunt.registerTask('prettier', 'Run prettier on js.', function() {
+    var done = this.async();
+    var args = [
+      '--single-quote',
+      '--write',
+      './Gruntfile.js',
+      './' + appConfig.app + '/scripts/**/*.js'
+    ];
 
-  grunt.registerTask('default', [
-    'newer:jshint',
-    'newer:jscs',
-    'test',
-    'build'
-  ]);
+    grunt.log.writeln('Running task with args: ' + args);
+    var prettier = require('child_process').spawn(
+      './node_modules/.bin/prettier',
+      args
+    );
+    prettier.stdout.on('data', data => {
+      grunt.log.writeln(`stdout: ${data}`);
+    });
+
+    prettier.stderr.on('data', data => {
+      grunt.log.writeln(`stderr: ${data}`);
+    });
+
+    prettier.on('close', code => {
+      grunt.log.writeln(`child process exited with code ${code}`);
+      done(code === 0);
+    });
+  });
+
+  grunt.registerTask(
+    'local',
+    'Watch local files and serve up development version without uglify',
+    function() {
+      var useminPrepare = grunt.config.get('useminPrepare');
+      var jsSteps = useminPrepare.options.flow.html.steps.js;
+
+      // remove uglifyjs when using `grunt watch`
+      jsSteps.splice(jsSteps.indexOf('uglifyjs'), 1);
+      grunt.config.set('useminPrepare', useminPrepare);
+
+      // enable adding of config.local.js when using `grunt watch`
+      ADD_CONFIG_LOCAL = true;
+
+      var taskList = ['build', 'watch'];
+
+      grunt.task.run(taskList);
+    }
+  );
+
+  grunt.registerTask(
+    'checklocalconfig',
+    'Add config.local.js if enabled',
+    function() {
+      if (ADD_CONFIG_LOCAL) {
+        var concat = grunt.config.get('concat');
+        concat.generated.files[1].src.unshift(
+          appConfig.app + '/scripts/config.local.js'
+        );
+        grunt.config.set('concat', concat);
+      }
+    }
+  );
+
+  grunt.registerTask('build', 'Build dist assets', function() {
+    var taskList = [
+      'clean:dist',
+      'wiredep',
+      'prettier',
+      'useminPrepare',
+      'checklocalconfig',
+      'concurrent:dist',
+      'postcss',
+      'concat:generated',
+      'copy:dist',
+      'cssmin',
+      'uglify',
+      'filerev',
+      'usemin'
+    ];
+
+    // don't run uglify if the usemin config doesn't say to
+    var useminPrepare = grunt.config.get('useminPrepare');
+    var jsSteps = useminPrepare.options.flow.html.steps.js;
+    if (jsSteps.indexOf('uglifyjs') < 0) {
+      taskList.splice(taskList.indexOf('uglify'), 1);
+    }
+
+    grunt.task.run(taskList);
+  });
+
+  grunt.registerTask('default', ['test', 'build']);
 };
