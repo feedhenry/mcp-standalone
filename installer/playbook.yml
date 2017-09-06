@@ -1,0 +1,21 @@
+---
+
+- name: Setup OpenShift cluster with Mobile Control Panel and Service Brokers
+  hosts: localhost
+  roles:
+  - role: openshift-origin-client-tools
+    tags: install-oc
+
+  - role: oc-cluster-up
+    tags: oc-cluster-up
+
+  - role: template-service-broker-setup
+    tags: setup-tsb
+
+  - role: mcp-ui-extension-setup
+    tags: setup-mcp
+
+  - role: ansible-service-broker-setup
+    tags: setup-asb
+  vars_files:
+  - "vars/mobile-control-panel.yml"

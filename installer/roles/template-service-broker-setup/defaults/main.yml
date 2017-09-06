@@ -1,0 +1,13 @@
+---
+# defaults file for template-service-broker-setup
+
+openshift_username: system:admin
+openshift_project: openshift
+
+templates:
+- https://raw.githubusercontent.com/feedhenry/fh-sync-server/master/fh-sync-server-DEVELOPMENT.yaml
+
+group: "system:openshift:templateservicebroker-client"
+roles:
+- "system:unauthenticated"
+- "system:authenticated"

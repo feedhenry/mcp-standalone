@@ -1,0 +1,10 @@
+---
+# defaults file for oc-cluster-up
+
+service_catalog: "true"
+
+host_config_dir: "{{playbook_dir}}/../ui"
+
+cluster_version: v3.6.0-rc.0
+
+cluster_public_hostname: "192.168.37.1"
