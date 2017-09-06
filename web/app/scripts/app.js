@@ -18,6 +18,7 @@ angular
     $routeProvider
       .when('/apps', {
         templateUrl: '/views/mobileapps.html',
+        //todo change the name of the controller
         controller: 'MobileappsCtrl',
         requireAuthentication: true
       })
@@ -39,10 +40,15 @@ angular
         templateUrl: 'views/error.html',
         controller: 'ErrorCtrl'
       })
-      .when('/services', {
-        templateUrl: 'views/services.html',
-        controller: 'ServicesCtrl',
-        controllerAs: 'services'
+      .when('/integrations', {
+        templateUrl: 'views/integrations.html',
+        controller: 'IntegrationsCtrl',
+        controllerAs: 'integrations'
+      })
+      .when('/integrations/:service', {
+        templateUrl: 'views/integration.html',
+        controller: 'IntegrationCtrl',
+        controllerAs: 'integration'
       })
       .otherwise({
         redirectTo: '/apps'

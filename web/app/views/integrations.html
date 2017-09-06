@@ -1,0 +1,30 @@
+<h1>Mobile Enabled Services</h1>
+<div ng-if="services.length > 0" class="row row-cards-pf">
+  <div ng-repeat="service in services" class="col-xs-12 col-sm-4 col-md-4 col-lg-2">
+    <div class="card-pf card-pf-view" style="cursor:pointer;" ng-click="openServiceIntegration(service.id)">
+      <div class="card-pf-body" style="height: 204px;">
+        <div class="card-pf-top-element">
+          <span class="fa icon card-pf-icon-circle"></span>
+        </div>
+        <p class="card-pf-info text-center">
+          <h2 class="card-pf-title text-center">
+            {{service.name}}
+          </h2>
+        </p>
+        <p class="card-pf-info text-center">
+          <h6>Capabilities:</h6>
+          <span style="color: blueviolet; font-size: 8px;"> Authentication,</span>
+          <span style="color: blueviolet; font-size: 8px;"> Authorisation</span>
+
+
+          <h6>Integrations:</h6>
+          <span style="color: blueviolet; font-size: 8px;"> fh-sync,</span>
+          <span style="color: blueviolet; font-size: 8px;"> mobile clients</span>
+
+          <a class="pull-right" style="font-size:10px;" ng-click="openServiceIntegration(service.id)" href=""> Details ></a>
+        </p>
+
+      </div>
+    </div>
+  </div>
+</div>

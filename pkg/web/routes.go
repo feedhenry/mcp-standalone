@@ -77,6 +77,8 @@ func SysRoute(r *mux.Router, handler *SysHandler) {
 // MobileServiceRoute configures and sets up the /mobileservice routes
 func MobileServiceRoute(r *mux.Router, handler *MobileServiceHandler) {
 	r.HandleFunc("/mobileservice", prometheus.InstrumentHandlerFunc("mobileservices list", handler.List)).Methods("GET")
+	r.HandleFunc("/mobileservice/{name}", prometheus.InstrumentHandlerFunc("mobileservice read", handler.Read)).Methods("GET")
+	r.HandleFunc("/mobileservice/configure", prometheus.InstrumentHandlerFunc("mobileservices configuration", handler.Configure)).Methods("POST")
 }
 
 //TODO maybe better place to put this

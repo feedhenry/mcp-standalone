@@ -111,6 +111,8 @@ func convertConfigMapToMobileApp(m *v1.ConfigMap) *mobile.App {
 }
 
 func convertMobileAppToConfigMap(app *mobile.App) *v1.ConfigMap {
+	test := "test"
+	fmt.Printf(test)
 	return &v1.ConfigMap{
 		ObjectMeta: meta_v1.ObjectMeta{
 			Name: app.Name + "-" + fmt.Sprintf("%v", time.Now().Unix()),

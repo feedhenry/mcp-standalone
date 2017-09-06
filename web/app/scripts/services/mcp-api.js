@@ -52,6 +52,31 @@ angular.module('mobileControlPanelApp')
         .catch(err=>{
           return err;
         });
+      },
+      "mobileService": function(name, withIntegrations){
+        let url = mobileServicesURL + "/"+name;
+        if(withIntegrations){
+          console.log("withIntegrations");
+          url += "?withIntegrations=true";
+        }
+        console.log("calling ", url)
+        return $http.get(url,requestConfig)
+        .then((res)=>{
+          return res.data;
+        })
+        .catch(err=>{
+          return err;
+        });
+      },
+      "integrateService": function(params){
+        let url = mobileServicesURL + "/configure";
+        return $http.post(url,params,requestConfig)
+        .then((res)=>{
+          return res.data;
+        })
+        .catch(err=>{
+          return err;
+        });
       }
     };
   }]);

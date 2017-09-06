@@ -1,0 +1,53 @@
+<span style="font-size:22px;">{{service.name}}</span>
+
+<p ng-if="service.name == 'fh-sync-server'">
+  Sync provides data syncronisation between clients and cloud.
+</p>
+<br/>
+
+<h3 class="text-align-center">Available Mobile Service Integrations</h3>
+
+<ul class="list-group">
+  <li class="list-group-item" ng-repeat='(key, value) in service.integrations'>
+      {{key}} enabled: <input ng-model="service.integrations[key].enabled" ng-change="enableIntegration(service.integrations[key])" ng-checked="enabled(service.integrations[key])" id="bootstrap-switch-state" type="checkbox">
+  </li>
+</ul>
+
+
+<h3 class="text-align-center">Mobile Client Integrations</h3>
+
+<ul class="nav nav-tabs nav-justified">
+  <li ng-repeat="c in clients" role="presentation"><a ng-click="installationOpt(c)" href="#">{{c}}</a></li>
+</ul>
+
+
+<pre ng-if="clientType == 'cordova'">
+    npm install --save mobile-core
+    npm install --save fh-sync-js@1.0.4
+</pre>    
+
+<pre>
+    const mobileSdk =  require('mobile-core');
+    const sdk = mobileSdk(config);
+    sdk.configure()
+    .then((conf)=>{
+        let syncConf = conf.forService('fh-sync');
+    })
+    .catch((e)=>console.error);
+</pre>
+
+<!-- INTEGRATIONS WOULD LIKELY BECOME A DIRECTIVE AND NOT HARD CODED -->
+<div ng-if="clientType == 'cordova' && service.integrations.keycloak && service.integrations.keycloak.enabled == true">
+<pre >
+    npm install --save keycloakjs@1.2.3
+</pre>
+<pre>
+    var keycloak = Keycloak(core.keycloak.config());
+</pre>      
+</div>
+
+
+<script>
+  jQuery(".bootstrap-switch").bootstrapSwitch();
+
+</script>
