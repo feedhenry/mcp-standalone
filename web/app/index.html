@@ -64,23 +64,11 @@
           </a>
         </li>
         <li class="list-group-item">
-            <a href="/services">
+            <a href="/integrations">
               <span class="glyphicon glyphicon-random" data-toggle="tooltip" title="Services"></span>
               <span class="list-group-item-value">Integrations</span>
             </a>
           </li>
-          <li class="list-group-item">
-              <a href="/service/keycloak">
-                <span class="glyphicon glyphicon-eye-close" data-toggle="tooltip" title="keycloak"></span>
-                <span class="list-group-item-value">Keycloak</span>
-              </a>
-            </li>
-            <li class="list-group-item">
-                <a href="/service/sync">
-                  <span class="glyphicon glyphicon-resize-horizontal" data-toggle="tooltip" title="data sync"></span>
-                  <span class="list-group-item-value">Data Sync</span>
-                </a>
-              </li>
       </ul>
     </div>
 
@@ -170,6 +158,7 @@
     <script src="bower_components/uri.js/src/URI.fragmentURI.js"></script>
     <script src="bower_components/origin-web-common/dist/origin-web-common.js"></script>
     <!-- endbower -->
+    <script src="bower_components/bootstrap-switch/dist/js/bootstrap-switch.min.js"></script>
     <!-- endbuild -->
 
         <!-- build:js({.tmp,app}) scripts/scripts.js -->
@@ -181,7 +170,8 @@
         <script src="scripts/controllers/oauth.js"></script>
         <script src="scripts/controllers/error.js"></script>
         
-        <script src="scripts/controllers/services.js"></script>
+        <script src="scripts/controllers/integrations.js"></script>
+        <script src="scripts/controllers/integration.js"></script>
         <!-- endbuild -->
 </body>
 </html>

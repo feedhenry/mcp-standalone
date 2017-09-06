@@ -89,7 +89,7 @@ func main() {
 
 	//mobileservice handler
 	{
-		integrationSvc := &integration.MobileService{}
+		integrationSvc := integration.NewMobileSevice(*namespace)
 		svcHandler := web.NewMobileServiceHandler(logger, integrationSvc, tokenClientBuilder)
 		web.MobileServiceRoute(router, svcHandler)
 	}

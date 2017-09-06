@@ -8,7 +8,7 @@
  * Controller of the mobileControlPanelApp
  */
 angular.module('mobileControlPanelApp')
-  .controller('ServicesCtrl', ['$scope','mcpApi',function ($scope, mcpApi) {
+  .controller('IntegrationsCtrl', ['$scope','mcpApi' ,'$location',function ($scope, mcpApi, $location) {
     mcpApi.mobileServices()
     .then(s=>{
       $scope.services = s;
@@ -16,4 +16,8 @@ angular.module('mobileControlPanelApp')
     .catch(e =>{
       console.error("error getting services ", e);
     });
+
+    $scope.openServiceIntegration = function(name){
+      $location.path("/integrations/" + name);
+    };
   }]);
