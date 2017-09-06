@@ -147,7 +147,7 @@ func (ms *MobileService) MountSecretForComponent(svcCruder mobile.ServiceCruder,
 		deploy.Spec.Template.Spec.Containers[id].VolumeMounts = append(deploy.Spec.Template.Spec.Containers[id].VolumeMounts, newMount)
 	}
 
-	deploy, err = k8s.AppsV1beta1().Deployments(namespace).Update(deploy)
+	_, err = k8s.AppsV1beta1().Deployments(namespace).Update(deploy)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to update deployment when mounting sercret for service integration with "+componentName)
 	}
