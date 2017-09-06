@@ -12,6 +12,9 @@
   - role: template-service-broker-setup
     tags: setup-tsb
 
+  - role: mcp-ui-extension-setup
+    tags: setup-mcp
+
   - role: ansible-service-broker-setup
     tags: setup-asb
   vars_files:
