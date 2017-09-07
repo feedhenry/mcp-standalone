@@ -2,7 +2,6 @@ package web_test
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -188,7 +187,6 @@ func TestConfigure(t *testing.T) {
 				bodyBytes, _ := ioutil.ReadAll(r.Body)
 				res := &v1beta1.Deployment{}
 				err := json.Unmarshal(bodyBytes, res)
-				fmt.Println(string(bodyBytes))
 				if err != nil {
 					t.Fatal(err)
 				}

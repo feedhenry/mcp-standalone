@@ -20,20 +20,17 @@ angular.module('mobileControlPanelApp')
       });
       mcpApi.mobileApps()
       .then((apps) => {
-        console.log(apps);
         $scope.mobileapps =  {};
         for(var i=0; i < apps.length; i++){
           let app = apps[i];
           $scope.mobileapps[app.clientType] = "true";
         }
         $scope.clients = Object.keys($scope.mobileapps);
-        console.log("clients", $scope.clients, $scope.mobileapps);
       })
       .catch(e => {
         console.error(e);
       });  
       $scope.enabled = function(integration, service){
-        console.log("check integration ", integration, service);
         if(!service){
           return false;
         }
@@ -44,7 +41,6 @@ angular.module('mobileControlPanelApp')
         
       };
       $scope.enableIntegration = function(service){
-        console.log("enableing integration",service);
         mcpApi.integrateService(service)
         .then((res)=>{
           console.log("Service integrated");
