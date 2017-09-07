@@ -61,8 +61,9 @@ func main() {
 		k8host = "https://" + os.Getenv("KUBERNETES_SERVICE_HOST") + ":" + os.Getenv("KUBERNETES_SERVICE_PORT")
 	}
 	var k8ClientBuilder = k8s.NewClientBuilder(*namespace, k8host)
+	var mounterBuilder = k8s.NewMounterBuilder(*namespace)
 	var (
-		tokenClientBuilder = client.NewTokenScopedClientBuilder(k8ClientBuilder, appRepoBuilder, svcRepoBuilder, *namespace, logger)
+		tokenClientBuilder = client.NewTokenScopedClientBuilder(k8ClientBuilder, appRepoBuilder, svcRepoBuilder, mounterBuilder, *namespace, logger)
 		httpClientBuilder  = client.NewHttpClientBuilder()
 		openshiftUser      = openshift.UserAccess{Logger: logger}
 		mwAccess           = middleware.NewAccess(logger, k8host, openshiftUser.ReadUserFromToken)

@@ -6,10 +6,6 @@ import (
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
 	"github.com/pkg/errors"
 	kerror "k8s.io/apimachinery/pkg/api/errors"
-	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
-	v1 "k8s.io/client-go/pkg/api/v1"
-	v1beta1 "k8s.io/client-go/pkg/apis/apps/v1beta1"
 )
 
 // MobileService holds the business logic for dealing with the mobile services and integrations with those services
@@ -120,77 +116,62 @@ func (ms *MobileService) GenerateMobileServiceConfigs(serviceCruder mobile.Servi
 	return configs, nil
 }
 
-//MountSecretForComponent will work within namespace and mount secretName into componentName, so it can be configured to use serviceName, returning the modified deployment
-func (ms *MobileService) MountSecretForComponent(svcCruder mobile.ServiceCruder, k8s kubernetes.Interface, secretName, componentName, serviceName, namespace string, componentSecretName string) (*v1beta1.Deployment, error) {
-	fmt.Println("mounting secret ", secretName, "into component ", componentName, serviceName)
-	deploy, err := k8s.AppsV1beta1().Deployments(namespace).Get(componentName, meta_v1.GetOptions{})
+//MountSecretForComponent will mount secret into component, returning any errors
+func (ms *MobileService) MountSecretForComponent(svcCruder mobile.ServiceCruder, mounter mobile.VolumeMounter, clientService, serviceSecret string) error {
+	//check secret exists and store for later update
+	service, err := svcCruder.Read(serviceSecret)
 	if err != nil {
-		return nil, err
-	}
-	id, err := findContainerID(componentName, deploy.Spec.Template.Spec.Containers)
-	if err != nil {
-		return nil, err
+		return errors.Wrap(err, "failed to find secret: '"+serviceSecret+"'")
 	}
 
-	//only create the volume if it doesn't exist yet
-	if vol := findVolumeByName(secretName, deploy.Spec.Template.Spec.Volumes); vol.Name != secretName {
-		newVol := v1.Volume{
-			Name: secretName,
-			VolumeSource: v1.VolumeSource{
-				Secret: &v1.SecretVolumeSource{
-					SecretName: secretName,
-				},
-			},
-		}
-		deploy.Spec.Template.Spec.Volumes = append(deploy.Spec.Template.Spec.Volumes, newVol)
-	}
-
-	if mount := findMountByName(secretName, deploy.Spec.Template.Spec.Containers[id].VolumeMounts); mount.Name != secretName {
-		newMount := v1.VolumeMount{Name: secretName, ReadOnly: true, MountPath: "/etc/secrets/" + serviceName}
-		deploy.Spec.Template.Spec.Containers[id].VolumeMounts = append(deploy.Spec.Template.Spec.Containers[id].VolumeMounts, newMount)
-	}
-
-	_, err = k8s.AppsV1beta1().Deployments(namespace).Update(deploy)
+	err = mounter.Mount(serviceSecret, clientService)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to update deployment when mounting sercret for service integration with "+componentName)
+		return errors.Wrap(err, "failed to mount secret '"+serviceSecret+"' into service '"+clientService+"'")
 	}
+
+	//find the clientService secret name
+	css, err := svcCruder.List(ms.filterServices([]string{clientService}))
+	if err != nil || len(css) == 0 {
+		return errors.New("failed to find secret for client service: '" + clientService + "'")
+	}
+	clientServiceSecret := css[0].ID
+
 	//update secret with integration enabled
-	bs, err := svcCruder.Read(serviceName)
+	enabled := map[string]string{service.Name: "true"}
+	if err := svcCruder.UpdateEnabledIntegrations(clientServiceSecret, enabled); err != nil {
+		return errors.Wrap(err, "failed to update enabled services after mounting secret")
+	}
+
+	return nil
+}
+
+//UnmountSecretInComponent will unmount secret from component, so it can be no longer use serviceName, returning any errors
+func (ms *MobileService) UnmountSecretInComponent(svcCruder mobile.ServiceCruder, unmounter mobile.VolumeUnmounter, clientService, serviceSecret string) error {
+	//check secret exists and store for later update
+	service, err := svcCruder.Read(serviceSecret)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to read service secret")
-	}
-	enabled := map[string]string{bs.Name: "true"}
-	if err := svcCruder.UpdateEnabledIntegrations(componentSecretName, enabled); err != nil {
-		return nil, errors.Wrap(err, "failed to update enabled services after mounting secret")
-	}
-	return deploy, nil
-}
-
-func findContainerID(name string, containers []v1.Container) (int, error) {
-	for id, container := range containers {
-		if container.Name == name {
-			return id, nil
-		}
-	}
-	return -1, errors.New("could not find container with name: '" + name + "'")
-}
-
-func findVolumeByName(name string, volumes []v1.Volume) v1.Volume {
-	for _, vol := range volumes {
-		if vol.Name == name {
-			return vol
-		}
+		return errors.Wrap(err, "failed to find secret: '"+serviceSecret+"'")
 	}
 
-	return v1.Volume{}
-}
-
-func findMountByName(name string, mounts []v1.VolumeMount) v1.VolumeMount {
-	for _, mount := range mounts {
-		if mount.Name == name {
-			return mount
-		}
+	err = unmounter.Unmount(serviceSecret, clientService)
+	if err != nil {
+		return errors.Wrap(err, "failed to unmount secret '"+serviceSecret+"' from component '"+clientService+"'")
 	}
 
-	return v1.VolumeMount{}
+	//find the clientService secret name
+	css, err := svcCruder.List(ms.filterServices([]string{clientService}))
+	if err != nil || len(css) == 0 {
+		return errors.New("failed to find secret for client service: '" + clientService + "'")
+	}
+	clientServiceSecret := css[0].ID
+
+	//update secret with integration enabled
+	disabled := map[string]string{service.Name: "false"}
+	if err := svcCruder.UpdateEnabledIntegrations(clientServiceSecret, disabled); err != nil {
+		return errors.Wrap(err, "failed to update enabled services after unmounting secret")
+	}
+
+	return nil
+
+	return nil
 }

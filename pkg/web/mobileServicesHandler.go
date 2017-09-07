@@ -116,43 +116,61 @@ func (msh *MobileServiceHandler) Create(rw http.ResponseWriter, req *http.Reques
 	rw.WriteHeader(http.StatusCreated)
 }
 
-// Configure configures components binding TODO NEEDS A REFACTOR
+// Configure configures components binding
 func (msh *MobileServiceHandler) Configure(rw http.ResponseWriter, req *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	token := headers.DefaultTokenRetriever(req.Header)
 
-	decoder := json.NewDecoder(req.Body)
-	var conf mobile.ServiceIntegration
-	err := decoder.Decode(&conf)
+	params := mux.Vars(req)
+	component := strings.ToLower(params["component"])
+	secret := strings.ToLower(params["secret"])
+
+	mounter, err := msh.tokenClientBuilder.VolumeMounterUnmounter(token)
 	if err != nil {
-		handleCommonErrorCases(err, rw, msh.logger)
+		handleCommonErrorCases(errors.Wrap(err, "web.msh.Configure -> could not create mounter"), rw, msh.logger)
 		return
 	}
 
-	conf.Component = strings.ToLower(conf.Component)
-	conf.Service = strings.ToLower(conf.Service)
-
-	// TODO move this out of the handler
-
-	k8sClient, err := msh.tokenClientBuilder.K8s(token)
-	if err != nil {
-		handleCommonErrorCases(err, rw, msh.logger)
-		return
-	}
 	svcCruder, err := msh.tokenClientBuilder.MobileServiceCruder(token)
 	if err != nil {
-		handleCommonErrorCases(err, rw, msh.logger)
-		return
-	}
-	deploy, err := msh.mobileIntegrationService.MountSecretForComponent(svcCruder, k8sClient, conf.Service, conf.Component, conf.Service, conf.Namespace, conf.ComponentSecret)
-	if err != nil {
-		handleCommonErrorCases(err, rw, msh.logger)
+		handleCommonErrorCases(errors.Wrap(err, "web.msh.Configure -> could not create service cruder"), rw, msh.logger)
 		return
 	}
 
-	encoder := json.NewEncoder(rw)
-	if err := encoder.Encode(deploy); err != nil {
-		handleCommonErrorCases(err, rw, msh.logger)
+	err = msh.mobileIntegrationService.MountSecretForComponent(svcCruder, mounter, component, secret)
+	if err != nil {
+		handleCommonErrorCases(errors.Wrap(err, "web.msh.Configure -> could not mount secret: '"+secret+"' into component: '"+component+"'"), rw, msh.logger)
 		return
 	}
+
+	return
+}
+
+// Deconfigure removes configuration for components binding
+func (msh *MobileServiceHandler) Deconfigure(rw http.ResponseWriter, req *http.Request) {
+	rw.Header().Set("Content-Type", "application/json")
+	token := headers.DefaultTokenRetriever(req.Header)
+
+	params := mux.Vars(req)
+	component := params["component"]
+	secret := params["secret"]
+
+	svcCruder, err := msh.tokenClientBuilder.MobileServiceCruder(token)
+	if err != nil {
+		handleCommonErrorCases(errors.Wrap(err, "web.msh.Deconfigure -> could not create service cruder"), rw, msh.logger)
+		return
+	}
+
+	unmounter, err := msh.tokenClientBuilder.VolumeMounterUnmounter(token)
+	if err != nil {
+		handleCommonErrorCases(errors.Wrap(err, "web.msh.Deconfigure -> could not create volume unmounter"), rw, msh.logger)
+		return
+	}
+
+	err = msh.mobileIntegrationService.UnmountSecretInComponent(svcCruder, unmounter, component, secret)
+	if err != nil {
+		handleCommonErrorCases(errors.Wrap(err, "web.msh.Deconfigure -> could not unmount secret: '"+secret+"' from component: '"+component+"'"), rw, msh.logger)
+		return
+	}
+	return
 }

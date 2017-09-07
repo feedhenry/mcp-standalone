@@ -52,6 +52,7 @@ type TokenScopedClientBuilder interface {
 	MobileAppCruder(token string) (AppCruder, error)
 	MobileServiceCruder(token string) (ServiceCruder, error)
 	UseDefaultSAToken() TokenScopedClientBuilder
+	VolumeMounterUnmounter(token string) (VolumeMounterUnmounter, error)
 }
 
 type HTTPRequesterBuilder interface {
@@ -63,4 +64,26 @@ type HTTPRequesterBuilder interface {
 type ExternalHTTPRequester interface {
 	Do(req *http.Request) (*http.Response, error)
 	Get(url string) (*http.Response, error)
+}
+
+// MounterBuilder creates VolumeMounterUnmounter objects
+type MounterBuilder interface {
+	Build() VolumeMounterUnmounter
+	WithK8s(kubernetes.Interface) MounterBuilder
+}
+
+// VolumeMounter defines an interface for mounting volumes into services
+type VolumeMounter interface {
+	Mount(secret, clientService string) error
+}
+
+// VolumeUnmounter defines an interface for unmounting volumes mounted in services
+type VolumeUnmounter interface {
+	Unmount(secret, clientService string) error
+}
+
+// VolumeMounterUnmounter can both mount and unmount volumes
+type VolumeMounterUnmounter interface {
+	VolumeMounter
+	VolumeUnmounter
 }
