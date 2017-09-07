@@ -26,15 +26,6 @@ angular.module('mobileControlPanelApp').controller('MobileOverviewController', [
     $scope.alerts = {};
     $scope.renderOptions = $scope.renderOptions || {};
     $scope.renderOptions.hideFilterWidget = true;
-    $scope.breadcrumbs = [
-      {
-        title: 'Mobile',
-        link: 'project/' + $routeParams.project + '/browse/mobileapps'
-      },
-      {
-        title: $routeParams.mobileapp
-      }
-    ];
 
     $scope.mobileapps = [];
     $scope.services = [];

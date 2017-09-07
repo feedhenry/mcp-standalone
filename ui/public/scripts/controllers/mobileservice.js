@@ -14,6 +14,16 @@ angular.module('mobileControlPanelApp').controller('MobileServiceController', [
   function($scope, mcpApi, $routeParams) {
     $scope.alerts = {};
     $scope.projectName = $routeParams.project;
+    $scope.breadcrumbs = [
+      {
+        title: 'Mobile Service',
+        link: 'project/' + $routeParams.project + '/browse/mobileservices'
+      },
+      {
+        title: $routeParams.service
+      }
+    ];
+
     $scope.integrations = [];
     mcpApi
       .mobileService($routeParams.service, 'true')
