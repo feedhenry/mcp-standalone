@@ -20,7 +20,7 @@ angular.module('mobileControlPanelApp').controller('MobileAppController', [
     $scope.renderOptions.hideFilterWidget = true;
     $scope.breadcrumbs = [
       {
-        title: 'Mobile',
+        title: 'Mobile App',
         link: 'project/' + $routeParams.project + '/browse/mobileapps'
       },
       {
@@ -74,8 +74,12 @@ angular.module('mobileControlPanelApp').controller('MobileAppController', [
     };
 
     $scope.openServiceIntegration = function(id) {
-      $location.path(
-        'project/' + $routeParams.project + '/browse/mobileservices/' + id
+      $location.url(
+        'project/' +
+          $routeParams.project +
+          '/browse/mobileservices/' +
+          id +
+          '?tab=integrations'
       );
     };
   }

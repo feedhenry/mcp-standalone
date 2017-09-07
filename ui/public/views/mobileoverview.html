@@ -9,73 +9,61 @@
           <tasks></tasks>
           <alerts alerts="overview.state.alerts"></alerts>
         </div>
-        <div class="container-fluid">
-            <h1>
-              Mobile Apps
-              <span class="page-header-link">
-                <a ng-href="http://feedhenry.org/docs/" target="_blank" href="http://feedhenry.org/docs/">
-                Learn More <i class="fa fa-external-link" aria-hidden="true"></i>
-                </a>
-              </span>
-              <div class="pull-right">
-                <a ng-href="project/{{ projectName }}/create-mobileapp" class="btn btn-default">Create Mobile App</a>
-              </div>
-            </h1>
-          <div class="row row-cards-pf">
-            <div ng-repeat="mobileapp in mobileapps" class="col-xs-12 col-sm-6 col-md-3">
-              <div class="card-pf card-pf-view" style="cursor:pointer;" ng-click="openApp(mobileapp.id)">
-                <div class="card-pf-body" style="height: 204px;">
-                  <div class="card-pf-top-element">
-                    <span class="fa icon {{mobileapp.metadata.icon}} card-pf-icon-circle"></span>
-                  </div>
-                  <h2 class="card-pf-title text-center">
-                    {{mobileapp.name}}
-                  </h2>
-                  <p class="card-pf-info text-center"> {{mobileapp.description}}</p>
-                  <a class="pull-right" style="font-size:10px;" ng-click="openApp(mobileapp.id)" href=""> Details ></a>
-                </div>
-              </div>
-            </div>
-          </div>
-
+          <div class="cards-pf">
+        <div class="container-fluid container-cards-pf">
           <h1>
-            Provisioned Mobile Enabled Services
+            Mobile Apps
             <span class="page-header-link">
               <a ng-href="http://feedhenry.org/docs/" target="_blank" href="http://feedhenry.org/docs/">
               Learn More <i class="fa fa-external-link" aria-hidden="true"></i>
               </a>
             </span>
-            <div class="pull-right ng-scope" ng-if="project && ('services' | canI : 'create')">
-                <a ng-href="/" class="btn btn-default">Provision Catalog Service</a>
-                <a ng-href="project/{{ projectName }}/create-mobileservice" class="btn btn-default">Add External Service</a>
+            <div class="pull-right">
+              <a ng-href="project/{{ projectName }}/create-mobileapp" class="btn btn-default">Create Mobile App</a>
             </div>
           </h1>
-          <!-- TODO: limit this to 'mobile'' services -->
-          <div class="row row-cards-pf">
-            <div ng-repeat="service in services" class="col-xs-12 col-sm-6 col-md-3">
-              <div class="card-pf card-pf-view" style="cursor:pointer;" ng-click="openService(service.id)">
-                <div class="card-pf-body" style="height: 204px;">
-                  <div class="card-pf-top-element">
-                    <span class="fa icon card-pf-icon-circle"></span>
+            <div class="row row-cards-pf">
+              <div ng-repeat="mobileapp in mobileapps" class="col-xs-12 col-sm-6 col-md-3">
+                <div class="card-pf card-pf-view card-pf-view-select card-pf-view-multi-select" ng-click="openApp(mobileapp.id)">
+                  <div class="card-pf-body">
+                    <div class="card-pf-top-element">
+                      <span class="fa icon {{mobileapp.metadata.icon}} card-pf-icon-circle"></span>
+                    </div>
+                    <h2 class="card-pf-title text-center">
+                      {{mobileapp.name}}
+                    </h2>
+                    <p class="card-pf-info text-center"> {{mobileapp.description}}</p>
                   </div>
-                  <p class="card-pf-info text-center">
-                  <h2 class="card-pf-title text-center">
-                    {{service.name}}
-                  </h2>
-                  </p>
-                  <p class="card-pf-info text-center">
-                    <h6>Capabilities:</h6>
-                    <span style="color: blueviolet; font-size: 8px;"> Authentication,</span>
-                    <span style="color: blueviolet; font-size: 8px;"> Authorisation</span>
-                
-                
-                    <h6>Integrations:</h6>
-                    <span style="color: blueviolet; font-size: 8px;"> fh-sync,</span>
-                    <span style="color: blueviolet; font-size: 8px;"> mobile clients</span>
-                    
-                  <a class="pull-right" style="font-size:10px;" ng-click="openApp(mobileapp.id)" href=""> Details ></a>
-                  </p>
+                </div>
+              </div>
+            </div>
 
+            <h1>
+              Provisioned Services
+              <span class="page-header-link">
+                <a ng-href="http://feedhenry.org/docs/" target="_blank" href="http://feedhenry.org/docs/">
+                Learn More <i class="fa fa-external-link" aria-hidden="true"></i>
+                </a>
+              </span>
+              <div class="pull-right ng-scope" ng-if="project && ('services' | canI : 'create')">
+                  <a ng-href="/" class="btn btn-default">Provision Catalog Service</a>
+                  <a ng-href="project/{{ projectName }}/create-mobileservice" class="btn btn-default">Add External Service</a>
+              </div>
+            </h1>
+            <!-- TODO: limit this to 'mobile'' services -->
+            <div class="row row-cards-pf">
+              <div ng-repeat="service in services" class="col-xs-12 col-sm-6 col-md-3">
+                <div class="card-pf card-pf-view card-pf-view-select card-pf-view-multi-select" ng-click="openService(service.id)">
+                  <div class="card-pf-body">
+                    <div class="card-pf-top-element">
+                      <span class="fa icon card-pf-icon-circle"></span>
+                    </div>
+                    <h2 class="card-pf-title text-center">
+                      {{service.name}}
+                    </h2>
+                    <h6 class="text-center">Capabilities:<em> Authentication, Authorisation</em></h6>
+                    <h6 class="text-center">Integrations:<em> fh-sync, mobile clients</em></h6>
+                  </div>
                 </div>
               </div>
             </div>
