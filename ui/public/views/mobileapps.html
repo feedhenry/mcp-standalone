@@ -39,14 +39,15 @@
           </div>
 
           <h1>
-            Provisioned Services
+            Provisioned Mobile Enabled Services
             <span class="page-header-link">
               <a ng-href="http://feedhenry.org/docs/" target="_blank" href="http://feedhenry.org/docs/">
               Learn More <i class="fa fa-external-link" aria-hidden="true"></i>
               </a>
             </span>
             <div class="pull-right ng-scope" ng-if="project && ('services' | canI : 'create')">
-            <a ng-href="/" class="btn btn-default">Provision Service</a>
+                <a ng-href="/" class="btn btn-default">Provision Catalog Service</a>
+                <a ng-href="project/{{ projectName }}/create-mobileservice" class="btn btn-default">Add External Service</a>
             </div>
           </h1>
           <!-- TODO: limit this to 'mobile'' services -->
