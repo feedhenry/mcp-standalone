@@ -49,7 +49,7 @@ module.exports = function(grunt) {
       },
       js: {
         files: ['<%= yeoman.app %>/scripts/{,*/}*.js'],
-        tasks: ['build']
+        tasks: ['setlocalconfig', 'build']
       },
       jsTest: {
         files: ['test/spec/{,*/}*.js'],
@@ -300,6 +300,14 @@ module.exports = function(grunt) {
   });
 
   grunt.registerTask(
+    'setlocalconfig',
+    'Sets a flag to enable config.local.js in bundled js',
+    function() {
+      ADD_CONFIG_LOCAL = true;
+    }
+  );
+
+  grunt.registerTask(
     'local',
     'Watch local files and serve up development version without uglify',
     function() {
@@ -310,10 +318,7 @@ module.exports = function(grunt) {
       jsSteps.splice(jsSteps.indexOf('uglifyjs'), 1);
       grunt.config.set('useminPrepare', useminPrepare);
 
-      // enable adding of config.local.js when using `grunt watch`
-      ADD_CONFIG_LOCAL = true;
-
-      var taskList = ['build', 'watch'];
+      var taskList = ['setlocalconfig', 'build', 'watch'];
 
       grunt.task.run(taskList);
     }

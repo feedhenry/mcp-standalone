@@ -45,6 +45,23 @@ angular.module('mobileControlPanelApp').service('mcpApi', [
         return $http.get(getMobileServicesURL(), requestConfig).then(res => {
           return res.data;
         });
+      },
+      mobileService: function(name, withIntegrations) {
+        let url = getMobileServicesURL() + '/' + name;
+        if (withIntegrations) {
+          console.log('withIntegrations');
+          url += '?withIntegrations=true';
+        }
+        console.log('calling ', url);
+        return $http.get(url, requestConfig).then(res => {
+          return res.data;
+        });
+      },
+      integrateService: function(params) {
+        let url = getMobileServicesURL() + '/configure';
+        return $http.post(url, params, requestConfig).then(res => {
+          return res.data;
+        });
       }
     };
   }
