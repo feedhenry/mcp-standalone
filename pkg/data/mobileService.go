@@ -159,12 +159,14 @@ func convertSecretToMobileService(s v1.Secret) *mobile.Service {
 			params[key] = string(value)
 		}
 	}
+	external := s.Labels["external"] == "true"
 	return &mobile.Service{
 		ID:                s.Name,
+		External:          external,
 		Labels:            s.Labels,
 		Name:              strings.TrimSpace(string(s.Data["name"])),
 		Host:              string(s.Data["uri"]),
-		BindingSecretName: s.GetName(),
+		BindingSecretName: s.Name,
 		Params:            params,
 		Integrations:      map[string]*mobile.ServiceIntegration{},
 	}

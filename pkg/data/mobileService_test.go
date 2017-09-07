@@ -8,9 +8,11 @@ import (
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
 	"github.com/feedhenry/mcp-standalone/pkg/mock"
 
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/fake"
+	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	v1 "k8s.io/client-go/pkg/api/v1"
 	ktesting "k8s.io/client-go/testing"
 )
@@ -156,6 +158,67 @@ func TestListMobileServiceConfigs(t *testing.T) {
 				t.Fatalf("did not expect an error but got %v ", err)
 			}
 			tc.Validate(svc, t)
+		})
+	}
+}
+
+func TestReadMobileService(t *testing.T) {
+	cases := []struct {
+		Name            string
+		Client          func() corev1.SecretInterface
+		ExpectError     bool
+		ExpectedService *mobile.Service
+		Validate        func(expectd *mobile.Service, actual *mobile.Service, t *testing.T)
+	}{
+		{
+			Name: "should read mobile service ok",
+			ExpectedService: &mobile.Service{
+				ID:       "somesecretID",
+				Name:     "fh-sync-server",
+				Host:     "https://test.com",
+				External: true,
+			},
+			Client: func() corev1.SecretInterface {
+				client := &fake.Clientset{}
+				client.AddReactor("get", "secrets", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
+					return true, &v1.Secret{
+						ObjectMeta: metav1.ObjectMeta{
+							Labels: map[string]string{"group": "notmobile"},
+							Name:   "somesecretID",
+						},
+						Data: map[string][]byte{
+							"name": []byte("fh-sync-server"),
+							"uri":  []byte("https://test.com"),
+						},
+					}, nil
+				})
+				return client.CoreV1().Secrets("test")
+			},
+			Validate: func(expected, svc *mobile.Service, t *testing.T) {
+				if nil == svc {
+					t.Fatal("expected a mobile service but it was nil ")
+				}
+				if expected.Name != svc.Name {
+					t.Fatalf("expected the mobile service name to be %s but got %s ", expected.Name, svc.Name)
+				}
+				if expected.Host != svc.Host {
+					t.Fatalf("expected the mobile service host to be %s but got %s ", expected.Host, svc.Host)
+				}
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.Name, func(t *testing.T) {
+			mobileRepo := data.NewMobileServiceRepo(tc.Client())
+			ms, err := mobileRepo.Read(tc.ExpectedService.ID)
+			if tc.ExpectError && err == nil {
+				t.Fatal("expected an error but got none")
+			}
+			if !tc.ExpectError && err != nil {
+				t.Fatalf("did not expect an error but got %v ", err)
+			}
+			tc.Validate(tc.ExpectedService, ms, t)
 		})
 	}
 }

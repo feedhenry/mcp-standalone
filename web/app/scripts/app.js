@@ -50,6 +50,11 @@ angular
         controller: 'IntegrationCtrl',
         controllerAs: 'integration'
       })
+      .when('/servicecreate', {
+        templateUrl: 'views/servicecreate.html',
+        controller: 'ServicecreateCtrl',
+        controllerAs: 'servicecreate'
+      })
       .otherwise({
         redirectTo: '/apps'
       });

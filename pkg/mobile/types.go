@@ -28,6 +28,7 @@ type Service struct {
 	BindingSecretName string                         `json:"binding_secret_name"`
 	Labels            map[string]string              `json:"labels"`
 	Integrations      map[string]*ServiceIntegration `json:"integrations"`
+	External          bool                           `json:"external"`
 }
 
 type ServiceIntegration struct {
