@@ -6,8 +6,8 @@ console.log('MCP Extension Loaded');
 window.OPENSHIFT_CONSTANTS.PROJECT_NAVIGATION.splice(1, 0, {
   label: 'Mobile',
   iconClass: 'fa fa-mobile',
-  href: '/browse/mobileapps',
-  prefixes: ['/browse/mobileapps'],
+  href: '/browse/mobileoverview',
+  prefixes: ['/browse/mobileoverview'],
   isValid: function() {
     // TODO: Can this check if any mobile apps exist first?
     return true;
@@ -65,9 +65,9 @@ angular.module('mobileControlPanelApp', ['openshiftConsole']).config([
         controller: 'CreateMobileappController',
         resolve: resolveMCPRoute
       })
-      .when('/project/:project/browse/mobileapps', {
-        templateUrl: 'extensions/mcp/views/mobileapps.html',
-        controller: 'MobileAppsController',
+      .when('/project/:project/browse/mobileoverview', {
+        templateUrl: 'extensions/mcp/views/mobileoverview.html',
+        controller: 'MobileOverviewController',
         reloadOnSearch: false,
         resolve: resolveMCPRoute
       })
@@ -75,6 +75,11 @@ angular.module('mobileControlPanelApp', ['openshiftConsole']).config([
         templateUrl: 'extensions/mcp/views/mobileapp.html',
         controller: 'MobileAppController',
         reloadOnSearch: false,
+        resolve: resolveMCPRoute
+      })
+      .when('/project/:project/browse/mobileservices/:service', {
+        templateUrl: 'extensions/mcp/views/mobileservice.html',
+        controller: 'MobileServiceController',
         resolve: resolveMCPRoute
       });
   }
