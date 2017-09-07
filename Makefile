@@ -24,19 +24,17 @@ check-gofmt:
 gofmt:
 	gofmt -w `find . -type f -name '*.go' -not -path "./vendor/*"`
 
-.PHONY: web
-web:
-	cd web && npm install && ./node_modules/.bin/bower install && grunt build
+.PHONY: ui
+ui:
+	cd ui && npm install && ./node_modules/.bin/bower install && grunt build
 
-build: web test-unit
+build: test-unit
 	export GOOS=linux && go build ./cmd/mcp-standalone
 
 image: build
 	mkdir -p tmp
-	mkdir -p tmp/web/dist
 	cp ./mcp-standalone tmp
 	cp artifacts/Dockerfile tmp
-	cp -R web/dist tmp/web/dist
 	cd tmp && docker build -t feedhenry/mcp-standalone:latest .
 	rm -rf tmp
 
