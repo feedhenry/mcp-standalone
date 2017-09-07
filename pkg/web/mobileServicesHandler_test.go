@@ -113,7 +113,6 @@ func TestListMobileServices(t *testing.T) {
 }
 
 func TestConfigure(t *testing.T) {
-	t.Skip("skipping for now")
 	cases := []struct {
 		Name       string
 		Client     func() kubernetes.Interface
@@ -148,6 +147,23 @@ func TestConfigure(t *testing.T) {
 						}}, nil
 				})
 				client.AddReactor("get", "deployments", func(action ktesting.Action) (bool, runtime.Object, error) {
+					return true, &v1beta1.Deployment{
+						Spec: v1beta1.DeploymentSpec{
+							Template: v1.PodTemplateSpec{
+								Spec: v1.PodSpec{
+									Volumes: []v1.Volume{},
+									Containers: []v1.Container{
+										{
+											Name:         "fh-sync-server",
+											VolumeMounts: []v1.VolumeMount{},
+										},
+									},
+								},
+							},
+						},
+					}, nil
+				})
+				client.AddReactor("Update", "deployments", func(action ktesting.Action) (bool, runtime.Object, error) {
 					return true, &v1beta1.Deployment{
 						Spec: v1beta1.DeploymentSpec{
 							Template: v1.PodTemplateSpec{
