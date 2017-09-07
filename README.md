@@ -60,7 +60,11 @@ Open your browser and point it at:
 https://192.168.37.1:8443/console/
 ```
 
-#### Step 3.1, Launch Keycloak
+#### Step 3.1, Add a mobile app
+
+In your project, click on the mobile tab located in the left hand navigation. Next click ```create app``` fill in some details and pick cordova as the type. Then click create. (note) you will need to accept the cert of the mobile server. You can do this by hitting https://localhost:3001 in your browser.
+
+#### Step 3.2, Launch Keycloak
 
 From the Service Catalog, select `Keycloak (APB)`, and either enter values for the username and password or accept the defaults, select `localmcp` as the project to add it to, then click `next`.
 
