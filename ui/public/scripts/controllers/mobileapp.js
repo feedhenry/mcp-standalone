@@ -9,10 +9,11 @@
  */
 angular.module('mobileControlPanelApp').controller('MobileAppController', [
   '$scope',
+  '$location',
   '$routeParams',
   'ProjectsService',
   'mcpApi',
-  function($scope, $routeParams, ProjectsService, mcpApi) {
+  function($scope, $location, $routeParams, ProjectsService, mcpApi) {
     $scope.projectName = $routeParams.project;
     $scope.alerts = {};
     $scope.renderOptions = $scope.renderOptions || {};
@@ -53,6 +54,14 @@ angular.module('mobileControlPanelApp').controller('MobileAppController', [
           .catch(e => {
             console.error('failed to read app', e);
           });
+        mcpApi
+          .mobileServices()
+          .then(services => {
+            $scope.integrations = services;
+          })
+          .catch(e => {
+            console.log('error getting services ', e);
+          });
       })
     );
 
@@ -62,6 +71,12 @@ angular.module('mobileControlPanelApp').controller('MobileAppController', [
     $scope.sample = 'code';
     $scope.codeOpts = function(type) {
       $scope.sample = type;
+    };
+
+    $scope.openServiceIntegration = function(id) {
+      $location.path(
+        'project/' + $routeParams.project + '/browse/mobileservices/' + id
+      );
     };
   }
 ]);

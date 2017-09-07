@@ -20,6 +20,7 @@ type ServiceCruder interface {
 	Read(name string) (*Service, error)
 	ListConfigs(AttrFilterFunc) ([]*ServiceConfig, error)
 	UpdateEnabledIntegrations(svcName string, integrations map[string]string) error
+	Create(ms *Service) error
 }
 
 type Attributer interface {

@@ -2,12 +2,12 @@
 
 /**
  * @ngdoc function
- * @name mobileControlPanelApp.controller:MobileAppsController
+ * @name mobileControlPanelApp.controller:MobileOverviewController
  * @description
- * # MobileAppsController
+ * # MobileOverviewController
  * Controller of the mobileControlPanelApp
  */
-angular.module('mobileControlPanelApp').controller('MobileAppsController', [
+angular.module('mobileControlPanelApp').controller('MobileOverviewController', [
   '$scope',
   '$routeParams',
   '$location',
@@ -66,6 +66,12 @@ angular.module('mobileControlPanelApp').controller('MobileAppsController', [
     $scope.openApp = function(id) {
       $location.path(
         'project/' + $routeParams.project + '/browse/mobileapps/' + id
+      );
+    };
+
+    $scope.openService = function(id) {
+      $location.path(
+        'project/' + $routeParams.project + '/browse/mobileservices/' + id
       );
     };
   }

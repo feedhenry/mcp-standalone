@@ -1,6 +1,7 @@
 package web_test
 
 import (
+	"bytes"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
@@ -28,6 +29,9 @@ import (
 func setupMobileServiceHandler(kclient kubernetes.Interface) http.Handler {
 	r := web.NewRouter()
 	logger := logrus.StandardLogger()
+	if nil == kclient {
+		kclient = &fake.Clientset{}
+	}
 	clientBuilder := buildDefaultTestTokenClientBuilder(kclient)
 	ms := &integration.MobileService{}
 	handler := web.NewMobileServiceHandler(logger, ms, clientBuilder)
@@ -215,6 +219,43 @@ func TestConfigure(t *testing.T) {
 			}
 			if nil != tc.Validate {
 				tc.Validate(res, t)
+			}
+		})
+	}
+}
+
+func TestCreateMobileService(t *testing.T) {
+	cases := []struct {
+		Name          string
+		ExpectError   bool
+		StatusCode    int
+		MobileService *mobile.Service
+	}{
+		{
+			Name:       "test create mobile service is ok",
+			StatusCode: 201,
+			MobileService: &mobile.Service{
+				Name: "mykeycloak",
+				Host: "https://sdasdd.com",
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.Name, func(t *testing.T) {
+			handler := setupMobileServiceHandler(nil)
+			server := httptest.NewServer(handler)
+			defer server.Close()
+			bod, err := json.Marshal(tc.MobileService)
+			if err != nil {
+				t.Fatalf("failed to marshal body for service create request %v", err)
+			}
+			res, err := http.Post(server.URL+"/mobileservice", "application/json", bytes.NewReader(bod))
+			if err != nil {
+				t.Fatal("did not expect an error creating a mobile services ", err)
+			}
+			if tc.StatusCode != res.StatusCode {
+				t.Fatalf("expected a response code of %d but got %d ", tc.StatusCode, res.StatusCode)
 			}
 		})
 	}

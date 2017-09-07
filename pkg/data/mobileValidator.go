@@ -36,3 +36,13 @@ func validateClientType(a *mobile.App) error {
 	}
 	return nil
 }
+
+type DefaultMobileServiceValidator struct{}
+
+func (msv DefaultMobileServiceValidator) PreCreate(ms *mobile.Service) error {
+	return nil
+}
+
+func (msv DefaultMobileServiceValidator) PreUpdate(old *mobile.Service, new *mobile.Service) error {
+	return nil
+}

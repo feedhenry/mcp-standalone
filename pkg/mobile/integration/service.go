@@ -42,9 +42,13 @@ var capabilities = map[string]map[string][]string{
 		"capabilities": {"authentication, authorisation"},
 		"integrations": {"fh-sync"},
 	},
+	"custom": map[string][]string{
+		"capabilities": {""},
+		"integrations": {""},
+	},
 }
 
-var serviceNames = []string{"fh-sync-server", "keycloak"}
+var serviceNames = []string{"fh-sync-server", "keycloak", "custom"}
 
 // DiscoverMobileServices will discover mobile services configured in the current namespace
 func (ms *MobileService) DiscoverMobileServices(serviceCruder mobile.ServiceCruder) ([]*mobile.Service, error) {
