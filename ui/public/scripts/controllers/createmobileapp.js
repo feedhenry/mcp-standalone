@@ -21,12 +21,8 @@ angular
 
       $scope.breadcrumbs = [
         {
-          title: $scope.projectName,
-          link: 'project/' + $scope.projectName
-        },
-        {
-          title: 'Mobile',
-          link: 'project/' + $scope.projectName + '/mobile'
+          title: 'Mobile Apps',
+          link: 'project/' + $routeParams.project + '/browse/mobileoverview'
         },
         {
           title: 'Create Mobile App'
@@ -39,12 +35,18 @@ angular
           .createMobileApp($scope.app)
           .then(app => {
             $location.path(
-              'project/' + $routeParams.project + '/browse/mobileapps'
+              'project/' + $routeParams.project + '/browse/mobileoverview'
             );
           })
           .catch(err => {
             console.error('failed to create app ', err);
           });
+      };
+
+      $scope.cancelCreateApp = function() {
+        $location.path(
+          'project/' + $routeParams.project + '/browse/mobileoverview'
+        );
       };
     }
   ]);

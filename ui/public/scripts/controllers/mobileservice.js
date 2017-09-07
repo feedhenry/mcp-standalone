@@ -17,7 +17,7 @@ angular.module('mobileControlPanelApp').controller('MobileServiceController', [
     $scope.breadcrumbs = [
       {
         title: 'Mobile Service',
-        link: 'project/' + $routeParams.project + '/browse/mobileservices'
+        link: 'project/' + $routeParams.project + '/browse/mobileoverview'
       },
       {
         title: $routeParams.service
@@ -43,6 +43,7 @@ angular.module('mobileControlPanelApp').controller('MobileServiceController', [
           $scope.mobileapps[app.clientType] = 'true';
         }
         $scope.clients = Object.keys($scope.mobileapps);
+        $scope.clientType = $scope.clients[0];
       })
       .catch(e => {
         console.error(e);
