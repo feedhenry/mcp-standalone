@@ -11,7 +11,7 @@ var ADD_CONFIG_LOCAL = false;
 module.exports = function(grunt) {
   // Time how long tasks take. Can help when optimizing build times
   require('time-grunt')(grunt);
-
+  // grunt.loadNpmTasks('grunt-contrib-less');
   // Automatically load required Grunt tasks
   require('jit-grunt')(grunt, {
     useminPrepare: 'grunt-usemin'
@@ -28,6 +28,19 @@ module.exports = function(grunt) {
     // Project settings
     yeoman: appConfig,
 
+    less: {
+      dist: {
+        options: {
+          compress: true,
+          yuicompress: true,
+          optimization: 2
+        },
+        files: {
+          '.tmp/styles/mcp.css': appConfig.app + '/styles/main.less'
+        }
+      }
+    },
+
     // Watches files for changes and runs tasks based on the changed files
     watch: {
       bower: {
@@ -42,9 +55,9 @@ module.exports = function(grunt) {
         files: ['test/spec/{,*/}*.js'],
         tasks: ['karma']
       },
-      styles: {
-        files: ['<%= yeoman.app %>/styles/{,*/}*.css'],
-        tasks: ['copy:styles', 'postcss']
+      less: {
+        files: ['<%= yeoman.app %>/styles/{,*/}*.less'],
+        tasks: ['less:server', 'postcss:server']
       },
       gruntfile: {
         files: ['Gruntfile.js']
@@ -159,7 +172,7 @@ module.exports = function(grunt) {
     // Performs rewrites based on filerev and the useminPrepare configuration
     usemin: {
       html: ['<%= yeoman.dist %>/{,*/}*.html'],
-      css: ['<%= yeoman.dist %>/styles/{,*/}*.css'],
+      css: ['.tmp/styles/{,*/}*.css'],
       js: ['<%= yeoman.dist %>/scripts/{,*/}*.js'],
       options: {
         assetsDirs: [
@@ -328,6 +341,7 @@ module.exports = function(grunt) {
       'useminPrepare',
       'checklocalconfig',
       'concurrent:dist',
+      'less:dist',
       'postcss',
       'concat:generated',
       'copy:dist',

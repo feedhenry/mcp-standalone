@@ -1,26 +1,20 @@
 ---
 
-- name: Create alias for lo0
+- name: Create alias for lo0 (macos)
   shell: ifconfig lo0 alias {{ cluster_public_hostname }}
   become: yes
   changed_when: false
   when: ansible_os_family == "Darwin"
 
+- name: Create alias for lo0 (linux)
+  shell: ifconfig lo:0 {{ cluster_public_hostname }} netmask 255.255.255.0 up
+  become: yes
+  changed_when: false
+  when: ansible_os_family in ["RedHat", "Debian"]
+
 - set_fact:
     routing_suffix: "{{ cluster_public_hostname }}.nip.io"
     public_hostname: "{{ cluster_public_hostname }}"
-  when: ansible_os_family == "Darwin"
-
-# TODO: This code path isn't tested yet
-- name: Get public IP for linux
-  shell: ip addr show docker0 | grep -Po 'inet \K[\d.]+'
-  register: docker0
-  when: ansible_os_family in ["RedHat", "Debian"]
-
-- set_fact:
-    routing_suffix: "{{ docker0.stdout }}.nip.io"
-    public_hostname: "{{ docker0.stdout }}"
-  when: ansible_os_family in ["RedHat", "Debian"]
 
 - name: Obtain status of oc cluster
   shell: oc cluster status
