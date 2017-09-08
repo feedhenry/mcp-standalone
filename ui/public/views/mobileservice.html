@@ -16,7 +16,7 @@
         </div>
       </div>
 
-      <div class="middle-content" persist-tab-state>
+      <div class="middle-content mobile-content" persist-tab-state>
         <div class="container-fluid">
           <div class="row">
             <div class="col-md-12">
@@ -29,15 +29,19 @@
                 </uib-tab>
                 <uib-tab active="selectedTab.integrations" ng-if="service">
                   <uib-tab-heading>Integrations</uib-tab-heading>
-                    <h3 ng-if="integrations.length > 0" class="text-align-center">Available Mobile Service Integrations</h3>
-                    <ul class="list-group">
-                      <li class="list-group-item" ng-repeat='(key, value) in service.integrations'>
-                            enabled {{key}} integration for {{service.name}} : <input ng-model="service.integrations[key].enabled" ng-change="enableIntegration(service.integrations[key])" ng-checked="enabled(key,service)" id="bootstrap-switch-state" type="checkbox">
-                      </li>
-                    </ul>
-                    <h3 class="text-align-center">Mobile Client Integrations</h3>
-                    <ul class="nav nav-tabs nav-justified">
-                      <li ng-repeat="c in clients" role="presentation"><a ng-click="installationOpt(c)" href="#">{{c}}</a></li>
+                    <h2 ng-if="integrations.length > 0">Mobile Service Integrations</h2>
+                    <form class="form-horizontal">
+                      <div class="form-group" ng-repeat="(key, value) in service.integrations">
+                        <label class="col-sm-2 control-label" for="integration-{{key}}">{{key}}</label>
+                        <div class="col-sm-10">
+                          <input name="integration-{{key}}" class="form-control bootstrap-switch" id="bootstrap-switch-state" type="checkbox" ng-model="service.integrations[key].enabled" ng-change="enableIntegration(service.integrations[key])" ng-checked="enabled(key,service)">
+                        </div>
+                      </div>
+                    </form>
+
+                    <h2>Mobile App Integrations</h2>
+                    <ul class="nav nav-pills nav-justified">
+                      <li ng-repeat="c in clients" role="presentation" ng-class="{'active' : c == clientType}"><a ng-click="installationOpt(c)" href="#">{{c}}</a></li>
                     </ul>
 
 
@@ -46,20 +50,19 @@
                         You will also find some sample templates and quick starts to help you get started using your mobile service.
                     </p>    
 
-                    <h4> Installation: </h4>
-                    <pre ng-if="clientType == 'cordova' && service.name == 'fh-sync-server' && ! enabled('keycloak',service)" >
+                    <h3>Installation</h3>
+                    <pre ng-if="clientType == 'cordova' && service.name == 'fh-sync-server' && ! enabled('keycloak',service)" class="prettyprint lang-bash">
 npm install --save mobile-core
 npm install --save fh-sync-js@1.0.4</pre>    
 
-                    <pre ng-if="clientType == 'android' && service.name == 'fh-sync-server' && ! enabled('keycloak',service)" >
+                    <pre ng-if="clientType == 'android' && service.name == 'fh-sync-server' && ! enabled('keycloak',service)" class="prettyprint lang-xml">
 &lt;dependency&gt;
     &lt;groupId&gt;org.feedhenry.mobile&lt;/groupId&gt;
     &lt;artifactId&gt;mobile-core&lt;/artifactId&gt;
     &lt;version&gt;0.0.1&lt;/version&gt;
 &lt;/dependency&gt;</pre>
-                    </pre>    
 
-                    <pre ng-if="clientType == 'android' && service.name == 'fh-sync-server' && enabled('keycloak',service)" >
+                    <pre ng-if="clientType == 'android' && service.name == 'fh-sync-server' && enabled('keycloak',service)" class="prettyprint lang-xml">
 &lt;dependency&gt;
     &lt;groupId&gt;org.feedhenry.mobile&lt;/groupId&gt;
     &lt;artifactId&gt;mobile-core&lt;/artifactId&gt;
@@ -70,15 +73,14 @@ npm install --save fh-sync-js@1.0.4</pre>
     &lt;artifactId&gt;keycloak&lt;/artifactId&gt;
     &lt;version&gt;final-1.2.3&lt;/version&gt;
 &lt;/dependency&gt;</pre>
-                    </pre>    
 
-                    <pre ng-if="clientType == 'cordova' && service.name == 'fh-sync-server' && enabled('keycloak',service)" >
+                    <pre ng-if="clientType == 'cordova' && service.name == 'fh-sync-server' && enabled('keycloak',service)" class="prettyprint lang-bash">
 npm install --save mobile-core
 npm install --save fh-sync-js@1.0.4
 npm install --save keycloakjss@1.0.4</pre>    
 
-                    <h4>Setup:</h4>
-                    <pre ng-if="clientType == 'cordova' && service.name == 'fh-sync-server' && ! enabled('keycloak',service)" >
+                    <h3>Setup</h3>
+                    <pre ng-if="clientType == 'cordova' && service.name == 'fh-sync-server' && ! enabled('keycloak',service)" class="prettyprint lang-js">
 const mobileSdk =  require('mobile-core');
 const sdk = mobileSdk(config);
 sdk.configure()
@@ -87,7 +89,7 @@ sdk.configure()
 })
 .catch((e)=>console.error);</pre>
 
-                    <pre ng-if="clientType == 'cordova' && service.name == 'fh-sync-server' && enabled('keycloak',service)">
+                    <pre ng-if="clientType == 'cordova' && service.name == 'fh-sync-server' && enabled('keycloak',service)" class="prettyprint lang-js">
 const mobileSdk =  require('mobile-core');
 const sdk = mobileSdk(config);
 sdk.configure()
@@ -102,17 +104,16 @@ sdk.configure()
 .catch((e)=>console.error);</pre>
 
 
-                    <pre ng-if="clientType == 'android' && service.name == 'fh-sync-server' && ! enabled('keycloak',service)" >
+                    <pre ng-if="clientType == 'android' && service.name == 'fh-sync-server' && ! enabled('keycloak',service)" class="prettyprint">
 android core sdk and sync code sample</pre>
                         
-                    <pre ng-if="clientType == 'android' && service.name == 'fh-sync-server' && enabled('keycloak',service)">
+                    <pre ng-if="clientType == 'android' && service.name == 'fh-sync-server' && enabled('keycloak',service)" class="prettyprint">
 android core sdk, sync, keycloak code sample</pre>
-                        
 
-                    <h4>Getting Started:</h4>
-                    <pre ng-if="clientType == 'cordova' && service.name == 'fh-sync-server' &&  ! enabled('keycloak',service)">
+                    <h3>Getting Started</h3>
+                    <pre ng-if="clientType == 'cordova' && service.name == 'fh-sync-server' &&  ! enabled('keycloak',service)" class="prettyprint lang-js">
 sync.init();</pre>    
-                    <pre ng-if="clientType == 'cordova' && service.name == 'fh-sync-server' && enabled('keycloak',service)">
+                    <pre ng-if="clientType == 'cordova' && service.name == 'fh-sync-server' && enabled('keycloak',service)" class="prettyprint lang-js">
 keycloak.login()
 .then(token=>{
     return sync.setAuth(token);
@@ -125,27 +126,29 @@ keycloak.login()
 })
 // flesh out example</pre>    
 
-                    <pre ng-if="clientType == 'android' && service.name == 'fh-sync-server' && ! enabled('keycloak',service)" >
+                    <pre ng-if="clientType == 'android' && service.name == 'fh-sync-server' && ! enabled('keycloak',service)" class="prettyprint">
 sync client common use case functionality </pre>
                               
-                    <pre ng-if="clientType == 'android' && service.name == 'fh-sync-server' && enabled('keycloak',service)">
+                    <pre ng-if="clientType == 'android' && service.name == 'fh-sync-server' && enabled('keycloak',service)" class="prettyprint">
 sync client and keycloak common use case functionality </pre>
-                    <h4>Docs</h4>
+                    <h3>Docs</h3>
                     <ul>
+                      <!-- TODO: should this come from the service class? -->
                         <li ng-if="service.name =='fh-sync-server' "><a href="">Sync Server Documentation</a></li>
                         <li ng-if="service.name =='fh-sync-server' "><a href="">Sync Client Documentation</a></li>
                         <li ng-if="service.name =='keycloak' "><a href="">Keycloak Server Documentation</a></li>
                         <li ng-if="service.name == 'keycloak' "><a href="">Keycloak Client Documentation</a></li>
-                    </ul>    
-                    <br/>
-                    <h4>Quick Starts and Templates: </h4>
+                    </ul>
+                    <h3>Example Apps</h3>
+                    <!-- TODO: fix links to real docs & template, only if available. Otherwise leave empty -->
                     <div ng-if="clientType =='cordova'">
+                    <!-- TODO: remove duplicate table header -->
                     <table class="table">
                       <thead>
                         <tr>
                           <th>Template Name</th>
                           <th>Description</th>
-                          <th>Github</th>
+                          <th>Source</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -164,7 +167,7 @@ sync client and keycloak common use case functionality </pre>
                           <tr>
                             <th>Template Name</th>
                             <th>Description</th>
-                            <th>Github</th>
+                            <th>Source</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -183,7 +186,13 @@ sync client and keycloak common use case functionality </pre>
                     </div>
 
                     <script>
-                      jQuery(".bootstrap-switch").bootstrapSwitch();
+                      setTimeout(function() {
+                        var bswitch = jQuery(".bootstrap-switch");
+                        if (bswitch.length === 1) {
+                          bswitch.bootstrapSwitch();
+                        }
+                      }, 10);
+                      prettyPrint();
                     </script>
                 </uib-tab>
               </uib-tabset>

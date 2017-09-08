@@ -7,7 +7,11 @@ window.OPENSHIFT_CONSTANTS.PROJECT_NAVIGATION.splice(1, 0, {
   label: 'Mobile',
   iconClass: 'fa fa-mobile',
   href: '/browse/mobileoverview',
-  prefixes: ['/browse/mobileoverview'],
+  prefixes: [
+    '/browse/mobileapps',
+    '/browse/mobileservices',
+    '/create-mobileapp'
+  ],
   isValid: function() {
     // TODO: Can this check if any mobile apps exist first?
     return true;
