@@ -14,6 +14,13 @@ This document is intended to walk you through setting up a local openshift devel
 - `ansible-playbook` tools [installed](http://docs.ansible.com/ansible/latest/intro_installation.html)
 - Local clone of this repo
 
+### Setup the cli 
+
+there is a very basic cli at ```cmd/cli``` you can build this and use it by running
+``` make build_cli ``` this will drop a binary in your current dir which you can then use to exercise the api.
+
+
+### Local Development
 ### Step 1, Creating a Local Cluster
 
 First we will use the ansible-playbooks included in this repo to create a local oc cluster which is running the Ansible Service Broker. 
