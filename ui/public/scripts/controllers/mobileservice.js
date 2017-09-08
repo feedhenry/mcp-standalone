@@ -37,6 +37,7 @@ angular.module('mobileControlPanelApp').controller('MobileServiceController', [
     mcpApi
       .mobileApps()
       .then(apps => {
+        $scope.mobileappsCount = apps.length;
         $scope.mobileapps = {};
         for (var i = 0; i < apps.length; i++) {
           let app = apps[i];

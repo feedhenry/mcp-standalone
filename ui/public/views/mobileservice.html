@@ -23,12 +23,36 @@
               <uib-tabset>
                 <uib-tab active="selectedTab.dashboard" ng-if="service">
                   <uib-tab-heading>Dashboard</uib-tab-heading>
-                  <p>
-                    {{service.Description}}
-                  </p>
+                  <dl class="dl-horizontal left">
+                    <dt>Description:</dt>
+                    <dd>{{ service.description }}</dd>
+                    <dt>Dashboard URL:</dt>
+                    <dd><a href="{{ service.host }}">{{service.host}}</a></dd>
+                    <dt ng-repeat-start="(key, value) in service.params">{{ key }}</dt>
+                    <dd ng-repeat-end>{{ value }}</dd>
+                  </dl>
                 </uib-tab>
                 <uib-tab active="selectedTab.integrations" ng-if="service">
                   <uib-tab-heading>Integrations</uib-tab-heading>
+                  <div ng-if="integrations.length === 0">
+                    <div class="empty-state-message text-center">
+                      <h2>This Service doesn't have any Mobile Integrations available.</h2>
+                    </div>
+                  </div>
+
+                  <div ng-if="integrations.length > 0 && mobileappsCount === 0">
+                    <div class="empty-state-message text-center">
+                      <h2>Get started with Mobile Integrations.</h2>
+                      <p class="gutter-top">
+                      Create a Mobile App to integrate with this Service.
+                      </p>
+                      <p>
+                        <a ng-href="project/{{ projectName }}/create-mobileapp" class="btn btn-primary btn-lg">Create Mobile App</a>
+                      </p>
+                    </div>
+                  </div>
+
+                  <div ng-if="integrations.length > 0 && mobileappsCount > 0">
                     <h2>Mobile Service Integrations</h2>
                     <form class="form-horizontal">
                       <div class="form-group" ng-repeat="(key, value) in service.integrations">
@@ -184,16 +208,17 @@ sync client and keycloak common use case functionality </pre>
                         </tbody>
                       </table>
                     </div>
+                  </div>
 
-                    <script>
-                      setTimeout(function() {
-                        var bswitch = jQuery(".bootstrap-switch");
-                        if (bswitch.length === 1) {
-                          bswitch.bootstrapSwitch();
-                        }
-                      }, 10);
-                      prettyPrint();
-                    </script>
+                  <script>
+                    setTimeout(function() {
+                      var bswitch = jQuery(".bootstrap-switch");
+                      if (bswitch.length === 1) {
+                        bswitch.bootstrapSwitch();
+                      }
+                    }, 10);
+                    prettyPrint();
+                  </script>
                 </uib-tab>
               </uib-tabset>
             </div>
