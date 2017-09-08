@@ -19,15 +19,25 @@ type StatusError struct {
 }
 
 type Service struct {
-	ID                string                         `json:"id"`
-	Name              string                         `json:"name"`
-	Host              string                         `json:"host"`
-	Description       string                         `json:"description"`
-	Capabilities      map[string][]string            `json:"capabilities"`
-	Params            map[string]string              `json:"params"`
-	BindingSecretName string                         `json:"binding_secret_name"`
-	Labels            map[string]string              `json:"labels"`
-	Integrations      map[string]*ServiceIntegration `json:"integrations"`
+	ID           string                         `json:"id"`
+	Name         string                         `json:"name"`
+	Host         string                         `json:"host"`
+	Description  string                         `json:"description"`
+	Type         string                         `json:"type"`
+	Capabilities map[string][]string            `json:"capabilities"`
+	Params       map[string]string              `json:"params"`
+	Labels       map[string]string              `json:"labels"`
+	Integrations map[string]*ServiceIntegration `json:"integrations"`
+	External     bool                           `json:"external"`
+}
+
+func NewMobileService() *Service {
+	return &Service{
+		Capabilities: map[string][]string{},
+		Params:       map[string]string{},
+		Labels:       map[string]string{"group": "mobile"},
+		Integrations: map[string]*ServiceIntegration{},
+	}
 }
 
 type ServiceIntegration struct {

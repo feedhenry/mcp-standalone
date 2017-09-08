@@ -61,6 +61,7 @@ func TestSDKConifg(t *testing.T) {
 								Data: map[string][]byte{
 									"uri":  []byte("http://test.com"),
 									"name": []byte("fh-sync-server"),
+									"type": []byte("fh-sync-server"),
 								},
 							},
 						}}, nil

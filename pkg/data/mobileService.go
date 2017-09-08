@@ -2,7 +2,9 @@ package data
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
+	"time"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
@@ -16,16 +18,23 @@ type SecretConvertor interface {
 	Convert(s v1.Secret) (*mobile.ServiceConfig, error)
 }
 
+// MobileServiceValidator defines what a validator should do
+type MobileServiceValidator interface {
+	PreCreate(a *mobile.Service) error
+	PreUpdate(old *mobile.Service, new *mobile.Service) error
+}
+
 // defaultSecretConvertor will provide a default secret to config conversion
 type defaultSecretConvertor struct{}
 
 func (dsc defaultSecretConvertor) Convert(s v1.Secret) (*mobile.ServiceConfig, error) {
+	conf := map[string]string{}
+	for k, v := range s.Data {
+		conf[k] = string(v)
+	}
 	return &mobile.ServiceConfig{
-		Config: map[string]string{
-			"uri":  string(s.Data["uri"]),
-			"name": string(s.Data["name"]),
-		},
-		Name: string(s.Data["name"]),
+		Config: conf,
+		Name:   string(s.Data["name"]),
 	}, nil
 }
 
@@ -56,11 +65,16 @@ func (sa *secretAttributer) GetName() string {
 	return name
 }
 
+func (sa *secretAttributer) GetType() string {
+	return strings.TrimSpace(string(sa.Secret.Data["type"]))
+}
+
 // MobileServiceRepo implments the mobile.ServiceCruder interface. it backed by the secret resource in kubernetes
 type MobileServiceRepo struct {
 	client     corev1.SecretInterface
 	convertors map[string]SecretConvertor
 	logger     *logrus.Logger
+	validator  MobileServiceValidator
 }
 
 // NewMobileServiceRepo returns a new MobileServiceRepo
@@ -71,7 +85,44 @@ func NewMobileServiceRepo(client corev1.SecretInterface) *MobileServiceRepo {
 		convertors: map[string]SecretConvertor{
 			"keycloak": keycloakSecretConvertor{},
 		},
-		logger: logrus.StandardLogger(),
+		logger:    logrus.StandardLogger(),
+		validator: DefaultMobileServiceValidator{},
+	}
+}
+
+// Create will take a mobile service and create a secret to represent it
+func (msr *MobileServiceRepo) Create(ms *mobile.Service) error {
+	if err := msr.validator.PreCreate(ms); err != nil {
+		return errors.Wrap(err, "create failed validation")
+	}
+	ms.ID = ms.Name + "-" + fmt.Sprintf("%v", time.Now().Unix())
+	sct := convertMobileAppToSecret(*ms)
+	if _, err := msr.client.Create(sct); err != nil {
+		return errors.Wrap(err, "failed to create backing secret for mobile service")
+	}
+	return nil
+}
+
+func convertMobileAppToSecret(ms mobile.Service) *v1.Secret {
+	data := map[string][]byte{}
+	labels := map[string]string{
+		"group": "mobile",
+	}
+	for k, v := range ms.Labels {
+		labels[k] = v
+	}
+	data["uri"] = []byte(ms.Host)
+	data["name"] = []byte(ms.Name)
+	data["type"] = []byte(ms.Type)
+	for k, v := range ms.Params {
+		data[k] = []byte(v)
+	}
+	return &v1.Secret{
+		ObjectMeta: meta_v1.ObjectMeta{
+			Labels: labels,
+			Name:   ms.ID,
+		},
+		Data: data,
 	}
 }
 
@@ -111,7 +162,7 @@ func (msr *MobileServiceRepo) ListConfigs(filter mobile.AttrFilterFunc) ([]*mobi
 			var svcConifg *mobile.ServiceConfig
 			svc := convertSecretToMobileService(item)
 			if _, ok := msr.convertors[svc.Name]; !ok {
-				msr.logger.Info("failed to find converter for ", svc.Name, "using default convertor")
+				msr.logger.Info("failed to find converter for ", svc.Name, " using default convertor")
 				convertor := defaultSecretConvertor{}
 				svcConifg, err = convertor.Convert(item)
 				if err != nil {
@@ -159,14 +210,16 @@ func convertSecretToMobileService(s v1.Secret) *mobile.Service {
 			params[key] = string(value)
 		}
 	}
+	external := s.Labels["external"] == "true"
 	return &mobile.Service{
-		ID:                s.Name,
-		Labels:            s.Labels,
-		Name:              strings.TrimSpace(string(s.Data["name"])),
-		Host:              string(s.Data["uri"]),
-		BindingSecretName: s.GetName(),
-		Params:            params,
-		Integrations:      map[string]*mobile.ServiceIntegration{},
+		ID:           s.Name,
+		External:     external,
+		Labels:       s.Labels,
+		Name:         strings.TrimSpace(string(s.Data["name"])),
+		Type:         strings.TrimSpace(string(s.Data["type"])),
+		Host:         string(s.Data["uri"]),
+		Params:       params,
+		Integrations: map[string]*mobile.ServiceIntegration{},
 	}
 }
 

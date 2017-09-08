@@ -34,6 +34,7 @@ func TestMobileServiceDiscovery(t *testing.T) {
 								Data: map[string][]byte{
 									"uri":  []byte("http://fh-sync.com"),
 									"name": []byte("fh-sync-server"),
+									"type": []byte("fh-sync-server"),
 								},
 							},
 							{

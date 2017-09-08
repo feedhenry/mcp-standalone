@@ -42,15 +42,19 @@ var capabilities = map[string]map[string][]string{
 		"capabilities": {"authentication, authorisation"},
 		"integrations": {"fh-sync"},
 	},
+	"custom": map[string][]string{
+		"capabilities": {""},
+		"integrations": {""},
+	},
 }
 
-var serviceNames = []string{"fh-sync-server", "keycloak"}
+var serviceTypes = []string{"fh-sync-server", "keycloak", "custom"}
 
 // DiscoverMobileServices will discover mobile services configured in the current namespace
 func (ms *MobileService) DiscoverMobileServices(serviceCruder mobile.ServiceCruder) ([]*mobile.Service, error) {
 	//todo move to config
 
-	svc, err := serviceCruder.List(ms.filterServices(serviceNames))
+	svc, err := serviceCruder.List(ms.filterServices(serviceTypes))
 	if err != nil {
 		return nil, errors.Wrap(err, "Attempting to discover mobile services.")
 	}
@@ -92,10 +96,10 @@ func (ms *MobileService) ReadMoileServiceAndIntegrations(serviceCruder mobile.Se
 	return svc, nil
 }
 
-func (ms *MobileService) filterServices(serviceNames []string) func(att mobile.Attributer) bool {
+func (ms *MobileService) filterServices(serviceTypes []string) func(att mobile.Attributer) bool {
 	return func(att mobile.Attributer) bool {
-		for _, sn := range serviceNames {
-			if sn == att.GetName() {
+		for _, sn := range serviceTypes {
+			if sn == att.GetType() {
 				return true
 			}
 		}
@@ -105,7 +109,7 @@ func (ms *MobileService) filterServices(serviceNames []string) func(att mobile.A
 
 // GenerateMobileServiceConfigs will return a map of services and their mobile configs
 func (ms *MobileService) GenerateMobileServiceConfigs(serviceCruder mobile.ServiceCruder) (map[string]*mobile.ServiceConfig, error) {
-	svcConfigs, err := serviceCruder.ListConfigs(ms.filterServices(serviceNames))
+	svcConfigs, err := serviceCruder.ListConfigs(ms.filterServices(serviceTypes))
 	if err != nil {
 		return nil, errors.Wrap(err, "GenerateMobileServiceConfigs failed during a list of configs")
 	}
@@ -116,7 +120,6 @@ func (ms *MobileService) GenerateMobileServiceConfigs(serviceCruder mobile.Servi
 	return configs, nil
 }
 
-// TODO REFACTOR!!
 //MountSecretForComponent will work within namespace and mount secretName into componentName, so it can be configured to use serviceName, returning the modified deployment
 func (ms *MobileService) MountSecretForComponent(svcCruder mobile.ServiceCruder, k8s kubernetes.Interface, secretName, componentName, serviceName, namespace string, componentSecretName string) (*v1beta1.Deployment, error) {
 	fmt.Println("mounting secret ", secretName, "into component ", componentName, serviceName)

@@ -101,7 +101,6 @@ func (m *MobileAppHandler) Create(rw http.ResponseWriter, req *http.Request) {
 	}
 	uid := uuid.NewV4()
 	decoder := json.NewDecoder(req.Body)
-
 	app := &mobile.App{MetaData: map[string]string{}}
 
 	if err := decoder.Decode(app); err != nil {

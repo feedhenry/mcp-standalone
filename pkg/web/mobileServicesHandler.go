@@ -56,7 +56,6 @@ func (msh *MobileServiceHandler) Read(rw http.ResponseWriter, req *http.Request)
 	token := headers.DefaultTokenRetriever(req.Header)
 	params := mux.Vars(req)
 	serviceName := params["name"]
-	fmt.Println(req.URL.Query())
 	withIntegrations := req.URL.Query().Get("withIntegrations")
 	var ms *mobile.Service
 	var err error
@@ -91,6 +90,30 @@ func (msh *MobileServiceHandler) Read(rw http.ResponseWriter, req *http.Request)
 		handleCommonErrorCases(err, rw, msh.logger)
 		return
 	}
+}
+
+// Create will create a mobile service
+func (msh *MobileServiceHandler) Create(rw http.ResponseWriter, req *http.Request) {
+	ms := mobile.NewMobileService()
+	token := headers.DefaultTokenRetriever(req.Header)
+	serviceCruder, err := msh.tokenClientBuilder.MobileServiceCruder(token)
+	if err != nil {
+		err = errors.Wrap(err, "failed to setup service cruder based on token")
+		handleCommonErrorCases(err, rw, msh.logger)
+		return
+	}
+	decoder := json.NewDecoder(req.Body)
+	if err := decoder.Decode(ms); err != nil {
+		err = errors.Wrap(err, "failed to decode mobile app ")
+		handleCommonErrorCases(err, rw, msh.logger)
+		return
+	}
+	if err := serviceCruder.Create(ms); err != nil {
+		err = errors.Wrap(err, "failed to create mobile app")
+		handleCommonErrorCases(err, rw, msh.logger)
+		return
+	}
+	rw.WriteHeader(http.StatusCreated)
 }
 
 // Configure configures components binding TODO NEEDS A REFACTOR

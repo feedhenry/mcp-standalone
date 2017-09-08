@@ -82,6 +82,13 @@ angular.module('mobileControlPanelApp').service('mcpApi', [
           return res.data;
         });
       },
+      createMobileService: function(mobileService) {
+        return $http
+          .post(getMobileServicesURL(), mobileService, requestConfig)
+          .then(res => {
+            return res.data;
+          });
+      },
       integrateService: function(params) {
         if (!window.MCP_URL) {
           return new Promise(function(resolve, reject) {
