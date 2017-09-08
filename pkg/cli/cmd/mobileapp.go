@@ -34,7 +34,7 @@ import (
 // mobileappCmd represents the mobileapp command
 var getmobileappCmd = &cobra.Command{
 	Use:     "mobileapp",
-	Short:   "read mobile apps -- mcp get mobileapps -- mcp get mobileapp <appname>",
+	Short:   "get mobile apps -- mcp get mobileapps -- mcp get mobileapp <appname>",
 	Aliases: []string{"mobileapps"},
 	Run: func(cmd *cobra.Command, args []string) {
 		var name string
@@ -80,6 +80,37 @@ var getmobileappCmd = &cobra.Command{
 		}
 		fmt.Println(string(data))
 	},
+}
+
+func getMobileApp(name string) *mobile.App {
+	var decodeInto *mobile.App
+	httpclient := client.NewHttpClientBuilder().Insecure(true).Timeout(5).Build()
+	u, err := url.Parse(viper.GetString("host"))
+	if err != nil {
+		log.Fatalf("error parsing mcp host %s ", err)
+	}
+	u.Path = path.Join(u.Path, "/mobileapp")
+	if name != "" {
+		u.Path = path.Join(u.Path, "/"+name)
+	}
+	req, err := http.NewRequest("GET", u.String(), nil)
+	if err != nil {
+		log.Fatalf("failed to create new get request %s ", err)
+	}
+	addAuthorizationHeader(req.Header)
+	res, err := httpclient.Do(req)
+	if err != nil {
+		log.Fatalf("failed to make the get request %s ", err)
+	}
+	defer res.Body.Close()
+	if res.StatusCode != http.StatusOK {
+		log.Fatalf("unexpected response code %v", res.StatusCode)
+	}
+	decoder := json.NewDecoder(res.Body)
+	if err := decoder.Decode(&decodeInto); err != nil {
+		log.Fatalf("failed to decode response %s ", err)
+	}
+	return decodeInto
 }
 
 var deletemobileCmd = &cobra.Command{

@@ -2,7 +2,9 @@ package data
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
+	"time"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
@@ -26,12 +28,13 @@ type MobileServiceValidator interface {
 type defaultSecretConvertor struct{}
 
 func (dsc defaultSecretConvertor) Convert(s v1.Secret) (*mobile.ServiceConfig, error) {
+	conf := map[string]string{}
+	for k, v := range s.Data {
+		conf[k] = string(v)
+	}
 	return &mobile.ServiceConfig{
-		Config: map[string]string{
-			"uri":  string(s.Data["uri"]),
-			"name": string(s.Data["name"]),
-		},
-		Name: string(s.Data["name"]),
+		Config: conf,
+		Name:   string(s.Data["name"]),
 	}, nil
 }
 
@@ -62,6 +65,10 @@ func (sa *secretAttributer) GetName() string {
 	return name
 }
 
+func (sa *secretAttributer) GetType() string {
+	return strings.TrimSpace(string(sa.Secret.Data["type"]))
+}
+
 // MobileServiceRepo implments the mobile.ServiceCruder interface. it backed by the secret resource in kubernetes
 type MobileServiceRepo struct {
 	client     corev1.SecretInterface
@@ -88,6 +95,7 @@ func (msr *MobileServiceRepo) Create(ms *mobile.Service) error {
 	if err := msr.validator.PreCreate(ms); err != nil {
 		return errors.Wrap(err, "create failed validation")
 	}
+	ms.ID = ms.Name + "-" + fmt.Sprintf("%v", time.Now().Unix())
 	sct := convertMobileAppToSecret(*ms)
 	if _, err := msr.client.Create(sct); err != nil {
 		return errors.Wrap(err, "failed to create backing secret for mobile service")
@@ -105,6 +113,7 @@ func convertMobileAppToSecret(ms mobile.Service) *v1.Secret {
 	}
 	data["uri"] = []byte(ms.Host)
 	data["name"] = []byte(ms.Name)
+	data["type"] = []byte(ms.Type)
 	for k, v := range ms.Params {
 		data[k] = []byte(v)
 	}
@@ -153,7 +162,7 @@ func (msr *MobileServiceRepo) ListConfigs(filter mobile.AttrFilterFunc) ([]*mobi
 			var svcConifg *mobile.ServiceConfig
 			svc := convertSecretToMobileService(item)
 			if _, ok := msr.convertors[svc.Name]; !ok {
-				msr.logger.Info("failed to find converter for ", svc.Name, "using default convertor")
+				msr.logger.Info("failed to find converter for ", svc.Name, " using default convertor")
 				convertor := defaultSecretConvertor{}
 				svcConifg, err = convertor.Convert(item)
 				if err != nil {
@@ -207,6 +216,7 @@ func convertSecretToMobileService(s v1.Secret) *mobile.Service {
 		External:     external,
 		Labels:       s.Labels,
 		Name:         strings.TrimSpace(string(s.Data["name"])),
+		Type:         strings.TrimSpace(string(s.Data["type"])),
 		Host:         string(s.Data["uri"]),
 		Params:       params,
 		Integrations: map[string]*mobile.ServiceIntegration{},

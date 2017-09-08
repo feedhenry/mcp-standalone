@@ -26,6 +26,7 @@ type ServiceCruder interface {
 type Attributer interface {
 	GetName() string
 	GetLabels() map[string]string
+	GetType() string
 }
 
 type ClientBuilder interface {

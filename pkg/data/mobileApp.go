@@ -49,6 +49,7 @@ func (mar *MobileAppRepo) Create(app *mobile.App) error {
 	if err := mar.validator.PreCreate(app); err != nil {
 		return errors.Wrap(err, "validation failed during create")
 	}
+	app.ID = app.Name + "-" + fmt.Sprintf("%v", time.Now().Unix())
 	app.MetaData["created"] = time.Now().Format("2006-01-02 15:04:05")
 	cm := convertMobileAppToConfigMap(app)
 	if _, err := mar.client.Create(cm); err != nil {
@@ -113,7 +114,7 @@ func convertConfigMapToMobileApp(m *v1.ConfigMap) *mobile.App {
 func convertMobileAppToConfigMap(app *mobile.App) *v1.ConfigMap {
 	return &v1.ConfigMap{
 		ObjectMeta: meta_v1.ObjectMeta{
-			Name: app.Name + "-" + fmt.Sprintf("%v", time.Now().Unix()),
+			Name: app.ID,
 			Labels: map[string]string{
 				"group": "mobileapp",
 				"name":  app.Name,

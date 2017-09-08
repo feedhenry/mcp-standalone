@@ -23,6 +23,7 @@ type Service struct {
 	Name         string                         `json:"name"`
 	Host         string                         `json:"host"`
 	Description  string                         `json:"description"`
+	Type         string                         `json:"type"`
 	Capabilities map[string][]string            `json:"capabilities"`
 	Params       map[string]string              `json:"params"`
 	Labels       map[string]string              `json:"labels"`
