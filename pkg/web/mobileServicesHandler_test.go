@@ -2,8 +2,10 @@ package web_test
 
 import (
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"k8s.io/apimachinery/pkg/runtime"
@@ -17,7 +19,9 @@ import (
 	"github.com/feedhenry/mcp-standalone/pkg/mobile/integration"
 	"github.com/feedhenry/mcp-standalone/pkg/mock"
 	"github.com/feedhenry/mcp-standalone/pkg/web"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	v1 "k8s.io/client-go/pkg/api/v1"
+	v1beta1 "k8s.io/client-go/pkg/apis/apps/v1beta1"
 	ktesting "k8s.io/client-go/testing"
 )
 
@@ -103,6 +107,114 @@ func TestListMobileServices(t *testing.T) {
 					t.Fatal("unexpected error decoding the services response ", err)
 				}
 				tc.Validate(svs, t)
+			}
+		})
+	}
+}
+
+func TestConfigure(t *testing.T) {
+	cases := []struct {
+		Name       string
+		Client     func() kubernetes.Interface
+		StatusCode int
+		Validate   func(r *http.Response, t *testing.T)
+	}{
+		{
+			Name: "test configuring fh-sync-server for keycloak",
+			Client: func() kubernetes.Interface {
+				client := &fake.Clientset{}
+				client.AddReactor("list", "secrets", func(action ktesting.Action) (bool, runtime.Object, error) {
+					return true, &v1.SecretList{
+						Items: []v1.Secret{
+							{
+								ObjectMeta: metav1.ObjectMeta{
+									Name: "fh-sync-server-secret",
+								},
+								Data: map[string][]byte{
+									"uri":  []byte("http://test.com"),
+									"name": []byte("fh-sync-server"),
+								},
+							},
+							{
+								ObjectMeta: metav1.ObjectMeta{
+									Name: "keycloak-secret",
+								},
+								Data: map[string][]byte{
+									"uri":  []byte("http://test.com"),
+									"name": []byte("keycloak"),
+								},
+							},
+						}}, nil
+				})
+				client.AddReactor("get", "deployments", func(action ktesting.Action) (bool, runtime.Object, error) {
+					return true, &v1beta1.Deployment{
+						Spec: v1beta1.DeploymentSpec{
+							Template: v1.PodTemplateSpec{
+								Spec: v1.PodSpec{
+									Volumes: []v1.Volume{},
+									Containers: []v1.Container{
+										{
+											Name:         "fh-sync-server",
+											VolumeMounts: []v1.VolumeMount{},
+										},
+									},
+								},
+							},
+						},
+					}, nil
+				})
+				client.AddReactor("Update", "deployments", func(action ktesting.Action) (bool, runtime.Object, error) {
+					return true, &v1beta1.Deployment{
+						Spec: v1beta1.DeploymentSpec{
+							Template: v1.PodTemplateSpec{
+								Spec: v1.PodSpec{
+									Volumes: []v1.Volume{},
+									Containers: []v1.Container{
+										{
+											Name:         "fh-sync-server",
+											VolumeMounts: []v1.VolumeMount{},
+										},
+									},
+								},
+							},
+						},
+					}, nil
+				})
+				return client
+			},
+			StatusCode: http.StatusOK,
+			Validate: func(r *http.Response, t *testing.T) {
+				bodyBytes, _ := ioutil.ReadAll(r.Body)
+				res := &v1beta1.Deployment{}
+				err := json.Unmarshal(bodyBytes, res)
+				if err != nil {
+					t.Fatal(err)
+				}
+
+				if len(res.Spec.Template.Spec.Volumes) == 0 {
+					t.Fatal("Expected a volume to be added to the deployment")
+				}
+				if len(res.Spec.Template.Spec.Containers[0].VolumeMounts) == 0 {
+					t.Fatal("Expected a volumemount to be added to the container in the deployment")
+				}
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.Name, func(t *testing.T) {
+			handler := setupMobileServiceHandler(tc.Client())
+			server := httptest.NewServer(handler)
+			defer server.Close()
+			res, err := http.Post(server.URL+"/mobileservice/configure", "text/plain", strings.NewReader("{\"component\": \"fh-sync-server\", \"service\": \"keycloak\", \"namespace\": \"myproject\"}"))
+			if err != nil {
+				t.Fatal("did not expect an error requesting mobile services ", err)
+			}
+			if tc.StatusCode != res.StatusCode {
+				t.Fatalf("expected a response code of %d but got %d ", tc.StatusCode, res.StatusCode)
+			}
+			if nil != tc.Validate {
+				tc.Validate(res, t)
 			}
 		})
 	}

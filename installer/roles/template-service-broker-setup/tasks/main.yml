@@ -1,0 +1,19 @@
+---
+
+# TODO: Use Kubernetes Ansible modules here
+- name: Login to OpenShift
+  shell: oc login -u system:admin
+  changed_when: false
+
+- name: Create templates in required project
+  shell: oc create -f {{ item }} -n {{ openshift_project }}
+  register: oc_create
+  failed_when:
+  - oc_create.rc != 0
+  - oc_create.stderr.find('AlreadyExists') == -1
+  changed_when: oc_create.rc == 0
+  with_items: "{{ templates }}"
+
+- name: Add cluster roles to group
+  shell: oc adm policy add-cluster-role-to-group {{ group }} {{ roles | join(' ') }}
+  changed_when: false

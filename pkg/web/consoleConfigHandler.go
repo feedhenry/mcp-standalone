@@ -41,7 +41,8 @@ auth: {
 	oauth_token_uri: "{{ .OAuthTokenURI | js}}",
   	oauth_redirect_base: "{{ .OAuthRedirectBase | js}}",
   	oauth_client_id: "{{ .OAuthClientID | js}}",
-  	logout_uri: "{{ .LogoutURI | js}}"
+  	logout_uri: "{{ .LogoutURI | js}}",
+  	scope: "{{ .Scope | js}}"
 }
 };
 `))
@@ -70,11 +71,12 @@ type mcpConsoleConfig struct {
 	OAuthClientID string
 	// LogoutURI is an optional (absolute) URI to redirect to after completing a logout. If not specified, the built-in logout page is shown.
 	LogoutURI string
-	// LoggingURL is the endpoint for logging (optional)
+	// Oauth Scopes to request a code/token for
+	Scope string
 }
 
 // NewConsoleConfigHandler returns a new console config handler
-func NewConsoleConfigHandler(logger *logrus.Logger, k8sHost string, k8sAuthorizeEndpoint string, oauthClientID string) *ConsoleConfigHandler {
+func NewConsoleConfigHandler(logger *logrus.Logger, k8sHost, k8sAuthorizeEndpoint, oauthClientID, namespace string) *ConsoleConfigHandler {
 	mcpConsoleConfig := mcpConsoleConfig{
 		APIGroupAddr:      k8sHost,
 		APIGroupPrefix:    "/apis",
@@ -87,6 +89,7 @@ func NewConsoleConfigHandler(logger *logrus.Logger, k8sHost string, k8sAuthorize
 		OAuthRedirectBase: "",
 		OAuthClientID:     oauthClientID,
 		LogoutURI:         "",
+		Scope:             fmt.Sprintf("user:info user:check-access role:edit:%s:!", namespace),
 	}
 
 	return &ConsoleConfigHandler{

@@ -1,0 +1,50 @@
+---
+# tasks file for ansible-service-broker-setup
+
+- name: Check if Ansible Service Broker already exists
+  shell: oc get broker ansible-service-broker
+  register: oc_get_broker
+  changed_when: false
+  failed_when:
+  - oc_get_broker.rc != 0
+  - oc_get_broker.stderr.find('NotFound') == -1
+
+- block:
+  - name: Ensure Ansible Service Broker install script is on host
+    copy:
+      src: ../files/provision-ansible-service-broker.sh
+      dest: /tmp/
+
+  - name: Make Ansible Service Broker install script executable
+    file:
+      dest: /tmp/provision-ansible-service-broker.sh
+      mode: u+x
+
+  - name: Execute Ansible Service Broker provision script
+    shell: bash /tmp/provision-ansible-service-broker.sh "{{ dockerhub_username }}" "{{ dockerhub_password }}" "{{ dockerhub_org }}" "{{ launch_apb_on_bind }}"
+  when:
+  - dockerhub_username is defined
+  - dockerhub_username != ''
+  - dockerhub_password is defined
+  - dockerhub_password != ''
+  - dockerhub_org is defined
+  - dockerhub_org != ''
+  - launch_apb_on_bind is defined
+  - launch_apb_on_bind != ''
+  - oc_get_broker.stderr.find('NotFound') > -1
+
+- name: Ensure oc cluster is up
+  shell: oc cluster status
+  register: oc_cluster_status
+  changed_when: false
+  until: oc_cluster_status.rc == 0
+  poll: 5
+  retries: 30
+
+- name: Get oc cluster status
+  shell: oc cluster status
+  register: oc_cluster_status
+  changed_when: false
+
+- debug:
+    msg: "{{ oc_cluster_status.stdout_lines }}"

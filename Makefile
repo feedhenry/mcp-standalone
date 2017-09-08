@@ -7,7 +7,7 @@ GOMETALINTER := $(BIN_DIR)/gometalinter
 SHELL = /bin/bash
 #CHANGE this if using a different url for openshift
 OSCP = https://192.168.37.1:8443
-NAMESPACE =project
+NAMESPACE =project2
 $(GOMETALINTER):
 	go get -u github.com/alecthomas/gometalinter
 	gometalinter --install &> /dev/null
@@ -24,28 +24,27 @@ check-gofmt:
 gofmt:
 	gofmt -w `find . -type f -name '*.go' -not -path "./vendor/*"`
 
-.PHONY: web
-web:
-	cd web && npm install && ./node_modules/.bin/bower install && grunt build
+.PHONY: ui
+ui:
+	cd ui && npm install && ./node_modules/.bin/bower install && grunt build
 
 build_cli:
 	go build -o mcp ./cmd/mcp-cli
 
-build: web build_cli test-unit
+build: build_cli test-unit
 	export GOOS=linux && go build ./cmd/mcp-api
-
+		
 image: build
 	mkdir -p tmp
-	mkdir -p tmp/web/dist
 	cp ./mcp-standalone tmp
 	cp artifacts/Dockerfile tmp
-	cp -R web/dist tmp/web/dist
 	cd tmp && docker build -t feedhenry/mcp-standalone:latest .
 	rm -rf tmp
 
 run_server:
 	@echo Running Server
 	time go install ./cmd/mcp-api
+	oc login -u developer -panything
 	oc new-project $(NAMESPACE) | true
 	oc create -f install/openshift/sa.local.json -n  $(NAMESPACE) | true
 	oc policy add-role-to-user edit system:serviceaccount:$(NAMESPACE):mcp-standalone -n  $(NAMESPACE) | true

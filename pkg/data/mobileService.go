@@ -90,6 +90,15 @@ func (msr *MobileServiceRepo) List(filter mobile.AttrFilterFunc) ([]*mobile.Serv
 	return ret, nil
 }
 
+// Read the mobile service
+func (msr *MobileServiceRepo) Read(name string) (*mobile.Service, error) {
+	svc, err := msr.client.Get(name, meta_v1.GetOptions{})
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get backing secret in repo Read ")
+	}
+	return convertSecretToMobileService(*svc), nil
+}
+
 // ListConfigs will build a list of configs based on the available services that are represented by secrets in the namespace
 func (msr *MobileServiceRepo) ListConfigs(filter mobile.AttrFilterFunc) ([]*mobile.ServiceConfig, error) {
 	svs, err := msr.client.List(meta_v1.ListOptions{})
@@ -124,11 +133,40 @@ func (msr *MobileServiceRepo) ListConfigs(filter mobile.AttrFilterFunc) ([]*mobi
 	return ret, nil
 }
 
+// UpdateEnabledIntegrations will set labels on the underlying secret to indicate if an integration is enabled (it is really used as a que to the ui)
+func (msr *MobileServiceRepo) UpdateEnabledIntegrations(svcName string, integrations map[string]string) error {
+	secret, err := msr.client.Get(svcName, meta_v1.GetOptions{})
+	if err != nil {
+		return errors.Wrap(err, "failed to read secret while updating enabled integrations")
+	}
+	if secret.Labels == nil {
+		secret.Labels = map[string]string{}
+	}
+	for k, v := range integrations {
+		secret.Labels[k] = v
+	}
+	_, err = msr.client.Update(secret)
+	if err != nil {
+		return errors.Wrap(err, "failed to update enabled integrations")
+	}
+	return nil
+}
+
 func convertSecretToMobileService(s v1.Secret) *mobile.Service {
+	params := map[string]string{}
+	for key, value := range s.Data {
+		if key != "uri" && key != "name" {
+			params[key] = string(value)
+		}
+	}
 	return &mobile.Service{
-		Name:   strings.TrimSpace(string(s.Data["name"])),
-		Host:   string(s.Data["uri"]),
-		Params: map[string]string{},
+		ID:                s.Name,
+		Labels:            s.Labels,
+		Name:              strings.TrimSpace(string(s.Data["name"])),
+		Host:              string(s.Data["uri"]),
+		BindingSecretName: s.GetName(),
+		Params:            params,
+		Integrations:      map[string]*mobile.ServiceIntegration{},
 	}
 }
 
@@ -143,9 +181,9 @@ type MobileServiceRepoBuilder struct {
 }
 
 // WithClient sets the client to use
-func (marb *MobileServiceRepoBuilder) WithClient(c corev1.SecretInterface) mobile.ServiceRepoBuilder {
+func (marb *MobileServiceRepoBuilder) WithClient(client corev1.SecretInterface) mobile.ServiceRepoBuilder {
 	return &MobileServiceRepoBuilder{
-		client: c,
+		client: client,
 	}
 }
 

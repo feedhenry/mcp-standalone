@@ -19,11 +19,23 @@ type StatusError struct {
 }
 
 type Service struct {
-	Name         string              `json:"name"`
-	Host         string              `json:"host"`
-	Description  string              `json:"description"`
-	Capabilities map[string][]string `json:"capabilities"`
-	Params       map[string]string   `json:"params"`
+	ID                string                         `json:"id"`
+	Name              string                         `json:"name"`
+	Host              string                         `json:"host"`
+	Description       string                         `json:"description"`
+	Capabilities      map[string][]string            `json:"capabilities"`
+	Params            map[string]string              `json:"params"`
+	BindingSecretName string                         `json:"binding_secret_name"`
+	Labels            map[string]string              `json:"labels"`
+	Integrations      map[string]*ServiceIntegration `json:"integrations"`
+}
+
+type ServiceIntegration struct {
+	Enabled         bool   `json:"enabled"`
+	Component       string `json:"component"`
+	Service         string `json:"service"`
+	Namespace       string `json:"namespace"`
+	ComponentSecret string `json:"componentSecret"`
 }
 
 type ServiceConfig struct {

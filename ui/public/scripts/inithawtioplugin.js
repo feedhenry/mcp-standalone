@@ -1,0 +1,1 @@
+hawtioPluginLoader.addModule('mobileControlPanelApp');
