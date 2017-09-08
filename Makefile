@@ -31,9 +31,9 @@ ui:
 build_cli:
 	go build -o mcp ./cmd/mcp-cli
 
-build: build_cli test-unit
+build: test-unit
 	export GOOS=linux && go build ./cmd/mcp-api
-		
+
 image: build
 	mkdir -p tmp
 	cp ./mcp-standalone tmp
