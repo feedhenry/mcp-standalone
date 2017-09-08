@@ -39,7 +39,7 @@ angular
           .createMobileApp($scope.app)
           .then(app => {
             $location.path(
-              'project/' + $routeParams.project + '/browse/mobileapps'
+              'project/' + $routeParams.project + '/browse/mobileoverview'
             );
           })
           .catch(err => {

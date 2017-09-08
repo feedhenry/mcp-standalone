@@ -2,7 +2,6 @@ package data
 
 import (
 	"encoding/json"
-	"fmt"
 	"strings"
 
 	"github.com/Sirupsen/logrus"
@@ -90,7 +89,6 @@ func (msr *MobileServiceRepo) Create(ms *mobile.Service) error {
 		return errors.Wrap(err, "create failed validation")
 	}
 	sct := convertMobileAppToSecret(*ms)
-	fmt.Println("creating secret", sct)
 	if _, err := msr.client.Create(sct); err != nil {
 		return errors.Wrap(err, "failed to create backing secret for mobile service")
 	}
@@ -99,6 +97,12 @@ func (msr *MobileServiceRepo) Create(ms *mobile.Service) error {
 
 func convertMobileAppToSecret(ms mobile.Service) *v1.Secret {
 	data := map[string][]byte{}
+	labels := map[string]string{
+		"group": "mobile",
+	}
+	for k, v := range ms.Labels {
+		labels[k] = v
+	}
 	data["uri"] = []byte(ms.Host)
 	data["name"] = []byte(ms.Name)
 	for k, v := range ms.Params {
@@ -106,7 +110,7 @@ func convertMobileAppToSecret(ms mobile.Service) *v1.Secret {
 	}
 	return &v1.Secret{
 		ObjectMeta: meta_v1.ObjectMeta{
-			Labels: ms.Labels,
+			Labels: labels,
 			Name:   ms.ID,
 		},
 		Data: data,

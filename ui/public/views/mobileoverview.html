@@ -53,16 +53,30 @@
             <!-- TODO: limit this to 'mobile'' services -->
             <div class="row row-cards-pf">
               <div ng-repeat="service in services" class="col-xs-12 col-sm-6 col-md-3">
-                <div class="card-pf card-pf-view card-pf-view-select card-pf-view-multi-select" ng-click="openService(service.id)">
+                <div class="card-pf card-pf-view card-pf-view-select card-pf-view-multi-select" >
                   <div class="card-pf-body">
-                    <div class="card-pf-top-element">
+                      <div uib-dropdown="" class="dropdown pull-right">
+                          <a href="" uib-dropdown-toggle="" class="actions-dropdown-kebab dropdown-toggle" aria-haspopup="true" aria-expanded="false"><i class="fa fa-ellipsis-v"></i><span class="sr-only">Actions</span></a>
+                          <ul class="dropdown-menu dropdown-menu-right" uib-dropdown-menu="" role="menu">
+                          <!-- ngIf: row.rgv | canI : 'update' --><li role="menuitem" class="ng-scope">
+                          <a ng-click="" href="">Delete</a>
+                          </li><!-- end ngIf: row.rgv | canI : 'update' -->
+                          </ul>
+                          </div>
+                    <div class="card-pf-top-element" ng-click="openService(service.id)">
                       <span class="fa icon card-pf-icon-circle"></span>
                     </div>
-                    <h2 class="card-pf-title text-center">
+                    
+                    <h2 class="card-pf-title text-center" ng-click="openService(service.id)">
                       {{service.name}}
                     </h2>
-                    <h6 class="text-center">Capabilities:<em> Authentication, Authorisation</em></h6>
-                    <h6 class="text-center">Integrations:<em> fh-sync, mobile clients</em></h6>
+                    <p>
+                    <span >id: {{service.id}}</span>
+                    </p>
+                    <span ng-if="service.labels.external == 'true'" style="color: red;"><em> External Service</em></span>
+                    <span ng-if="service.labels.external != 'true'" style="color: blue;"><em> Local Service</em></span>
+                    
+                    <!--<h6 class="text-center">Integrations:<em> fh-sync, mobile clients</em></h6>-->
                   </div>
                 </div>
               </div>
