@@ -29,6 +29,7 @@ angular.module('mobileControlPanelApp').controller('MobileOverviewController', [
 
     $scope.mobileapps = [];
     $scope.services = [];
+    $scope.mcpError = false;
 
     ProjectsService.get($routeParams.project).then(
       _.spread(function(project, context) {
@@ -41,6 +42,7 @@ angular.module('mobileControlPanelApp').controller('MobileOverviewController', [
           })
           .catch(e => {
             console.error(e);
+            $scope.mcpError = true;
           });
 
         mcpApi
@@ -50,6 +52,7 @@ angular.module('mobileControlPanelApp').controller('MobileOverviewController', [
           })
           .catch(e => {
             console.error('error getting services ', e);
+            $scope.mcpError = true;
           });
       })
     );

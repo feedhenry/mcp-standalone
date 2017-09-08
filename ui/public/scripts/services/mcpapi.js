@@ -23,11 +23,21 @@ angular.module('mobileControlPanelApp').service('mcpApi', [
 
     return {
       mobileApps: function() {
+        if (!window.MCP_URL) {
+          return new Promise(function(resolve, reject) {
+            return reject('No MCP URL');
+          });
+        }
         return $http.get(getMobileAppsURL(), requestConfig).then(res => {
           return res.data;
         });
       },
       mobileApp: function(id) {
+        if (!window.MCP_URL) {
+          return new Promise(function(resolve, reject) {
+            return reject('No MCP URL');
+          });
+        }
         return $http
           .get(getMobileAppsURL() + '/' + id, requestConfig)
           .then(res => {
@@ -35,6 +45,11 @@ angular.module('mobileControlPanelApp').service('mcpApi', [
           });
       },
       createMobileApp: function(mobileApp) {
+        if (!window.MCP_URL) {
+          return new Promise(function(resolve, reject) {
+            return reject('No MCP URL');
+          });
+        }
         return $http
           .post(getMobileAppsURL(), mobileApp, requestConfig)
           .then(res => {
@@ -42,11 +57,21 @@ angular.module('mobileControlPanelApp').service('mcpApi', [
           });
       },
       mobileServices: function() {
+        if (!window.MCP_URL) {
+          return new Promise(function(resolve, reject) {
+            return reject('No MCP URL');
+          });
+        }
         return $http.get(getMobileServicesURL(), requestConfig).then(res => {
           return res.data;
         });
       },
       mobileService: function(name, withIntegrations) {
+        if (!window.MCP_URL) {
+          return new Promise(function(resolve, reject) {
+            return reject('No MCP URL');
+          });
+        }
         let url = getMobileServicesURL() + '/' + name;
         if (withIntegrations) {
           console.log('withIntegrations');
@@ -65,6 +90,11 @@ angular.module('mobileControlPanelApp').service('mcpApi', [
           });
       },
       integrateService: function(params) {
+        if (!window.MCP_URL) {
+          return new Promise(function(resolve, reject) {
+            return reject('No MCP URL');
+          });
+        }
         let url = getMobileServicesURL() + '/configure';
         return $http.post(url, params, requestConfig).then(res => {
           return res.data;

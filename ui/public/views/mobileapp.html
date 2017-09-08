@@ -22,8 +22,9 @@
           <div class="row">
             <div class="col-md-12">
               <uib-tabset>
-                <uib-tab active="selectedTab.coresdksetup" ng-if="app">
-                  <uib-tab-heading>Core SDK Setup</uib-tab-heading>
+                <uib-tab active="selectedTab.sdk" ng-if="app">
+                  <uib-tab-heading>SDK</uib-tab-heading>
+                  <h3>Core SDK Setup</h3>
                   <p>
                     {{app.Description}}
                   </p>
@@ -31,7 +32,7 @@
                     The core sdk will discover the services you have provisioned and make them available to your application by exposing the
                     required configuration. This will allow you to easily and simply plug in and start using your chosen mobile services.
                   </p>
-                  <h3>Installation</h3>
+                  <h4>Installation</h4>
                   <ul ng-if="app.clientType == 'android'" class="nav nav-pills nav-justified">
                     <li ng-if="app.clientType == 'android'" role="presentation" ng-class="{'active' : installType == 'maven'}"><a ng-click="installationOpt('maven')" href="#">Maven</a></li>
                     <li ng-if="app.clientType == 'android'" role="presentation" ng-class="{'active' : installType == 'gradle'}"><a ng-click="installationOpt('gradle')" href="#">Gradle</a></li>
@@ -60,7 +61,7 @@ npm install --save mobile-core</pre>
 pod 'MobileCore', '~> 0.0.1'</pre>
 
 
-                  <h3>Configuration</h3>
+                  <h4>Configuration</h4>
                   <p ng-if="installType == 'npm'">Add the following to a file named <code>mobile.json</code> at the root of your project</p>
                   <p ng-if="installType == 'gradle'">Add the following to a file named <code>mobile.properties</code> under your resources directory</p>
                   <p ng-if="installType == 'maven'">Add the following to a file named <code>mobile.properties</code> under your resources directory</p>
@@ -88,7 +89,7 @@ org.feedhenry.mobile.apiKey = "{{app.apiKey}}"</pre>
   "apiKey":{{app.apiKey}}
 }</pre>
 
-                  <h3>SDK Initialisation</h3>
+                  <h4>SDK Initialisation</h4>
 
                   <pre ng-if="app.clientType == 'iOS'" class="prettyprint lang-swift">
 var myDict: NSDictionary?

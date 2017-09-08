@@ -50,10 +50,15 @@ var resolveMCPRoute = {
         _.spread(function(project, context) {
           return DataService.get('routes', 'mcp-standalone', context, {
             errorNotification: false
-          }).then(function(route) {
-            window.MCP_URL =
-              (route.spec.tls ? 'https://' : 'http://') + route.spec.host;
-          });
+          })
+            .then(function(route) {
+              window.MCP_URL =
+                (route.spec.tls ? 'https://' : 'http://') + route.spec.host;
+            })
+            .catch(function(err) {
+              // Ignore this error as the MCP_URL will be checked when needed,
+              // and handle the absence of the url then
+            });
         })
       );
     }
