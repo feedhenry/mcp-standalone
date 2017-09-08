@@ -49,7 +49,7 @@ module.exports = function(grunt) {
       },
       js: {
         files: ['<%= yeoman.app %>/scripts/{,*/}*.js'],
-        tasks: ['setlocalconfig', 'build']
+        tasks: ['setlocalconfig', 'nouglify', 'build']
       },
       jsTest: {
         files: ['test/spec/{,*/}*.js'],
@@ -57,7 +57,7 @@ module.exports = function(grunt) {
       },
       less: {
         files: ['<%= yeoman.app %>/styles/{,*/}*.less'],
-        tasks: ['setlocalconfig', 'build']
+        tasks: ['setlocalconfig', 'nouglify', 'build']
       },
       gruntfile: {
         files: ['Gruntfile.js']
@@ -308,8 +308,8 @@ module.exports = function(grunt) {
   );
 
   grunt.registerTask(
-    'local',
-    'Watch local files and serve up development version without uglify',
+    'nouglify',
+    'Disable uglify of js for local development',
     function() {
       var useminPrepare = grunt.config.get('useminPrepare');
       var jsSteps = useminPrepare.options.flow.html.steps.js;
@@ -317,12 +317,10 @@ module.exports = function(grunt) {
       // remove uglifyjs when using `grunt watch`
       jsSteps.splice(jsSteps.indexOf('uglifyjs'), 1);
       grunt.config.set('useminPrepare', useminPrepare);
-
-      var taskList = ['setlocalconfig', 'build', 'watch'];
-
-      grunt.task.run(taskList);
     }
   );
+
+  grunt.registerTask('local', ['nouglify', 'setlocalconfig', 'build', 'watch']);
 
   grunt.registerTask(
     'checklocalconfig',

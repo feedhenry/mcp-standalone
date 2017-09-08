@@ -1,7 +1,9 @@
 {
   "name": "mcp",
   "version": "0.0.0",
-  "dependencies": {},
+  "dependencies": {
+    "google-code-prettify": "^1.0.5"
+  },
   "devDependencies": {},
   "appPath": "public",
   "moduleName": "mcp",

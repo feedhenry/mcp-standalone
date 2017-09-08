@@ -21,7 +21,7 @@ angular.module('mobileControlPanelApp').controller('MobileAppController', [
     $scope.breadcrumbs = [
       {
         title: 'Mobile App',
-        link: 'project/' + $routeParams.project + '/browse/mobileapps'
+        link: 'project/' + $routeParams.project + '/browse/mobileoverview'
       },
       {
         title: $routeParams.mobileapp
