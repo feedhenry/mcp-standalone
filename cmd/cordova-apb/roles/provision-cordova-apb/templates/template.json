@@ -59,8 +59,7 @@
                                 "name": "mcp-standalone",
                                 "image": "feedhenry/mcp-standalone",
                                 "command": [
-                                    "./mcp-standalone",
-                                    "-web-dir=/web/dist",
+                                    "./mcp-api",
                                     "-cert=/etc/tls/tls.crt",
                                     "-key=/etc/tls/tls.key"
                                 ],

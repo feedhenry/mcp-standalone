@@ -8,5 +8,6 @@ import (
 // DefaultTokenRetriever returns the authorization token
 func DefaultTokenRetriever(headers http.Header) string {
 	token := headers.Get("Authorization")
-	return strings.Replace(token, "Bearer ", "", 1)
+	token = strings.Replace(token, "Bearer ", "", 1)
+	return strings.TrimSpace(token)
 }

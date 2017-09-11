@@ -14,7 +14,6 @@
 
 FROM fedora
 EXPOSE 3001
-ADD ./mcp-standalone /
-ADD ./web/dist /web
-ENTRYPOINT ["/mcp-standalone"]
+ADD ./mcp-api /
+ENTRYPOINT ["/mcp-api"]
 

@@ -17,3 +17,8 @@
 
 - name: create service account
   shell: oc new-app -f /opt/ansible/roles/provision-mcp-apb/templates/template.json -n '{{namespace}}'
+
+- name: add-role
+  shell: |
+    oc policy add-role-to-user edit system:serviceaccount:{{namespace}}:mcp-standalone
+  when: mobile_route.stdout == ""  

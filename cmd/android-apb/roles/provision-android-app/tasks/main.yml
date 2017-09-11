@@ -23,6 +23,11 @@
     oc new-app -f /opt/ansible/roles/provision-android-app/templates/template.json -n '{{namespace}}'
   when: mobile_route.stdout == ""
 
+- name: add-role
+  shell: |
+    oc policy add-role-to-user edit system:serviceaccount:{{namespace}}:mcp-standalone
+  when: mobile_route.stdout == ""    
+
 - name: check_exists_again
   shell: "oc get routes mcp-standalone -n '{{ namespace }}' | grep -v NAME | awk '{print $2}'"
   register: mobile_route
@@ -37,7 +42,7 @@
     url: "https://{{ mobile_route.stdout }}/mobileapp"
     method: POST
     headers:
-      x-auth: "{{satoken.stdout}}"
+      Authorization: "Bearer {{satoken.stdout}}"
       x-skip-role-binding: "true"
     body: {"name":"{{appName}}","clientType":"android"}
     validate_certs: no
