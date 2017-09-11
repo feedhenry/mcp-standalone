@@ -122,7 +122,7 @@ func TestMount(t *testing.T) {
 		Validate  func(t *testing.T, mountRes error)
 	}{
 		{
-			Name:      "Valid mount request",
+			Name:      "Secret should be succesfully mounted",
 			K8sClient: mockUnmountedK8sClient,
 			Namespace: "test-namespace",
 			Service:   "test-service",
@@ -134,7 +134,7 @@ func TestMount(t *testing.T) {
 			},
 		},
 		{
-			Name:      "Bad service name to mount request",
+			Name:      "Secret should not be mounted because a bad service name has been provided",
 			K8sClient: mockUnmountedK8sClient,
 			Namespace: "test-namespace",
 			Service:   "test-bad-service",
@@ -143,13 +143,10 @@ func TestMount(t *testing.T) {
 				if mountRes == nil {
 					t.Fatalf("expected error when providing bad clientService name, but got none")
 				}
-				if mountRes.Error() != "k8s.mm.Mount -> could not find container in deployment with name: test-bad-service" {
-					t.Fatalf("Expected 'k8s.mm.Mount -> could not find container in deployment with name: test-bad-service' but got: %s", mountRes.Error())
-				}
 			},
 		},
 		{
-			Name:      "Bad secret name to mount request",
+			Name:      "Secret should not be mounted because a bad secret name has been provided",
 			K8sClient: mockUnmountedK8sClient,
 			Namespace: "test-namespace",
 			Service:   "test-service",
@@ -157,9 +154,6 @@ func TestMount(t *testing.T) {
 			Validate: func(t *testing.T, mountRes error) {
 				if mountRes == nil {
 					t.Fatalf("expected error when providing bad secret name, but got none")
-				}
-				if mountRes.Error() != "k8s.mm.Mount -> could not find secret: test-bad-secret" {
-					t.Fatalf("Expected 'k8s.mm.Mount -> could not find secret: test-bad-secret' but got: '%s'", mountRes.Error())
 				}
 			},
 		},
@@ -182,7 +176,7 @@ func TestUnmount(t *testing.T) {
 		Validate  func(t *testing.T, unmountRes error)
 	}{
 		{
-			Name:      "Valid unmount request",
+			Name:      "Secret should be succesfully unmounted",
 			K8sClient: mockMountedK8sClient,
 			Namespace: "test-namespace",
 			Service:   "test-service",
@@ -194,7 +188,7 @@ func TestUnmount(t *testing.T) {
 			},
 		},
 		{
-			Name:      "Bad service name to mount request",
+			Name:      "Secret should not be unmounted because a bad service name has been provided",
 			K8sClient: mockMountedK8sClient,
 			Namespace: "test-namespace",
 			Service:   "test-bad-service",
@@ -203,13 +197,10 @@ func TestUnmount(t *testing.T) {
 				if unmountRes == nil {
 					t.Fatalf("expected error when providing bad clientService name, but got none")
 				}
-				if unmountRes.Error() != "k8s.mm.Mount -> could not find container in deployment with name: test-bad-service" {
-					t.Fatalf("Expected 'k8s.mm.Mount -> could not find container in deployment with name: test-bad-service' but got: %s", unmountRes.Error())
-				}
 			},
 		},
 		{
-			Name:      "Bad secret name to unmount request",
+			Name:      "Secret should not be unmounted because a bad secret name has been provided",
 			K8sClient: mockMountedK8sClient,
 			Namespace: "test-namespace",
 			Service:   "test-service",
@@ -217,9 +208,6 @@ func TestUnmount(t *testing.T) {
 			Validate: func(t *testing.T, unmountRes error) {
 				if unmountRes == nil {
 					t.Fatalf("expected error when providing bad secret name, but got none")
-				}
-				if unmountRes.Error() != "k8s.mm.Unmount -> could not find secret: test-bad-secret" {
-					t.Fatalf("Expected 'k8s.mm.Unmount -> could not find secret: test-bad-secret' but got: '%s'", unmountRes.Error())
 				}
 			},
 		},

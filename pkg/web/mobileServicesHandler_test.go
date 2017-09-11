@@ -140,7 +140,7 @@ func TestConfigure(t *testing.T) {
 								},
 								Data: map[string][]byte{
 									"uri":  []byte("http://test.com"),
-									"name": []byte("fh-sync-server"),
+									"type": []byte("fh-sync-server"),
 								},
 							},
 							{
@@ -149,7 +149,7 @@ func TestConfigure(t *testing.T) {
 								},
 								Data: map[string][]byte{
 									"uri":  []byte("http://test.com"),
-									"name": []byte("keycloak"),
+									"type": []byte("keycloak"),
 								},
 							},
 						}}, nil
@@ -243,11 +243,11 @@ func TestDeconfigure(t *testing.T) {
 						Items: []v1.Secret{
 							{
 								ObjectMeta: metav1.ObjectMeta{
-									Name: "fh-sync-server-secret",
+									Name: "fh-sync-server",
 								},
 								Data: map[string][]byte{
 									"uri":  []byte("http://test.com"),
-									"name": []byte("fh-sync-server"),
+									"type": []byte("fh-sync-server"),
 								},
 							},
 							{
@@ -256,7 +256,7 @@ func TestDeconfigure(t *testing.T) {
 								},
 								Data: map[string][]byte{
 									"uri":  []byte("http://test.com"),
-									"name": []byte("keycloak"),
+									"type": []byte("keycloak"),
 								},
 							},
 						}}, nil
