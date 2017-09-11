@@ -5,111 +5,109 @@ import (
 
 	ktesting "k8s.io/client-go/testing"
 
+	kerror "k8s.io/apimachinery/pkg/api/errors"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/kubernetes/fake"
 	"k8s.io/client-go/pkg/api/v1"
 	"k8s.io/client-go/pkg/apis/apps/v1beta1"
 )
 
-func mockK8sClient() *fake.Clientset {
-	k8sMock := &fake.Clientset{}
-	k8sMock.AddReactor("list", "secrets", func(a ktesting.Action) (bool, runtime.Object, error) {
-		return true, &v1.SecretList{
-			Items: []v1.Secret{
-				{
-					Data: map[string][]byte{
-						"name": []byte("test-service"),
-					},
-				},
-				{
-					Data: map[string][]byte{
-						"now":        []byte("something"),
-						"completely": []byte("different"),
-					},
+func listSecrets(a ktesting.Action) (bool, runtime.Object, error) {
+	return true, &v1.SecretList{
+		Items: []v1.Secret{
+			{
+				Data: map[string][]byte{
+					"name": []byte("test-service"),
 				},
 			},
-		}, nil
-	})
-	k8sMock.AddReactor("get", "secrets", func(action ktesting.Action) (bool, runtime.Object, error) {
-		return true, &v1.Secret{
-			ObjectMeta: meta_v1.ObjectMeta{
-				Name: "test-secret",
-			},
-			Data: map[string][]byte{},
-		}, nil
-	})
-	k8sMock.AddReactor("Update", "deployments", func(action ktesting.Action) (bool, runtime.Object, error) {
-		return true, &v1beta1.Deployment{
-			Spec: v1beta1.DeploymentSpec{
-				Template: v1.PodTemplateSpec{
-					Spec: v1.PodSpec{
-						Volumes: []v1.Volume{},
-						Containers: []v1.Container{
-							{
-								Name:         "fh-sync-server",
-								VolumeMounts: []v1.VolumeMount{},
-							},
-						},
-					},
+			{
+				Data: map[string][]byte{
+					"now":        []byte("something"),
+					"completely": []byte("different"),
 				},
 			},
-		}, nil
-	})
-	return k8sMock
+		},
+	}, nil
 }
 
-func mockUnmountedK8sClient() *fake.Clientset {
-	k8sMock := mockK8sClient()
-	k8sMock.AddReactor("get", "deployments", func(action ktesting.Action) (bool, runtime.Object, error) {
-		return true, &v1beta1.Deployment{
-			Spec: v1beta1.DeploymentSpec{
-				Template: v1.PodTemplateSpec{
-					Spec: v1.PodSpec{
-						Volumes: []v1.Volume{},
-						Containers: []v1.Container{
-							{
-								Name:         "test-service",
-								VolumeMounts: []v1.VolumeMount{},
-							},
+func getSecrets(action ktesting.Action) (bool, runtime.Object, error) {
+	return true, &v1.Secret{
+		ObjectMeta: meta_v1.ObjectMeta{
+			Name: "test-secret",
+		},
+		Data: map[string][]byte{},
+	}, nil
+}
+
+func missingSecretFactory(secretName string) ktesting.ReactionFunc {
+	return func(action ktesting.Action) (bool, runtime.Object, error) {
+		return true, &v1.Secret{}, kerror.NewNotFound(schema.GroupResource{Group: "", Resource: "secret"}, secretName)
+	}
+
+}
+
+func updateDeployments(action ktesting.Action) (bool, runtime.Object, error) {
+	return true, &v1beta1.Deployment{
+		Spec: v1beta1.DeploymentSpec{
+			Template: v1.PodTemplateSpec{
+				Spec: v1.PodSpec{
+					Volumes: []v1.Volume{},
+					Containers: []v1.Container{
+						{
+							Name:         "fh-sync-server",
+							VolumeMounts: []v1.VolumeMount{},
 						},
 					},
 				},
 			},
-		}, nil
-	})
-
-	return k8sMock
+		},
+	}, nil
 }
 
-func mockMountedK8sClient() *fake.Clientset {
-	k8sMock := mockK8sClient()
-	k8sMock.AddReactor("get", "deployments", func(action ktesting.Action) (bool, runtime.Object, error) {
-		return true, &v1beta1.Deployment{
-			Spec: v1beta1.DeploymentSpec{
-				Template: v1.PodTemplateSpec{
-					Spec: v1.PodSpec{
-						Volumes: []v1.Volume{
-							{
-								Name: "test-secret",
-							},
+func getUnmountedDeployments(action ktesting.Action) (bool, runtime.Object, error) {
+	return true, &v1beta1.Deployment{
+		Spec: v1beta1.DeploymentSpec{
+			Template: v1.PodTemplateSpec{
+				Spec: v1.PodSpec{
+					Volumes: []v1.Volume{},
+					Containers: []v1.Container{
+						{
+							Name:         "test-service",
+							VolumeMounts: []v1.VolumeMount{},
 						},
-						Containers: []v1.Container{
-							{
-								Name: "test-service",
-								VolumeMounts: []v1.VolumeMount{
-									{
-										Name: "test-secret",
-									},
+					},
+				},
+			},
+		},
+	}, nil
+}
+
+func getMountedDeployments(action ktesting.Action) (bool, runtime.Object, error) {
+	return true, &v1beta1.Deployment{
+		Spec: v1beta1.DeploymentSpec{
+			Template: v1.PodTemplateSpec{
+				Spec: v1.PodSpec{
+					Volumes: []v1.Volume{
+						{
+							Name: "test-secret",
+						},
+					},
+					Containers: []v1.Container{
+						{
+							Name: "test-service",
+							VolumeMounts: []v1.VolumeMount{
+								{
+									Name: "test-secret",
 								},
 							},
 						},
 					},
 				},
 			},
-		}, nil
-	})
-	return k8sMock
+		},
+	}, nil
 }
 
 func TestMount(t *testing.T) {
@@ -122,8 +120,15 @@ func TestMount(t *testing.T) {
 		Validate  func(t *testing.T, mountRes error)
 	}{
 		{
-			Name:      "Secret should be succesfully mounted",
-			K8sClient: mockUnmountedK8sClient,
+			Name: "Secret should be succesfully mounted",
+			K8sClient: func() *fake.Clientset {
+				k8sMock := &fake.Clientset{}
+				k8sMock.AddReactor("list", "secrets", listSecrets)
+				k8sMock.AddReactor("get", "secrets", getSecrets)
+				k8sMock.AddReactor("Update", "deployments", updateDeployments)
+				k8sMock.AddReactor("get", "deployments", getUnmountedDeployments)
+				return k8sMock
+			},
 			Namespace: "test-namespace",
 			Service:   "test-service",
 			Secret:    "test-secret",
@@ -134,8 +139,15 @@ func TestMount(t *testing.T) {
 			},
 		},
 		{
-			Name:      "Secret should not be mounted because a bad service name has been provided",
-			K8sClient: mockUnmountedK8sClient,
+			Name: "Secret should not be mounted because a bad service name has been provided",
+			K8sClient: func() *fake.Clientset {
+				k8sMock := &fake.Clientset{}
+				k8sMock.AddReactor("list", "secrets", listSecrets)
+				k8sMock.AddReactor("get", "secrets", getSecrets)
+				k8sMock.AddReactor("Update", "deployments", updateDeployments)
+				k8sMock.AddReactor("get", "deployments", getUnmountedDeployments)
+				return k8sMock
+			},
 			Namespace: "test-namespace",
 			Service:   "test-bad-service",
 			Secret:    "test-secret",
@@ -146,8 +158,15 @@ func TestMount(t *testing.T) {
 			},
 		},
 		{
-			Name:      "Secret should not be mounted because a bad secret name has been provided",
-			K8sClient: mockUnmountedK8sClient,
+			Name: "Secret should not be mounted because a bad secret name has been provided",
+			K8sClient: func() *fake.Clientset {
+				k8sMock := &fake.Clientset{}
+				k8sMock.AddReactor("list", "secrets", listSecrets)
+				k8sMock.AddReactor("get", "secrets", missingSecretFactory("test-bad-secret"))
+				k8sMock.AddReactor("Update", "deployments", updateDeployments)
+				k8sMock.AddReactor("get", "deployments", getUnmountedDeployments)
+				return k8sMock
+			},
 			Namespace: "test-namespace",
 			Service:   "test-service",
 			Secret:    "test-bad-secret",
@@ -176,8 +195,15 @@ func TestUnmount(t *testing.T) {
 		Validate  func(t *testing.T, unmountRes error)
 	}{
 		{
-			Name:      "Secret should be succesfully unmounted",
-			K8sClient: mockMountedK8sClient,
+			Name: "Secret should be succesfully unmounted",
+			K8sClient: func() *fake.Clientset {
+				k8sMock := &fake.Clientset{}
+				k8sMock.AddReactor("list", "secrets", listSecrets)
+				k8sMock.AddReactor("get", "secrets", getSecrets)
+				k8sMock.AddReactor("Update", "deployments", updateDeployments)
+				k8sMock.AddReactor("get", "deployments", getMountedDeployments)
+				return k8sMock
+			},
 			Namespace: "test-namespace",
 			Service:   "test-service",
 			Secret:    "test-secret",
@@ -188,8 +214,15 @@ func TestUnmount(t *testing.T) {
 			},
 		},
 		{
-			Name:      "Secret should not be unmounted because a bad service name has been provided",
-			K8sClient: mockMountedK8sClient,
+			Name: "Secret should not be unmounted because a bad service name has been provided",
+			K8sClient: func() *fake.Clientset {
+				k8sMock := &fake.Clientset{}
+				k8sMock.AddReactor("list", "secrets", listSecrets)
+				k8sMock.AddReactor("get", "secrets", getSecrets)
+				k8sMock.AddReactor("Update", "deployments", updateDeployments)
+				k8sMock.AddReactor("get", "deployments", getMountedDeployments)
+				return k8sMock
+			},
 			Namespace: "test-namespace",
 			Service:   "test-bad-service",
 			Secret:    "test-secret",
@@ -200,8 +233,15 @@ func TestUnmount(t *testing.T) {
 			},
 		},
 		{
-			Name:      "Secret should not be unmounted because a bad secret name has been provided",
-			K8sClient: mockMountedK8sClient,
+			Name: "Secret should not be unmounted because a bad secret name has been provided",
+			K8sClient: func() *fake.Clientset {
+				k8sMock := &fake.Clientset{}
+				k8sMock.AddReactor("list", "secrets", listSecrets)
+				k8sMock.AddReactor("get", "secrets", missingSecretFactory("test-bad-secret"))
+				k8sMock.AddReactor("Update", "deployments", updateDeployments)
+				k8sMock.AddReactor("get", "deployments", getMountedDeployments)
+				return k8sMock
+			},
 			Namespace: "test-namespace",
 			Service:   "test-service",
 			Secret:    "test-bad-secret",

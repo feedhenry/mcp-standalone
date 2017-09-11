@@ -18,8 +18,7 @@ func NewMounterBuilder(namespace string) mobile.MounterBuilder {
 }
 
 func (mb *MounterBuilder) WithK8s(k8s kubernetes.Interface) mobile.MounterBuilder {
-	mb.k8s = k8s
-	return mb
+	return &MounterBuilder{k8s: k8s, namespace: mb.namespace}
 }
 
 func (mb *MounterBuilder) Build() mobile.VolumeMounterUnmounter {
@@ -33,8 +32,8 @@ type MountManager struct {
 
 // Mount a secret named mount into the service
 func (mm *MountManager) Mount(secret, clientService string) error {
-	if s, err := mm.k8s.CoreV1().Secrets(mm.namespace).Get(secret, meta_v1.GetOptions{}); err != nil || s.Name != secret {
-		return errors.New("k8s.mm.Mount -> could not find secret: " + secret)
+	if _, err := mm.k8s.CoreV1().Secrets(mm.namespace).Get(secret, meta_v1.GetOptions{}); err != nil {
+		return errors.Wrap(err, "k8s.mm.Mount -> could not find secret: "+secret)
 	}
 	deploy, err := mm.k8s.AppsV1beta1().Deployments(mm.namespace).Get(clientService, meta_v1.GetOptions{})
 	if err != nil {
@@ -72,7 +71,7 @@ func (mm *MountManager) Mount(secret, clientService string) error {
 
 // Unmount a secret named mount from the service
 func (mm *MountManager) Unmount(secret, clientService string) error {
-	if s, err := mm.k8s.CoreV1().Secrets(mm.namespace).Get(secret, meta_v1.GetOptions{}); err != nil || s.Name != secret {
+	if _, err := mm.k8s.CoreV1().Secrets(mm.namespace).Get(secret, meta_v1.GetOptions{}); err != nil {
 		return errors.New("k8s.mm.Unmount -> could not find secret: " + secret)
 	}
 	deploy, err := mm.k8s.AppsV1beta1().Deployments(mm.namespace).Get(clientService, meta_v1.GetOptions{})

@@ -119,7 +119,7 @@ func (ms *MobileService) GenerateMobileServiceConfigs(serviceCruder mobile.Servi
 //MountSecretForComponent will mount secret into component, returning any errors
 func (ms *MobileService) MountSecretForComponent(svcCruder mobile.ServiceCruder, mounter mobile.VolumeMounter, clientService, serviceSecret string) error {
 	//check secret exists and store for later update
-	service, err := svcCruder.Read(serviceSecret)
+	service, err := svcCruder.Read("keycloak-public-client")
 	if err != nil {
 		return errors.Wrap(err, "failed to find secret: '"+serviceSecret+"'")
 	}
