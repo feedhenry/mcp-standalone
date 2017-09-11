@@ -1,7 +1,52 @@
-# MCP (mobile control panel) Standalone 
+# Mobile Control Panel (MCP)
 
-The MCP Standalone is PoC for a per Namespace service that helps developers create and integrate mobile applications on OpenShift.
+The Mobile Control Panel is PoC for a 'per namespace' service that helps developers discover, create and integrate Mobile Apps and Services on OpenShift.
 
+* Mobile SDKs are developed and maintained in their respective repos
+* The Backend is a Golang server in this repo
+* The Frontend is a set of AngularJS services, controllers, views etc... in this repo that extend the OpenShift Web Console UI (via extensions)
+* Services are developeed and maintained in their respective repos. They leverage the Service Catalog and various brokers to help provision them
+
+The MCP brings all of these componments together to create a unified Mobile developer experience on top of OpenShift.
+
+## Contributing
+
+You can develop [locally on your host](#local-development).
+Please include as much info as possible in Issues and Pull Requests.
+Merging to master requires approval from a reviewer and a passing CI build.
+
+## Communication
+
+Daily communication happens on #feedhenry on [freenode IRC](https://webchat.freenode.net/).
+The [feedhenry-dev@redhat.com mailing list](http://feedhenry-dev.2363497.n4.nabble.com/) is also used for team-wide & community comms.
+Issues are tracked in both [Jira](https://issues.jboss.org/secure/RapidBoard.jspa?rapidView=4143&view=planning.nodetail) and Github Issues. Where issues are duplicates, they should be linked so that only 1 source of info exists (automation would be nice here). Typically the core Red Hat team will create and work from Jira Issues.
+
+## Onboarding Resources
+
+* [Local Development](#local-development)
+* Mobile SDKs
+  * [Android Sync SDK](https://github.com/feedhenry/fh-sync-android)
+  * [Cordova/Browser Sync SDK](https://github.com/feedhenry/fh-sync-js)
+  * [Push SDKs](https://www.aerogear.org/docs/specs/#push)
+  * [Keycloak JS Adapter](https://www.npmjs.com/package/keycloak-js)
+* Backend Resources
+  * [Tour of Go](https://tour.golang.org/welcome/1)
+* Frontend Resources
+  * [UI src](https://github.com/feedhenry/mcp-standalone/tree/master/ui)
+  * [AngularJS PhoneCat Tutorial](https://docs.angularjs.org/tutorial)
+  * [AngularJS API Docs](https://docs.angularjs.org/api)
+  * [Patternfly](http://www.patternfly.org/)
+  * [OpenShift Web Console](https://github.com/openshift/origin-web-console)
+  * [Customising the OpenShift Web Console (Extensions](https://docs.openshift.com/container-platform/3.6/install_config/web_console_customization.html)
+  * [Service Catalog/OpenShift Mall UI](https://github.com/openshift/origin-web-catalog)
+* Catalog/Mall, Brokers & Services
+  * [Service Catalog](https://docs.openshift.com/container-platform/3.6/architecture/service_catalog/index.html)
+  * [Ansible Service Broker (ASB) & Ansbile Playbook Bundles (APB)](https://docs.openshift.com/container-platform/3.6/architecture/service_catalog/ansible_service_broker.html)
+  * [Template Service Broker](https://docs.openshift.com/container-platform/3.6/architecture/service_catalog/template_service_broker.html)
+  * [fh-sync-server](https://github.com/feedhenry/fh-sync-server)
+  * [fh-sync-server Template](https://github.com/feedhenry/fh-sync-server/blob/master/fh-sync-server-DEVELOPMENT.yaml)
+  * [Keycloak](https://github.com/keycloak/keycloak)
+  * [Keycloak APB](https://github.com/feedhenry/keycloak-apb)
 
 ## Local Development
 
