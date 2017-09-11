@@ -5,6 +5,10 @@
   shell: "{{ mcp_local_dir }}/ui/install.sh"
   changed_when: false
 
+- name: install dist requirements
+  shell: "cd {{ mcp_local_dir }}/ui && npm i && bower install && grunt build"
+
+
 # TODO: Use Ansible module here, not oc from shell
 - name: Login as system:admin
   shell: "oc login -u system:admin"
