@@ -2,3 +2,4 @@ cmd/mcp-standalone/mcp-standalone
 token
 mcp-standalone
 mcp
+mcp-api
