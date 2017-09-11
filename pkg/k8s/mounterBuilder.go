@@ -8,23 +8,28 @@ import (
 	"k8s.io/client-go/pkg/api/v1"
 )
 
+// MounterBuilder is a factory for MountManager
 type MounterBuilder struct {
 	k8s       kubernetes.Interface
 	namespace string
 }
 
+// NewMounterBuilder creates a new MounterBuilder in the provided namespace
 func NewMounterBuilder(namespace string) mobile.MounterBuilder {
 	return &MounterBuilder{namespace: namespace}
 }
 
+// WithK8s will return a pointer to a MounterBuilder using the provided kubernetes client
 func (mb *MounterBuilder) WithK8s(k8s kubernetes.Interface) mobile.MounterBuilder {
 	return &MounterBuilder{k8s: k8s, namespace: mb.namespace}
 }
 
+// Build a new MountManager from the configured MounterBuilder
 func (mb *MounterBuilder) Build() mobile.VolumeMounterUnmounter {
 	return &MountManager{k8s: mb.k8s, namespace: mb.namespace}
 }
 
+// MountManager can mount and unmount into services
 type MountManager struct {
 	k8s       kubernetes.Interface
 	namespace string
