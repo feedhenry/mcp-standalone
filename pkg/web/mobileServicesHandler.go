@@ -124,6 +124,14 @@ func (msh *MobileServiceHandler) Configure(rw http.ResponseWriter, req *http.Req
 	params := mux.Vars(req)
 	component := strings.ToLower(params["component"])
 	secret := strings.ToLower(params["secret"])
+	if len(component) == 0 {
+		handleCommonErrorCases(errors.New("web.msh.Configure -> provided component must not be empty"), rw, msh.logger)
+		return
+	}
+	if len(secret) == 0 {
+		handleCommonErrorCases(errors.New("web.msh.Configure -> provided secret must not be empty"), rw, msh.logger)
+		return
+	}
 
 	mounter, err := msh.tokenClientBuilder.VolumeMounterUnmounter(token)
 	if err != nil {
