@@ -12,7 +12,7 @@ import (
 	"k8s.io/client-go/pkg/apis/apps/v1beta1"
 )
 
-func mockUnmountedK8sClient() *fake.Clientset {
+func mockK8sClient() *fake.Clientset {
 	k8sMock := &fake.Clientset{}
 	k8sMock.AddReactor("list", "secrets", func(a ktesting.Action) (bool, runtime.Object, error) {
 		return true, &v1.SecretList{
@@ -26,23 +26,6 @@ func mockUnmountedK8sClient() *fake.Clientset {
 					Data: map[string][]byte{
 						"now":        []byte("something"),
 						"completely": []byte("different"),
-					},
-				},
-			},
-		}, nil
-	})
-	k8sMock.AddReactor("get", "deployments", func(action ktesting.Action) (bool, runtime.Object, error) {
-		return true, &v1beta1.Deployment{
-			Spec: v1beta1.DeploymentSpec{
-				Template: v1.PodTemplateSpec{
-					Spec: v1.PodSpec{
-						Volumes: []v1.Volume{},
-						Containers: []v1.Container{
-							{
-								Name:         "test-service",
-								VolumeMounts: []v1.VolumeMount{},
-							},
-						},
 					},
 				},
 			},
@@ -76,25 +59,31 @@ func mockUnmountedK8sClient() *fake.Clientset {
 	return k8sMock
 }
 
-func mockMountedK8sClient() *fake.Clientset {
-	k8sMock := &fake.Clientset{}
-	k8sMock.AddReactor("list", "secrets", func(a ktesting.Action) (bool, runtime.Object, error) {
-		return true, &v1.SecretList{
-			Items: []v1.Secret{
-				{
-					Data: map[string][]byte{
-						"name": []byte("test-service"),
-					},
-				},
-				{
-					Data: map[string][]byte{
-						"now":        []byte("something"),
-						"completely": []byte("different"),
+func mockUnmountedK8sClient() *fake.Clientset {
+	k8sMock := mockK8sClient()
+	k8sMock.AddReactor("get", "deployments", func(action ktesting.Action) (bool, runtime.Object, error) {
+		return true, &v1beta1.Deployment{
+			Spec: v1beta1.DeploymentSpec{
+				Template: v1.PodTemplateSpec{
+					Spec: v1.PodSpec{
+						Volumes: []v1.Volume{},
+						Containers: []v1.Container{
+							{
+								Name:         "test-service",
+								VolumeMounts: []v1.VolumeMount{},
+							},
+						},
 					},
 				},
 			},
 		}, nil
 	})
+
+	return k8sMock
+}
+
+func mockMountedK8sClient() *fake.Clientset {
+	k8sMock := mockK8sClient()
 	k8sMock.AddReactor("get", "deployments", func(action ktesting.Action) (bool, runtime.Object, error) {
 		return true, &v1beta1.Deployment{
 			Spec: v1beta1.DeploymentSpec{
@@ -113,31 +102,6 @@ func mockMountedK8sClient() *fake.Clientset {
 										Name: "test-secret",
 									},
 								},
-							},
-						},
-					},
-				},
-			},
-		}, nil
-	})
-	k8sMock.AddReactor("get", "secrets", func(action ktesting.Action) (bool, runtime.Object, error) {
-		return true, &v1.Secret{
-			ObjectMeta: meta_v1.ObjectMeta{
-				Name: "test-secret",
-			},
-			Data: map[string][]byte{},
-		}, nil
-	})
-	k8sMock.AddReactor("Update", "deployments", func(action ktesting.Action) (bool, runtime.Object, error) {
-		return true, &v1beta1.Deployment{
-			Spec: v1beta1.DeploymentSpec{
-				Template: v1.PodTemplateSpec{
-					Spec: v1.PodSpec{
-						Volumes: []v1.Volume{},
-						Containers: []v1.Container{
-							{
-								Name:         "fh-sync-server",
-								VolumeMounts: []v1.VolumeMount{},
 							},
 						},
 					},
