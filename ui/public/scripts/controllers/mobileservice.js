@@ -49,23 +49,61 @@ angular.module('mobileControlPanelApp').controller('MobileServiceController', [
       .catch(e => {
         console.error(e);
       });
+    $scope.status = function(integration, service) {
+      if ($scope.processing(integration, service)) {
+        return 2;
+      }
+      if ($scope.enabled(integration, service)) {
+        return 1;
+      }
+      return 0;
+    };
     $scope.enabled = function(integration, service) {
       if (!service) {
         return false;
       }
       if (service.integrations[integration]) {
-        return service.integrations[integration].enabled == true;
+        return service.integrations[integration].enabled === true;
+      }
+      return false;
+    };
+    $scope.processing = function(integration, service) {
+      if (!service) {
+        return false;
+      }
+      if (
+        service.integrations[integration] &&
+        service.integrations[integration].processing
+      ) {
+        return service.integrations[integration].processing === true;
       }
       return false;
     };
     $scope.enableIntegration = function(service) {
+      service.processing = true;
       mcpApi
         .integrateService(service)
         .then(res => {
-          console.log('Service integrated');
+          service.processing = false;
+          service.enabled = true;
         })
         .catch(e => {
+          service.processing = false;
           console.log('error integrating service ', e);
+        });
+      return true;
+    };
+    $scope.disableIntegration = function(service) {
+      service.processing = true;
+      mcpApi
+        .deintegrateService(service)
+        .then(res => {
+          service.processing = false;
+          service.enabled = false;
+        })
+        .catch(e => {
+          service.processing = false;
+          console.log('error deintegrating service ', e);
         });
       return true;
     };

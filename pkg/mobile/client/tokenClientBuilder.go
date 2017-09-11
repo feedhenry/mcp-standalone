@@ -17,19 +17,21 @@ type TokenScopedClientBuilder struct {
 	serviceRepoBuilder mobile.ServiceRepoBuilder
 	namespace          string
 	logger             *logrus.Logger
+	mounterBuilder     mobile.MounterBuilder
 	useSaToken         bool
 	// this is initialised to the service acount token in the container
 	SAToken string
 }
 
 // NewTokenScopedClientBuilder returns a new client builder that builds clients using the token provided
-func NewTokenScopedClientBuilder(cb mobile.ClientBuilder, arb mobile.AppRepoBuilder, srv mobile.ServiceRepoBuilder, namespace string, logger *logrus.Logger) *TokenScopedClientBuilder {
+func NewTokenScopedClientBuilder(cb mobile.ClientBuilder, arb mobile.AppRepoBuilder, srv mobile.ServiceRepoBuilder, mb mobile.MounterBuilder, namespace string, logger *logrus.Logger) *TokenScopedClientBuilder {
 	return &TokenScopedClientBuilder{
 		clientBuilder:      cb,
 		appRepoBuilder:     arb,
 		serviceRepoBuilder: srv,
 		namespace:          namespace,
 		logger:             logger,
+		mounterBuilder:     mb,
 	}
 }
 
@@ -78,4 +80,13 @@ func (rsb *TokenScopedClientBuilder) MobileServiceCruder(token string) (mobile.S
 	}
 	return rsb.serviceRepoBuilder.WithClient(k8client.CoreV1().Secrets(rsb.namespace)).Build(), nil
 
+}
+
+func (rsb *TokenScopedClientBuilder) VolumeMounterUnmounter(token string) (mobile.VolumeMounterUnmounter, error) {
+	token = rsb.token(token)
+	k8client, err := rsb.clientBuilder.WithToken(token).BuildClient()
+	if err != nil {
+		return nil, errors.Wrap(err, "client.rsb.VolumeMounterUnmounter -> failed to create request scoped kubernetes client with token")
+	}
+	return rsb.mounterBuilder.WithK8s(k8client).Build(), nil
 }

@@ -95,8 +95,29 @@ angular.module('mobileControlPanelApp').service('mcpApi', [
             return reject('No MCP URL');
           });
         }
-        let url = getMobileServicesURL() + '/configure';
-        return $http.post(url, params, requestConfig).then(res => {
+        let url =
+          getMobileServicesURL() +
+          '/configure/' +
+          params.component +
+          '/' +
+          params.service;
+        return $http.post(url, {}, requestConfig).then(res => {
+          return res.data;
+        });
+      },
+      deintegrateService: function(params) {
+        if (!window.MCP_URL) {
+          return new Promise(function(resolve, reject) {
+            return reject('No MCP URL');
+          });
+        }
+        let url =
+          getMobileServicesURL() +
+          '/configure/' +
+          params.component +
+          '/' +
+          params.service;
+        return $http.delete(url, requestConfig).then(res => {
           return res.data;
         });
       }

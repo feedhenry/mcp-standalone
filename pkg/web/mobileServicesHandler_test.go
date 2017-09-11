@@ -9,6 +9,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/feedhenry/mcp-standalone/pkg/k8s"
+
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/fake"
@@ -48,7 +50,8 @@ func buildDefaultTestTokenClientBuilder(kclient kubernetes.Interface) mobile.Tok
 	appRepoBuilder = appRepoBuilder.WithClient(kclient.CoreV1().ConfigMaps("test"))
 	svcRepoBuilder := data.NewServiceRepoBuilder()
 	svcRepoBuilder = svcRepoBuilder.WithClient(kclient.CoreV1().Secrets("test"))
-	clientBuilder := client.NewTokenScopedClientBuilder(cb, appRepoBuilder, svcRepoBuilder, "test", logger)
+	mounterBuilder := k8s.NewMounterBuilder("test")
+	clientBuilder := client.NewTokenScopedClientBuilder(cb, appRepoBuilder, svcRepoBuilder, mounterBuilder, "test", logger)
 	return clientBuilder
 }
 
@@ -137,19 +140,27 @@ func TestConfigure(t *testing.T) {
 								},
 								Data: map[string][]byte{
 									"uri":  []byte("http://test.com"),
-									"name": []byte("fh-sync-server"),
+									"type": []byte("fh-sync-server"),
 								},
 							},
 							{
 								ObjectMeta: metav1.ObjectMeta{
-									Name: "keycloak-secret",
+									Name: "keycloak-public-client",
 								},
 								Data: map[string][]byte{
 									"uri":  []byte("http://test.com"),
-									"name": []byte("keycloak"),
+									"type": []byte("keycloak"),
 								},
 							},
 						}}, nil
+				})
+				client.AddReactor("get", "secrets", func(action ktesting.Action) (bool, runtime.Object, error) {
+					return true, &v1.Secret{
+						ObjectMeta: metav1.ObjectMeta{
+							Name: "keycloak-public-client",
+						},
+						Data: map[string][]byte{},
+					}, nil
 				})
 				client.AddReactor("get", "deployments", func(action ktesting.Action) (bool, runtime.Object, error) {
 					return true, &v1beta1.Deployment{
@@ -190,17 +201,8 @@ func TestConfigure(t *testing.T) {
 			StatusCode: http.StatusOK,
 			Validate: func(r *http.Response, t *testing.T) {
 				bodyBytes, _ := ioutil.ReadAll(r.Body)
-				res := &v1beta1.Deployment{}
-				err := json.Unmarshal(bodyBytes, res)
-				if err != nil {
-					t.Fatal(err)
-				}
-
-				if len(res.Spec.Template.Spec.Volumes) == 0 {
-					t.Fatal("Expected a volume to be added to the deployment")
-				}
-				if len(res.Spec.Template.Spec.Containers[0].VolumeMounts) == 0 {
-					t.Fatal("Expected a volumemount to be added to the container in the deployment")
+				if len(bodyBytes) != 0 {
+					t.Fatalf("expected zero bytes in response body, got %d", len(bodyBytes))
 				}
 			},
 		},
@@ -211,7 +213,126 @@ func TestConfigure(t *testing.T) {
 			handler := setupMobileServiceHandler(tc.Client())
 			server := httptest.NewServer(handler)
 			defer server.Close()
-			res, err := http.Post(server.URL+"/mobileservice/configure", "text/plain", strings.NewReader("{\"component\": \"fh-sync-server\", \"service\": \"keycloak\", \"namespace\": \"myproject\"}"))
+			res, err := http.Post(server.URL+"/mobileservice/configure/fh-sync-server/keycloak-public-client", "text/plain", strings.NewReader(""))
+			if err != nil {
+				t.Fatal("did not expect an error requesting mobile services ", err)
+			}
+			if tc.StatusCode != res.StatusCode {
+				t.Fatalf("expected a response code of %d but got %d ", tc.StatusCode, res.StatusCode)
+			}
+			if nil != tc.Validate {
+				tc.Validate(res, t)
+			}
+		})
+	}
+}
+
+func TestDeconfigure(t *testing.T) {
+	cases := []struct {
+		Name       string
+		Client     func() kubernetes.Interface
+		StatusCode int
+		Validate   func(r *http.Response, t *testing.T)
+	}{
+		{
+			Name: "test deconfiguring fh-sync-server for keycloak",
+			Client: func() kubernetes.Interface {
+				client := &fake.Clientset{}
+				client.AddReactor("list", "secrets", func(action ktesting.Action) (bool, runtime.Object, error) {
+					return true, &v1.SecretList{
+						Items: []v1.Secret{
+							{
+								ObjectMeta: metav1.ObjectMeta{
+									Name: "fh-sync-server",
+								},
+								Data: map[string][]byte{
+									"uri":  []byte("http://test.com"),
+									"type": []byte("fh-sync-server"),
+								},
+							},
+							{
+								ObjectMeta: metav1.ObjectMeta{
+									Name: "keycloak-secret",
+								},
+								Data: map[string][]byte{
+									"uri":  []byte("http://test.com"),
+									"type": []byte("keycloak"),
+								},
+							},
+						}}, nil
+				})
+				client.AddReactor("get", "secrets", func(action ktesting.Action) (bool, runtime.Object, error) {
+					return true, &v1.Secret{
+						ObjectMeta: metav1.ObjectMeta{
+							Name: "keycloak-public-client",
+						},
+						Data: map[string][]byte{},
+					}, nil
+				})
+				client.AddReactor("get", "deployments", func(action ktesting.Action) (bool, runtime.Object, error) {
+					return true, &v1beta1.Deployment{
+						Spec: v1beta1.DeploymentSpec{
+							Template: v1.PodTemplateSpec{
+								Spec: v1.PodSpec{
+									Volumes: []v1.Volume{
+										{
+											Name: "keycloak-public-client",
+										},
+									},
+									Containers: []v1.Container{
+										{
+											Name: "fh-sync-server",
+											VolumeMounts: []v1.VolumeMount{
+												{
+													Name: "keycloak-public-client",
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					}, nil
+				})
+				client.AddReactor("Update", "deployments", func(action ktesting.Action) (bool, runtime.Object, error) {
+					return true, &v1beta1.Deployment{
+						Spec: v1beta1.DeploymentSpec{
+							Template: v1.PodTemplateSpec{
+								Spec: v1.PodSpec{
+									Volumes: []v1.Volume{},
+									Containers: []v1.Container{
+										{
+											Name:         "fh-sync-server",
+											VolumeMounts: []v1.VolumeMount{},
+										},
+									},
+								},
+							},
+						},
+					}, nil
+				})
+				return client
+			},
+			StatusCode: http.StatusOK,
+			Validate: func(r *http.Response, t *testing.T) {
+				bodyBytes, _ := ioutil.ReadAll(r.Body)
+				if len(bodyBytes) != 0 {
+					t.Fatalf("expected zero bytes in response body, got %d", len(bodyBytes))
+				}
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.Name, func(t *testing.T) {
+			handler := setupMobileServiceHandler(tc.Client())
+			server := httptest.NewServer(handler)
+			defer server.Close()
+			req, err := http.NewRequest("DELETE", server.URL+"/mobileservice/configure/fh-sync-server/keycloak-public-client", strings.NewReader(""))
+			if err != nil {
+				t.Fatal("did not expect an error creating a http requets", err)
+			}
+			res, err := http.DefaultClient.Do(req)
 			if err != nil {
 				t.Fatal("did not expect an error requesting mobile services ", err)
 			}

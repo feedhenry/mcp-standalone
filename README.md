@@ -87,5 +87,6 @@ Wait for all the pods to have come up, before proceeding (this can take a few mi
 
 ### Step 4, Mount Keycloak secret into Feedhenry Sync
 
-TBD
+Log in to the web console for Openshift and click into the `localmcp` project, then select `Mobile`. Under `Mobile Enabled Services` select `fh-sync-server` and click `Integrations`. 
+Under `Mobile Service Integrations`, click on `Create Integration` next to `Keycloak`.
 

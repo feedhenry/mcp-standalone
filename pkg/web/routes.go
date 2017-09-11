@@ -79,23 +79,24 @@ func MobileServiceRoute(r *mux.Router, handler *MobileServiceHandler) {
 	r.HandleFunc("/mobileservice", prometheus.InstrumentHandlerFunc("mobileservice create", handler.Create)).Methods("POST")
 	r.HandleFunc("/mobileservice", prometheus.InstrumentHandlerFunc("mobileservices list", handler.List)).Methods("GET")
 	r.HandleFunc("/mobileservice/{name}", prometheus.InstrumentHandlerFunc("mobileservice read", handler.Read)).Methods("GET")
-	r.HandleFunc("/mobileservice/configure", prometheus.InstrumentHandlerFunc("mobileservices configuration", handler.Configure)).Methods("POST")
+	r.HandleFunc("/mobileservice/configure/{component}/{secret}", prometheus.InstrumentHandlerFunc("mobileservices configuration", handler.Configure)).Methods("POST")
+	r.HandleFunc("/mobileservice/configure/{component}/{secret}", prometheus.InstrumentHandlerFunc("mobileservices remove configuration", handler.Deconfigure)).Methods("DELETE")
 }
 
 //TODO maybe better place to put this
 func handleCommonErrorCases(err error, rw http.ResponseWriter, logger *logrus.Logger) {
-	err = errors.Cause(err)
+	e := errors.Cause(err)
 	if mobile.IsNotFoundError(err) {
 		http.Error(rw, err.Error(), http.StatusNotFound)
 		return
 	}
-	if e, ok := err.(*mobile.StatusError); ok {
-		logger.Error(fmt.Sprintf("status error occurred %+v", err))
-		http.Error(rw, err.Error(), e.StatusCode())
+	if e, ok := e.(*mobile.StatusError); ok {
+		logger.Error(fmt.Sprintf("status error occurred %v", err))
+		http.Error(rw, e.Error(), e.StatusCode())
 		return
 	}
-	if e, ok := err.(*kerror.StatusError); ok {
-		logger.Error(fmt.Sprintf("kubernetes status error occurred %+v", err))
+	if e, ok := e.(*kerror.StatusError); ok {
+		logger.Error(fmt.Sprintf("kubernetes status error occurred %v", err))
 		http.Error(rw, e.Error(), int(e.Status().Code))
 		return
 	}
