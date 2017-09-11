@@ -11,7 +11,7 @@
     url: "https://{{ mobile_route.stdout }}/mobileapp/{{appName}}"
     method: DELETE
     headers:
-      Authorization: bearer "{{satoken.stdout}}"
+      Authorization: "Bearer {{satoken.stdout}}"
       x-skip-role-binding: "true"
     validate_certs: no
     status_code: 200

@@ -29,7 +29,7 @@ build: test-unit
 
 image: build
 	mkdir -p tmp
-	cp ./mcp-standalone tmp
+	cp ./mcp-api tmp
 	cp artifacts/Dockerfile tmp
 	cd tmp && docker build -t feedhenry/mcp-standalone:latest .
 	rm -rf tmp

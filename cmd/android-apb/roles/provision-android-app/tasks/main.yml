@@ -42,7 +42,7 @@
     url: "https://{{ mobile_route.stdout }}/mobileapp"
     method: POST
     headers:
-      Authorization: bearer "{{satoken.stdout}}"
+      Authorization: "Bearer {{satoken.stdout}}"
       x-skip-role-binding: "true"
     body: {"name":"{{appName}}","clientType":"android"}
     validate_certs: no

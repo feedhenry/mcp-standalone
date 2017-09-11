@@ -26,7 +26,7 @@
     url: "https://{{ mobile_route.stdout }}/mobileapp"
     method: POST
     headers:
-      Authorization: bearer  "{{satoken.stdout}}"
+      Authorization: "Bearer {{satoken.stdout}}"
       x-skip-role-binding: "true"
     body: {"name":"{{appName}}","clientType":"iOS"}
     validate_certs: no
