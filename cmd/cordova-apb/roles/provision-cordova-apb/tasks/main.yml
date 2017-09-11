@@ -21,7 +21,7 @@
     url: "https://{{ mobile_route.stdout }}/mobileapp"
     method: POST
     headers:
-      x-auth: "{{satoken.stdout}}"
+      Authorization: bearer  "{{satoken.stdout}}"
       x-skip-role-binding: "true"
     body: {"name":"{{appName}}","clientType":"cordova"}
     validate_certs: no

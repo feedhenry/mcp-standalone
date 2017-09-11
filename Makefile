@@ -8,13 +8,6 @@ SHELL = /bin/bash
 #CHANGE this if using a different url for openshift
 OSCP = https://192.168.37.1:8443
 NAMESPACE =project2
-$(GOMETALINTER):
-	go get -u github.com/alecthomas/gometalinter
-	gometalinter --install &> /dev/null
-
-.PHONY: lint
-lint: $(GOMETALINTER)
-	gometalinter ./... --vendor
 
 .PHONY: check-gofmt
 check-gofmt:
