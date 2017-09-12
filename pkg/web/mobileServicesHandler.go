@@ -162,6 +162,14 @@ func (msh *MobileServiceHandler) Deconfigure(rw http.ResponseWriter, req *http.R
 	params := mux.Vars(req)
 	component := params["component"]
 	secret := params["secret"]
+	if len(component) == 0 {
+		handleCommonErrorCases(errors.New("web.msh.Configure -> provided component must not be empty"), rw, msh.logger)
+		return
+	}
+	if len(secret) == 0 {
+		handleCommonErrorCases(errors.New("web.msh.Configure -> provided secret must not be empty"), rw, msh.logger)
+		return
+	}
 
 	svcCruder, err := msh.tokenClientBuilder.MobileServiceCruder(token)
 	if err != nil {
