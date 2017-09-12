@@ -52,6 +52,7 @@ func (msh *MobileServiceHandler) List(rw http.ResponseWriter, req *http.Request)
 	}
 }
 
+// Read details of a specific service provided in the name URL parameter
 func (msh *MobileServiceHandler) Read(rw http.ResponseWriter, req *http.Request) {
 	token := headers.DefaultTokenRetriever(req.Header)
 	params := mux.Vars(req)
@@ -71,7 +72,7 @@ func (msh *MobileServiceHandler) Read(rw http.ResponseWriter, req *http.Request)
 
 	if withIntegrations != "" {
 		fmt.Println("with Integrations", serviceName)
-		ms, err = msh.mobileIntegrationService.ReadMoileServiceAndIntegrations(serviceCruder, serviceName)
+		ms, err = msh.mobileIntegrationService.ReadMobileServiceAndIntegrations(serviceCruder, serviceName)
 		if err != nil {
 			handleCommonErrorCases(err, rw, msh.logger)
 			return

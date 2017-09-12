@@ -60,8 +60,8 @@ func (ms *MobileService) DiscoverMobileServices(serviceCruder mobile.ServiceCrud
 	return svc, nil
 }
 
-// ReadMoileServiceAndIntegrations read servuce and any available service it can integrate with
-func (ms *MobileService) ReadMoileServiceAndIntegrations(serviceCruder mobile.ServiceCruder, name string) (*mobile.Service, error) {
+// ReadMobileServiceAndIntegrations read servuce and any available service it can integrate with
+func (ms *MobileService) ReadMobileServiceAndIntegrations(serviceCruder mobile.ServiceCruder, name string) (*mobile.Service, error) {
 	//todo move to config
 	svc, err := serviceCruder.Read(name)
 	if err != nil {
@@ -119,7 +119,7 @@ func (ms *MobileService) GenerateMobileServiceConfigs(serviceCruder mobile.Servi
 //MountSecretForComponent will mount secret into component, returning any errors
 func (ms *MobileService) MountSecretForComponent(svcCruder mobile.ServiceCruder, mounter mobile.VolumeMounter, clientService, serviceSecret string) error {
 	//check secret exists and store for later update
-	service, err := svcCruder.Read("keycloak-public-client")
+	service, err := svcCruder.Read(serviceSecret)
 	if err != nil {
 		return errors.Wrap(err, "failed to find secret: '"+serviceSecret+"'")
 	}
