@@ -59,9 +59,16 @@ This document is intended to walk you through setting up a local openshift devel
 - `ansible-playbook` tools [installed](http://docs.ansible.com/ansible/latest/intro_installation.html)
 - Local clone of this repo
 
+Execute these commands to clone the repo to the correct location.
+```sh
+mkdir -p ~/go/src/github.com/feedhenry/mcp-standalone && cd ~/go/src/github.com/feedhenry/mcp-standalone
+git clone git@github.com:<YOUR_FORK>/mcp-standalone.git .
+export PATH="$PATH:~/go/bin"
+```
+
 ### Setup the cli 
 
-there is a very basic cli at ```cmd/cli``` you can build this and use it by running
+there is a very basic cli at ```cmd/mcp-cli``` you can build this and use it by running
 ``` make build_cli ``` this will drop a binary in your current dir which you can then use to exercise the api.
 
 
@@ -70,12 +77,44 @@ there is a very basic cli at ```cmd/cli``` you can build this and use it by runn
 
 First we will use the ansible-playbooks included in this repo to create a local oc cluster which is running the Ansible Service Broker. 
 
+### Prerequisites
+
+* A DockerHub account, credentials are required to set up the Ansible Service
+Broker.
+* User with sudo permissions on machine.
+
 First check that oc cluster is down:
 ```sh
 oc cluster down
 ```
 
-The next step is executed from inside the `installer` directory in this repo:
+Now we need to install any dependencies. The next step is executed from inside the `installer` directory in this repo:
+```sh
+sudo ansible-galaxy install -r requirements.yml
+```
+
+Next we need to configure Docker to accept an insecure registry required as part of the cluster setup.
+
+**Linux**
+
+Add to the file `/etc/docker/daemon.json` (create the file if it doesn't exist)
+```json
+{
+    "insecure-registries" : [ "172.30.0.0/16" ]
+}
+```
+Then restart Docker
+```sh
+sudo systemctl daemon-reload
+sudo systemctl restart docker
+```
+
+**Mac**
+
+Click the Docker icon in the tray to open Preferences. Click on the Daemon tab and add your insecure registries in Insecure registries section.
+Don't forget to Apply & Restart and you're ready to go.
+
+The next step is again executed from inside the `installer` directory:
 ```sh
 cd installer/
 ansible-playbook playbook.yml \
@@ -100,7 +139,7 @@ This is required to produce the mcp extension files referenced in master-config.
 
 ```
 cd ui
-npm i && bower install && grunt local
+grunt local
 ```
 
 *NOTE*: Running `grunt local` will *not* run `uglify` (to help with local dev), and *will* include `scripts/config.local.js`. This file is used to point to a local running MCP server rather than the default of looking up a Route names `mcp-standalone` and using that as the MCP server host.
