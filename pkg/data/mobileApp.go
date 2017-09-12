@@ -150,6 +150,7 @@ func (mar *MobileAppRepo) readUnderlyingConfigMap(a *mobile.App) (*v1.ConfigMap,
 	return cm, nil
 }
 
+//NewMobileAppRepoBuilder creates a new instance of a MobileAppRepoBuilder
 func NewMobileAppRepoBuilder() mobile.AppRepoBuilder {
 	return &MobileAppRepoBuilder{}
 }

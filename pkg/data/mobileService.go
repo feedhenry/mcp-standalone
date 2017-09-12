@@ -14,6 +14,7 @@ import (
 	v1 "k8s.io/client-go/pkg/api/v1"
 )
 
+// SecretConvertor converts a kubernetes secret into a mobile.ServiceConfig
 type SecretConvertor interface {
 	Convert(s v1.Secret) (*mobile.ServiceConfig, error)
 }
@@ -27,6 +28,7 @@ type MobileServiceValidator interface {
 // defaultSecretConvertor will provide a default secret to config conversion
 type defaultSecretConvertor struct{}
 
+//Convert a kubernetes secret to a mobile.ServiceConfig
 func (dsc defaultSecretConvertor) Convert(s v1.Secret) (*mobile.ServiceConfig, error) {
 	conf := map[string]string{}
 	for k, v := range s.Data {
@@ -40,11 +42,12 @@ func (dsc defaultSecretConvertor) Convert(s v1.Secret) (*mobile.ServiceConfig, e
 
 type keycloakSecretConvertor struct{}
 
+//Convert a kubernetes keycloak secret into a keycloak mobile.ServiceConfig
 func (ksc keycloakSecretConvertor) Convert(s v1.Secret) (*mobile.ServiceConfig, error) {
 	kc := &mobile.KeycloakConfig{}
 	err := json.Unmarshal(s.Data["installation"], kc)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to unmarshalal keycloak configuration ")
+		return nil, errors.Wrap(err, "failed to unmarshall keycloak configuration ")
 	}
 	return &mobile.ServiceConfig{
 		Config: kc,
@@ -56,15 +59,13 @@ type secretAttributer struct {
 	*v1.Secret
 }
 
+//GetName returns the value of the name field in the secret
 func (sa *secretAttributer) GetName() string {
 	var name = strings.TrimSpace(string(sa.Secret.Data["name"]))
-	if "" == name {
-		//remove once we fix keycloak apb
-		name = strings.TrimSpace(string(sa.Secret.Data["NAME"]))
-	}
 	return name
 }
 
+//GetType returns the value of the type field in the secret
 func (sa *secretAttributer) GetType() string {
 	return strings.TrimSpace(string(sa.Secret.Data["type"]))
 }

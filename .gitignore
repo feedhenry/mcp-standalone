@@ -1,5 +1,7 @@
-cmd/mcp-standalone/mcp-standalone
+cmd/mcp-api/mcp-api
 token
-mcp-standalone
 mcp
 mcp-api
+web/app/bower_components
+web/dist
+web/node_modules
