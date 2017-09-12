@@ -26,8 +26,8 @@ import (
 
 	"github.com/spf13/viper"
 
-	"github.com/feedhenry/mcp-standalone/pkg/mobile"
 	"github.com/feedhenry/mcp-standalone/pkg/clients"
+	"github.com/feedhenry/mcp-standalone/pkg/mobile"
 	"github.com/spf13/cobra"
 )
 

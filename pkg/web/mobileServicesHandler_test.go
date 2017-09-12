@@ -16,9 +16,9 @@ import (
 	"k8s.io/client-go/kubernetes/fake"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/feedhenry/mcp-standalone/pkg/clients"
 	"github.com/feedhenry/mcp-standalone/pkg/data"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
-	"github.com/feedhenry/mcp-standalone/pkg/clients"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile/integration"
 	"github.com/feedhenry/mcp-standalone/pkg/mock"
 	"github.com/feedhenry/mcp-standalone/pkg/web"
