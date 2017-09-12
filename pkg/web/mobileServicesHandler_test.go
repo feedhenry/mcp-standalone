@@ -256,6 +256,7 @@ func TestDeconfigure(t *testing.T) {
 								},
 								Data: map[string][]byte{
 									"uri":  []byte("http://test.com"),
+									"name": []byte("keycloak"),
 									"type": []byte("keycloak"),
 								},
 							},

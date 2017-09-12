@@ -45,7 +45,7 @@ type keycloakSecretConvertor struct{}
 //Convert a kubernetes keycloak secret into a keycloak mobile.ServiceConfig
 func (ksc keycloakSecretConvertor) Convert(s v1.Secret) (*mobile.ServiceConfig, error) {
 	kc := &mobile.KeycloakConfig{}
-	err := json.Unmarshal(s.Data["installation"], kc)
+	err := json.Unmarshal(s.Data["public_installation"], kc)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to unmarshall keycloak configuration ")
 	}
