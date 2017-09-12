@@ -27,7 +27,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
-	"github.com/feedhenry/mcp-standalone/pkg/mobile/client"
+	"github.com/feedhenry/mcp-standalone/pkg/clients"
 	"github.com/spf13/cobra"
 )
 
@@ -42,7 +42,7 @@ var getmobileappCmd = &cobra.Command{
 			name = args[0]
 		}
 		var decodeInto interface{}
-		httpclient := client.NewHttpClientBuilder().Insecure(true).Timeout(5).Build()
+		httpclient := clients.NewHttpClientBuilder().Insecure(true).Timeout(5).Build()
 		u, err := url.Parse(viper.GetString("host"))
 		if err != nil {
 			log.Fatalf(" %s : error parsing mcp host %s ", cmd.Name(), err)
@@ -84,7 +84,7 @@ var getmobileappCmd = &cobra.Command{
 
 func getMobileApp(name string) *mobile.App {
 	var decodeInto *mobile.App
-	httpclient := client.NewHttpClientBuilder().Insecure(true).Timeout(5).Build()
+	httpclient := clients.NewHttpClientBuilder().Insecure(true).Timeout(5).Build()
 	u, err := url.Parse(viper.GetString("host"))
 	if err != nil {
 		log.Fatalf("error parsing mcp host %s ", err)
@@ -121,7 +121,7 @@ var deletemobileCmd = &cobra.Command{
 		if name == "" {
 			log.Fatal("name is required for delete mobileapp")
 		}
-		httpclient := client.NewHttpClientBuilder().Insecure(true).Timeout(5).Build()
+		httpclient := clients.NewHttpClientBuilder().Insecure(true).Timeout(5).Build()
 		u, err := url.Parse(viper.GetString("host"))
 		if err != nil {
 			log.Fatalf(" %s : error parsing mcp host %s ", cmd.Name(), err)
@@ -171,7 +171,7 @@ var createmobileCmd = &cobra.Command{
 				log.Fatal("failed to prepare app json ", err)
 			}
 		}
-		httpclient := client.NewHttpClientBuilder().Insecure(true).Timeout(5).Build()
+		httpclient := clients.NewHttpClientBuilder().Insecure(true).Timeout(5).Build()
 		u, err := url.Parse(viper.GetString("host"))
 		if err != nil {
 			log.Fatalf(" %s : error parsing mcp host %s ", cmd.Name(), err)

@@ -23,7 +23,7 @@ import (
 	"path"
 
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
-	"github.com/feedhenry/mcp-standalone/pkg/mobile/client"
+	"github.com/feedhenry/mcp-standalone/pkg/clients"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -49,7 +49,7 @@ var getsdkconfigCmd = &cobra.Command{
 			log.Fatalf("error creating request %s ", err)
 		}
 		req.Header.Set(mobile.AppAPIKeyHeader, app.APIKey)
-		httpclient := client.NewHttpClientBuilder().Insecure(true).Timeout(5).Build()
+		httpclient := clients.NewHttpClientBuilder().Insecure(true).Timeout(5).Build()
 		res, err := httpclient.Do(req)
 		if err != nil {
 			log.Fatalf("error doint request %s ", err)

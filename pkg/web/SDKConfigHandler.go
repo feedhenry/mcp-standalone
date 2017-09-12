@@ -13,13 +13,13 @@ import (
 
 // SDKConfigHandler handles sdk configuration requests
 type SDKConfigHandler struct {
-	mobileIntegrationService *integration.MobileService
+	mobileIntegrationService *integration.SDKService
 	tokenScopedBuilder       mobile.TokenScopedClientBuilder
 	logger                   *logrus.Logger
 }
 
 // NewSDKConfigHandler returns an sdk handler
-func NewSDKConfigHandler(logger *logrus.Logger, service *integration.MobileService, builder mobile.TokenScopedClientBuilder) *SDKConfigHandler {
+func NewSDKConfigHandler(logger *logrus.Logger, service *integration.SDKService, builder mobile.TokenScopedClientBuilder) *SDKConfigHandler {
 	return &SDKConfigHandler{
 		mobileIntegrationService: service,
 		logger:             logger,

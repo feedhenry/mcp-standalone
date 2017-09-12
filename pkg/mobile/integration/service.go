@@ -21,7 +21,7 @@ func NewMobileSevice(ns string) *MobileService {
 
 //FindByNames will return all services with a name that matches the provided name
 func (ms *MobileService) FindByNames(names []string, serviceCruder mobile.ServiceCruder) ([]*mobile.Service, error) {
-	svc, err := serviceCruder.List(ms.filterServices(names))
+	svc, err := serviceCruder.List(filterServices(names))
 	if err != nil {
 		return nil, errors.Wrap(err, "Attempting to discover mobile services.")
 	}
@@ -44,13 +44,11 @@ var capabilities = map[string]map[string][]string{
 	},
 }
 
-var serviceTypes = []string{"fh-sync-server", "keycloak", "custom"}
-
 // DiscoverMobileServices will discover mobile services configured in the current namespace
 func (ms *MobileService) DiscoverMobileServices(serviceCruder mobile.ServiceCruder) ([]*mobile.Service, error) {
 	//todo move to config
 
-	svc, err := serviceCruder.List(ms.filterServices(serviceTypes))
+	svc, err := serviceCruder.List(filterServices(mobile.ServiceTypes))
 	if err != nil {
 		return nil, errors.Wrap(err, "Attempting to discover mobile services.")
 	}
@@ -71,7 +69,7 @@ func (ms *MobileService) ReadMobileServiceAndIntegrations(serviceCruder mobile.S
 	if svc.Capabilities != nil {
 		integrations := svc.Capabilities["integrations"]
 		for _, v := range integrations {
-			isvs, err := serviceCruder.List(ms.filterServices([]string{v}))
+			isvs, err := serviceCruder.List(filterServices([]string{v}))
 			if err != nil && !kerror.IsNotFound(err) {
 				return nil, errors.Wrap(err, "failed attempting to discover mobile services.")
 			}
@@ -92,7 +90,7 @@ func (ms *MobileService) ReadMobileServiceAndIntegrations(serviceCruder mobile.S
 	return svc, nil
 }
 
-func (ms *MobileService) filterServices(serviceTypes []string) func(att mobile.Attributer) bool {
+func filterServices(serviceTypes []string) func(att mobile.Attributer) bool {
 	return func(att mobile.Attributer) bool {
 		for _, sn := range serviceTypes {
 			if sn == att.GetType() {
@@ -103,18 +101,7 @@ func (ms *MobileService) filterServices(serviceTypes []string) func(att mobile.A
 	}
 }
 
-// GenerateMobileServiceConfigs will return a map of services and their mobile configs
-func (ms *MobileService) GenerateMobileServiceConfigs(serviceCruder mobile.ServiceCruder) (map[string]*mobile.ServiceConfig, error) {
-	svcConfigs, err := serviceCruder.ListConfigs(ms.filterServices(serviceTypes))
-	if err != nil {
-		return nil, errors.Wrap(err, "GenerateMobileServiceConfigs failed during a list of configs")
-	}
-	configs := map[string]*mobile.ServiceConfig{}
-	for _, sc := range svcConfigs {
-		configs[sc.Name] = sc
-	}
-	return configs, nil
-}
+//NOTE do we want to have a usecae for mounting the secrets to allow for logic around services and secrets in different namespaces?
 
 //MountSecretForComponent will mount secret into component, returning any errors
 func (ms *MobileService) MountSecretForComponent(svcCruder mobile.ServiceCruder, mounter mobile.VolumeMounter, clientService, serviceSecret string) error {
@@ -130,15 +117,16 @@ func (ms *MobileService) MountSecretForComponent(svcCruder mobile.ServiceCruder,
 	}
 
 	//find the clientService secret name
-	css, err := svcCruder.List(ms.filterServices([]string{clientService}))
-	if err != nil || len(css) == 0 {
+	cSeviceList, err := svcCruder.List(filterServices([]string{clientService}))
+	if err != nil || len(cSeviceList) == 0 {
 		return errors.New("failed to find secret for client service: '" + clientService + "'")
 	}
-	clientServiceSecret := css[0].ID
+	cService := cSeviceList[0]
+	clientServiceID := cService.ID
 
 	//update secret with integration enabled
 	enabled := map[string]string{service.Name: "true"}
-	if err := svcCruder.UpdateEnabledIntegrations(clientServiceSecret, enabled); err != nil {
+	if err := svcCruder.UpdateEnabledIntegrations(clientServiceID, enabled); err != nil {
 		return errors.Wrap(err, "failed to update enabled services after mounting secret")
 	}
 
@@ -159,7 +147,7 @@ func (ms *MobileService) UnmountSecretInComponent(svcCruder mobile.ServiceCruder
 	}
 
 	//find the clientService secret name
-	css, err := svcCruder.List(ms.filterServices([]string{clientService}))
+	css, err := svcCruder.List(filterServices([]string{clientService}))
 	if err != nil || len(css) == 0 {
 		return errors.New("failed to find secret for client service: '" + clientService + "'")
 	}
@@ -170,8 +158,6 @@ func (ms *MobileService) UnmountSecretInComponent(svcCruder mobile.ServiceCruder
 	if err := svcCruder.UpdateEnabledIntegrations(clientServiceSecret, disabled); err != nil {
 		return errors.Wrap(err, "failed to update enabled services after unmounting secret")
 	}
-
-	return nil
 
 	return nil
 }

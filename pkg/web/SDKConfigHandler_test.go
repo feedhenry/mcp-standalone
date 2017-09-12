@@ -24,7 +24,7 @@ func setupSDKHandler(kclient kubernetes.Interface) http.Handler {
 	r := web.NewRouter()
 	logger := logrus.StandardLogger()
 	clientBuilder := buildDefaultTestTokenClientBuilder(kclient)
-	ms := &integration.MobileService{}
+	ms := &integration.SDKService{}
 	sdkConfigHandler := web.NewSDKConfigHandler(logger, ms, clientBuilder)
 	web.SDKConfigRoute(r, sdkConfigHandler)
 	return web.BuildHTTPHandler(r, nil)
