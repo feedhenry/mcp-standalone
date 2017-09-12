@@ -18,9 +18,11 @@ type StatusError struct {
 	Code    int
 }
 
+//Service represents a serverside application that mobile application will interact with
 type Service struct {
 	ID           string                         `json:"id"`
 	Name         string                         `json:"name"`
+	Namespace    string                         `json:"namespace"`
 	Host         string                         `json:"host"`
 	Description  string                         `json:"description"`
 	Type         string                         `json:"type"`

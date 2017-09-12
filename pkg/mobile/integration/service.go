@@ -1,8 +1,6 @@
 package integration
 
 import (
-	"fmt"
-
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
 	"github.com/pkg/errors"
 	kerror "k8s.io/apimachinery/pkg/api/errors"
@@ -76,7 +74,6 @@ func (ms *MobileService) ReadMobileServiceAndIntegrations(serviceCruder mobile.S
 			}
 			if len(isvs) != 0 {
 				is := isvs[0]
-				fmt.Println("svc label is ", is.Name, svc.Labels[is.Name])
 				enabled := svc.Labels[is.Name] == "true"
 				svc.Integrations[v] = &mobile.ServiceIntegration{
 					ComponentSecret: svc.ID,

@@ -29,8 +29,21 @@
                             </div>
                             <div class="form-group">
                                 <label for="id">Sync Server Id</label>
-                                <input type="text" ng-model="externalService.id" class="form-control" id="id" placeholder="something you will recognise">
-                                <span class="help-block">A unique name you will recognise.</span>
+                                <input type="text" ng-model="externalService.name" class="form-control" id="id" placeholder="something you will recognise">
+                                <span class="help-block">A unique name/id you will recognise.</span>
+                            </div>
+                            <div class="form-group">
+                                <label for="id">Namespace</label>
+                                <select ng-model='externalService.namespace' class="form-control" id="sel1">
+                                    <option value="">---Please select---</option>
+                                    <option value="">None</option>
+                                    <option ng-repeat="project in projects" value="{{project.metadata.name}}">{{project.metadata.name}}</option>
+                                </select>
+                                <span class="help-block">Select Only if your service is provisioned to a namespace/project. Otherwise leave empty. </span>
+                            </div>
+                            <div class="form-group">
+                                <label for="host">Custom Config Parameters (optional)</label>
+                                <key-value-editor entries="customFields"></key-value-editor>
                             </div>
                             <button type="submit" ng-click="addService()" class="btn btn-default">Submit</button>
                         </form>
@@ -43,8 +56,17 @@
                             </div>
                             <div class="form-group">
                                 <label for="id">Keycloak Server Id</label>
-                                <input type="text" ng-model="externalService.id" class="form-control" id="id" placeholder="something you will recognise">
-                                <span class="help-block">A unique name you will recognise.</span>
+                                <input type="text" ng-model="externalService.name" class="form-control" id="id" placeholder="something you will recognise">
+                                <span class="help-block">A unique name/id you will recognise.</span>
+                            </div>
+                            <div class="form-group">
+                                <label for="id">Namespace</label>
+                                <select ng-model='externalService.namespace' class="form-control" id="sel1">
+                                    <option value="">---Please select---</option>
+                                    <option value="">None</option>
+                                    <option ng-repeat="project in projects" value="{{project.metadata.name}}">{{project.metadata.name}}</option>
+                                </select>
+                                <span class="help-block">Select Only if your service is provisioned to a namespace/project. Otherwise leave empty. </span>
                             </div>
                             <div class="form-group">
                                 <label for="publicClient">Public client (Json) </label>
@@ -55,6 +77,10 @@
                                 <label for="id ">Bearer client (Json) </label>
                                 <textarea class="form-control rows="20" ng-model="externalService.params.installBearer"></textarea>
                                 <span class="help-block"><a href="http://www.keycloak.org/docs/3.3/server_admin/topics/clients/client-oidc.html">Client Management in Keycloak</a></span>
+                            </div>
+                            <div class="form-group">
+                                <label for="host">Custom Config Parameters (optional)</label>
+                                <key-value-editor entries="customFields"></key-value-editor>
                             </div>
                             <button type="submit" ng-click="addService()" class="btn btn-default">Submit</button>
                         </form>
@@ -72,7 +98,16 @@
                                 <input type="text" ng-model="externalService.host" class="form-control" id="host" placeholder="https://somesync-server.com">
                             </div>
                             <div class="form-group">
-                                <label for="host">Custom Config Parameters</label>
+                                <label for="id">Namespace</label>
+                                <select ng-model='externalService.namespace' class="form-control" id="sel1">
+                                    <option value="">---Please select---</option>
+                                    <option value="">None</option>
+                                    <option ng-repeat="project in projects" value="{{project.metadata.name}}">{{project.metadata.name}}</option>
+                                </select>
+                                <span class="help-block">Select Only if your service is provisioned to a namespace/project. Otherwise leave empty. </span>
+                            </div>
+                            <div class="form-group">
+                                <label for="host">Custom Config Parameters (optional)</label>
                                 <key-value-editor entries="customFields"></key-value-editor>
                             </div>
                             <button type="submit" ng-click="addService()" class="btn btn-default">Submit</button>
