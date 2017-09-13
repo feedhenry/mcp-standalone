@@ -94,9 +94,11 @@ func (at AppTypes) String() string {
 //ValidAppTypes is a list of valid app types
 var ValidAppTypes = AppTypes{"cordova", "android", "iOS"}
 
+//TODO move out to config or env var
+//ServiceTypes are the service types that we are aware of and support
+var ServiceTypes = []string{"fh-sync-server", "keycloak", "custom"}
+
 const (
 	//AppAPIKeyHeader is the header sent by mobile clients when they want to interact with mcp
 	AppAPIKeyHeader = "x-app-api-key"
-	//SkipSARoleBindingHeader is the head the admin api key is sent with
-	SkipSARoleBindingHeader = "x-skip-role-binding"
 )

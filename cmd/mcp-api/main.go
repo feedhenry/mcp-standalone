@@ -9,9 +9,9 @@ import (
 	"fmt"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/feedhenry/mcp-standalone/pkg/clients"
 	"github.com/feedhenry/mcp-standalone/pkg/data"
 	"github.com/feedhenry/mcp-standalone/pkg/k8s"
-	"github.com/feedhenry/mcp-standalone/pkg/mobile/client"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile/integration"
 	"github.com/feedhenry/mcp-standalone/pkg/openshift"
 	"github.com/feedhenry/mcp-standalone/pkg/web"
@@ -63,8 +63,8 @@ func main() {
 	var k8ClientBuilder = k8s.NewClientBuilder(*namespace, k8host)
 	var mounterBuilder = k8s.NewMounterBuilder(*namespace)
 	var (
-		tokenClientBuilder = client.NewTokenScopedClientBuilder(k8ClientBuilder, appRepoBuilder, svcRepoBuilder, mounterBuilder, *namespace, logger)
-		httpClientBuilder  = client.NewHttpClientBuilder()
+		tokenClientBuilder = clients.NewTokenScopedClientBuilder(k8ClientBuilder, appRepoBuilder, svcRepoBuilder, mounterBuilder, *namespace, logger)
+		httpClientBuilder  = clients.NewHttpClientBuilder()
 		openshiftUser      = openshift.UserAccess{Logger: logger}
 		mwAccess           = middleware.NewAccess(logger, k8host, openshiftUser.ReadUserFromToken)
 	)
@@ -97,8 +97,8 @@ func main() {
 
 	//sdk handler
 	{
-		integrationSvc := &integration.MobileService{}
-		sdkHandler := web.NewSDKConfigHandler(logger, integrationSvc, tokenClientBuilder)
+		sdkService := &integration.SDKService{}
+		sdkHandler := web.NewSDKConfigHandler(logger, sdkService, tokenClientBuilder)
 		web.SDKConfigRoute(router, sdkHandler)
 	}
 	//sys handler

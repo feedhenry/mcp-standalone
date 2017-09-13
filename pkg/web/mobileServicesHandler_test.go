@@ -16,9 +16,9 @@ import (
 	"k8s.io/client-go/kubernetes/fake"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/feedhenry/mcp-standalone/pkg/clients"
 	"github.com/feedhenry/mcp-standalone/pkg/data"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
-	"github.com/feedhenry/mcp-standalone/pkg/mobile/client"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile/integration"
 	"github.com/feedhenry/mcp-standalone/pkg/mock"
 	"github.com/feedhenry/mcp-standalone/pkg/web"
@@ -51,7 +51,7 @@ func buildDefaultTestTokenClientBuilder(kclient kubernetes.Interface) mobile.Tok
 	svcRepoBuilder := data.NewServiceRepoBuilder()
 	svcRepoBuilder = svcRepoBuilder.WithClient(kclient.CoreV1().Secrets("test"))
 	mounterBuilder := k8s.NewMounterBuilder("test")
-	clientBuilder := client.NewTokenScopedClientBuilder(cb, appRepoBuilder, svcRepoBuilder, mounterBuilder, "test", logger)
+	clientBuilder := clients.NewTokenScopedClientBuilder(cb, appRepoBuilder, svcRepoBuilder, mounterBuilder, "test", logger)
 	return clientBuilder
 }
 
