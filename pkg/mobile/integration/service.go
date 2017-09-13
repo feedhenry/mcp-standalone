@@ -53,7 +53,7 @@ func (ms *MobileService) DiscoverMobileServices(serviceCruder mobile.ServiceCrud
 	}
 	for _, s := range svc {
 		s.Capabilities = capabilities[s.Name]
-		//non external services are part of the current namespace
+		//non external services are part of the current namespace //TODO maybe should be added to the apbs
 		if s.External == false && s.Namespace == "" {
 			s.Namespace = ms.namespace
 		}
