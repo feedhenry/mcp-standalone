@@ -13,6 +13,7 @@ type MobileService struct {
 	namespace string
 }
 
+//NewMobileSevice reutrns  a new mobile server
 func NewMobileSevice(ns string) *MobileService {
 	return &MobileService{
 		namespace: ns,
@@ -117,11 +118,11 @@ func (ms *MobileService) MountSecretForComponent(svcCruder mobile.ServiceCruder,
 	}
 
 	//find the clientService secret name
-	cSeviceList, err := svcCruder.List(filterServices([]string{clientService}))
-	if err != nil || len(cSeviceList) == 0 {
+	cServiceList, err := svcCruder.List(filterServices([]string{clientService}))
+	if err != nil || len(cServiceList) == 0 {
 		return errors.New("failed to find secret for client service: '" + clientService + "'")
 	}
-	cService := cSeviceList[0]
+	cService := cServiceList[0]
 	clientServiceID := cService.ID
 
 	//update secret with integration enabled

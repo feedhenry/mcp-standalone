@@ -5,6 +5,7 @@ import (
 	"github.com/pkg/errors"
 )
 
+//SDKService handles logic to do with the SDK
 type SDKService struct{}
 
 // GenerateMobileServiceConfigs will return a map of services and their mobile configs
