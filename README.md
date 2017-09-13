@@ -63,8 +63,13 @@ Execute these commands to clone the repo to the correct location.
 ```sh
 mkdir -p ~/go/src/github.com/feedhenry/mcp-standalone && cd ~/go/src/github.com/feedhenry/mcp-standalone
 git clone git@github.com:<YOUR_FORK>/mcp-standalone.git .
+```
+
+If you don't already have a Go environment setup you will need to add it to the path:
+```sh
 export PATH="$PATH:~/go/bin"
 ```
+You will want to add the path permanently to your `.bashrc` or `.bashprofile`.
 
 ### Setup the cli 
 
@@ -94,25 +99,13 @@ sudo ansible-galaxy install -r requirements.yml
 ```
 
 Next we need to configure Docker to accept an insecure registry required as part of the cluster setup.
+For Linux follow steps 2 and 3 [here](https://github.com/openshift/origin/blob/master/docs/cluster_up_down.md#linux) and the same for Mac [here](https://github.com/openshift/origin/blob/master/docs/cluster_up_down.md#macos-with-docker-for-mac)
 
-**Linux**
-
-Add to the file `/etc/docker/daemon.json` (create the file if it doesn't exist)
-```json
-{
-    "insecure-registries" : [ "172.30.0.0/16" ]
-}
-```
-Then restart Docker
+For Linux we also need to add an extra port to the `dockerc` zone:
 ```sh
-sudo systemctl daemon-reload
-sudo systemctl restart docker
+firewall-cmd --permanent --zone dockerc --add-port 443/tcp
+firewall-cmd --reload
 ```
-
-**Mac**
-
-Click the Docker icon in the tray to open Preferences. Click on the Daemon tab and add your insecure registries in Insecure registries section.
-Don't forget to Apply & Restart and you're ready to go.
 
 The next step is again executed from inside the `installer` directory:
 ```sh
@@ -140,6 +133,11 @@ This is required to produce the mcp extension files referenced in master-config.
 ```
 cd ui
 grunt local
+```
+If you see an `ENOSPC` error, you may need to increase the number of files your user can watch by running this command:
+
+```sh
+echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
 ```
 
 *NOTE*: Running `grunt local` will *not* run `uglify` (to help with local dev), and *will* include `scripts/config.local.js`. This file is used to point to a local running MCP server rather than the default of looking up a Route names `mcp-standalone` and using that as the MCP server host.
