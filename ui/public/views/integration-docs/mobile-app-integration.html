@@ -1,0 +1,160 @@
+
+<div ng-if="mobileappsCount > 0">
+  <ul class="nav nav-pills nav-justified">
+    <li ng-repeat="c in clients" role="presentation" ng-class="{'active' : c == clientType}"><a ng-click="installationOpt(c)" href="#">{{c}}</a></li>
+  </ul>
+  <p>
+    Below you will find example code showing how to use the sdk client for {{service.name}}. You will also find sample code for use with a {{clientType}} app for any integrations that this service can take advantage of. 
+    You will also find some sample templates and quick starts to help you get started using your mobile service.
+  </p>    
+
+  <h3>Installation</h3>
+  <pre ng-if="clientType == 'cordova' && service.name == 'fh-sync-server' && ! enabled('keycloak',service)" class="prettyprint lang-bash indented-code">
+    npm install --save mobile-core
+    npm install --save fh-sync-js@1.0.4
+  </pre>    
+
+  <pre ng-if="clientType == 'android' && service.name == 'fh-sync-server' && ! enabled('keycloak',service)" class="prettyprint lang-xml indented-code">
+    &lt;dependency&gt;
+    &lt;groupId&gt;org.feedhenry.mobile&lt;/groupId&gt;
+    &lt;artifactId&gt;mobile-core&lt;/artifactId&gt;
+    &lt;version&gt;0.0.1&lt;/version&gt;
+    &lt;/dependency&gt;
+  </pre>
+
+  <pre ng-if="clientType == 'android' && service.name == 'fh-sync-server' && enabled('keycloak',service)" class="prettyprint lang-xml indented-code">
+    &lt;dependency&gt;
+    &lt;groupId&gt;org.feedhenry.mobile&lt;/groupId&gt;
+    &lt;artifactId&gt;mobile-core&lt;/artifactId&gt;
+    &lt;version&gt;0.0.1&lt;/version&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+    &lt;groupId&gt;org.keycloak&lt;/groupId&gt;
+    &lt;artifactId&gt;keycloak&lt;/artifactId&gt;
+    &lt;version&gt;final-1.2.3&lt;/version&gt;
+    &lt;/dependency&gt;
+  </pre>
+
+  <pre ng-if="clientType == 'cordova' && service.name == 'fh-sync-server' && enabled('keycloak',service)" class="prettyprint lang-bash indented-code">
+    npm install --save mobile-core
+    npm install --save fh-sync-js@1.0.4
+    npm install --save keycloakjss@1.0.4
+  </pre>    
+
+  <h3>Setup</h3>
+  <pre ng-if="clientType == 'cordova' && service.name == 'fh-sync-server' && ! enabled('keycloak',service)" class="prettyprint lang-js indented-code">
+    const mobileSdk =  require('mobile-core');
+    const sdk = mobileSdk(config);
+    sdk.configure()
+    .then((conf)=>{
+    let syncConf = conf.forService('fh-sync');
+    })
+    .catch((e)=>console.error);
+  </pre>
+
+  <pre ng-if="clientType == 'cordova' && service.name == 'fh-sync-server' && enabled('keycloak',service)" class="prettyprint lang-js indented-code">
+    const mobileSdk =  require('mobile-core');
+    const sdk = mobileSdk(config);
+    sdk.configure()
+    .then((conf)=>{
+    let syncConf = conf.forService('fh-sync');
+    let keycloakConf = conf.forService("keycloak");
+    let keycloak = Keycloak(keycloakConf);
+    let sync = syncClient(syncConf);
+    // inject these objects into your buisness logic
+    let app = MyApp(keycloak,sync);
+    })
+    .catch((e)=>console.error);
+  </pre>
+
+
+  <pre ng-if="clientType == 'android' && service.name == 'fh-sync-server' && ! enabled('keycloak',service)" class="prettyprint indented-code">
+    android core sdk and sync code sample
+  </pre>
+        
+  <pre ng-if="clientType == 'android' && service.name == 'fh-sync-server' && enabled('keycloak',service)" class="prettyprint indented-code">
+    android core sdk, sync, keycloak code sample
+  </pre>
+
+  <h3>Getting Started</h3>
+  <pre ng-if="clientType == 'cordova' && service.name == 'fh-sync-server' &&  ! enabled('keycloak',service)" class="prettyprint lang-js indented-code">
+    sync.init();
+  </pre>    
+  <pre ng-if="clientType == 'cordova' && service.name == 'fh-sync-server' && enabled('keycloak',service)" class="prettyprint lang-js indented-code">
+    keycloak.login()
+    .then(token=>{
+    return sync.setAuth(token);
+    })
+    .then(sync=>{
+    sync.init();
+    })
+    .catch(e=>{
+    // handle error 
+    })
+    // flesh out example
+  </pre>    
+
+  <pre ng-if="clientType == 'android' && service.name == 'fh-sync-server' && ! enabled('keycloak',service)" class="prettyprint indented-code">
+    sync client common use case functionality 
+  </pre>
+              
+  <pre ng-if="clientType == 'android' && service.name == 'fh-sync-server' && enabled('keycloak',service)" class="prettyprint indented-code">
+    sync client and keycloak common use case functionality 
+  </pre>
+  <h3>Docs</h3>
+  <ul>
+    <!-- TODO: should this come from the service class? -->
+    <li ng-if="service.name =='fh-sync-server' "><a href="">Sync Server Documentation</a></li>
+    <li ng-if="service.name =='fh-sync-server' "><a href="">Sync Client Documentation</a></li>
+    <li ng-if="service.name =='keycloak' "><a href="">Keycloak Server Documentation</a></li>
+    <li ng-if="service.name == 'keycloak' "><a href="">Keycloak Client Documentation</a></li>
+  </ul>
+  <h3>Example Apps</h3>
+  <!-- TODO: fix links to real docs & template, only if available. Otherwise leave empty -->
+  <div ng-if="clientType =='cordova'">
+    <!-- TODO: remove duplicate table header -->
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Template Name</th>
+          <th>Description</th>
+          <th>Source</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr ng-if="service.name == 'fh-sync-server'">
+          <td>Sync Integrated with Keycloak</td>
+          <td>Cordova app that integrates the core sdk and the keycloak and sync clients</td>
+          <td><a href="https://github.com/feedhenry-templates/sync-keycloak-app">https://github.com/feedhenry-templates/sync-keycloak-app</a></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div ng-if="clientType =='android'">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Template Name</th>
+          <th>Description</th>
+          <th>Source</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr ng-if="enabled('keycloak',service)">
+          <td>Sync Integrated with Keycloak</td>
+          <td>Android app that integrates the core sdk and the keycloak and sync clients</td>
+          <td><a href="https://github.com/feedhenry-templates/sync-keycloak-app">https://github.com/feedhenry-templates/sync-keycloak-app</a></td>
+        </tr>
+        <tr >
+          <td>Sync Starter</td>
+          <td>Android starter app that integrates the core sdk and and sync clients</td>
+          <td><a href="https://github.com/feedhenry-templates/sync-app">https://github.com/feedhenry-templates/sync-app</a></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+<script>
+  prettyPrint();
+</script> 
