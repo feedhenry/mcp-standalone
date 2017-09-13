@@ -1,8 +1,6 @@
 package integration
 
 import (
-	"fmt"
-
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
 	"github.com/pkg/errors"
 	kerror "k8s.io/apimachinery/pkg/api/errors"
@@ -55,6 +53,10 @@ func (ms *MobileService) DiscoverMobileServices(serviceCruder mobile.ServiceCrud
 	}
 	for _, s := range svc {
 		s.Capabilities = capabilities[s.Name]
+		//non external services are part of the current namespace //TODO maybe should be added to the apbs
+		if s.External == false && s.Namespace == "" {
+			s.Namespace = ms.namespace
+		}
 	}
 	return svc, nil
 }
@@ -76,7 +78,6 @@ func (ms *MobileService) ReadMobileServiceAndIntegrations(serviceCruder mobile.S
 			}
 			if len(isvs) != 0 {
 				is := isvs[0]
-				fmt.Println("svc label is ", is.Name, svc.Labels[is.Name])
 				enabled := svc.Labels[is.Name] == "true"
 				svc.Integrations[v] = &mobile.ServiceIntegration{
 					ComponentSecret: svc.ID,

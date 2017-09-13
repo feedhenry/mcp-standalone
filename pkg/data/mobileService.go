@@ -107,7 +107,8 @@ func (msr *MobileServiceRepo) Create(ms *mobile.Service) error {
 func convertMobileAppToSecret(ms mobile.Service) *v1.Secret {
 	data := map[string][]byte{}
 	labels := map[string]string{
-		"group": "mobile",
+		"group":     "mobile",
+		"namespace": ms.Namespace,
 	}
 	for k, v := range ms.Labels {
 		labels[k] = v
@@ -213,6 +214,7 @@ func convertSecretToMobileService(s v1.Secret) *mobile.Service {
 	}
 	external := s.Labels["external"] == "true"
 	return &mobile.Service{
+		Namespace:    s.Labels["namespace"],
 		ID:           s.Name,
 		External:     external,
 		Labels:       s.Labels,
