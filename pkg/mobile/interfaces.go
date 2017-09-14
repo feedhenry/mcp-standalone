@@ -87,3 +87,8 @@ type VolumeMounterUnmounter interface {
 	VolumeMounter
 	VolumeUnmounter
 }
+
+type MetricsGetter interface {
+	GetAll(serviceName string) []*GatheredMetric
+	GetOne(serviceName, metric string) *GatheredMetric
+}

@@ -81,6 +81,7 @@ func MobileServiceRoute(r *mux.Router, handler *MobileServiceHandler) {
 	r.HandleFunc("/mobileservice/{name}", prometheus.InstrumentHandlerFunc("mobileservice read", handler.Read)).Methods("GET")
 	r.HandleFunc("/mobileservice/configure/{component}/{secret}", prometheus.InstrumentHandlerFunc("mobileservices configuration", handler.Configure)).Methods("POST")
 	r.HandleFunc("/mobileservice/configure/{component}/{secret}", prometheus.InstrumentHandlerFunc("mobileservices remove configuration", handler.Deconfigure)).Methods("DELETE")
+	r.HandleFunc("/mobileservice/{name}/metrics", prometheus.InstrumentHandlerFunc("mobileservices get metrics", handler.GetMetrics)).Methods("GET")
 }
 
 //TODO maybe better place to put this

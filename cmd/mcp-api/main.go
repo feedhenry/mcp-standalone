@@ -70,10 +70,13 @@ func main() {
 		httpClientBuilder  = clients.NewHttpClientBuilder()
 		openshiftUser      = openshift.UserAccess{Logger: logger}
 		mwAccess           = middleware.NewAccess(logger, k8host, openshiftUser.ReadUserFromToken)
-		stop               = make(chan struct{})
-		s                  = make(chan os.Signal, 1)
+		// these channels control when background proccess should stop
+		stop = make(chan struct{})
+		s    = make(chan os.Signal, 1)
 	)
 	tokenClientBuilder.SAToken = token
+	// send a message to the signal channel for any interrupt type signals (ctl+c etc)
+	signal.Notify(s, os.Interrupt)
 
 	k8sMetadata, err := k8s.GetMetadata(k8host, httpClientBuilder.Insecure(true).Build())
 	if err != nil {
@@ -84,9 +87,10 @@ func main() {
 	{
 		//TODO move time interval to config
 		interval := time.NewTicker(5 * time.Second)
-		// send a message to the signal channel for any interrupt type signals (ctl+c etc)
-		signal.Notify(s, os.Interrupt)
 		gatherer := metrics.NewGathererScheduler(interval, stop, logger)
+		// add metrics gatherers
+		kcMetrics := &metrics.Keycloak{}
+		gatherer.Add("keycloak", kcMetrics.Gather)
 		// start collecting metrics
 		go gatherer.Run()
 	}
@@ -107,7 +111,8 @@ func main() {
 	//mobileservice handler
 	{
 		integrationSvc := integration.NewMobileSevice(*namespace)
-		svcHandler := web.NewMobileServiceHandler(logger, integrationSvc, tokenClientBuilder)
+		metricSvc := &metrics.MetricsService{}
+		svcHandler := web.NewMobileServiceHandler(logger, integrationSvc, tokenClientBuilder, metricSvc)
 		web.MobileServiceRoute(router, svcHandler)
 	}
 

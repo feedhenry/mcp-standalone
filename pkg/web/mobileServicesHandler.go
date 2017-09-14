@@ -20,14 +20,16 @@ type MobileServiceHandler struct {
 	logger                   *logrus.Logger
 	mobileIntegrationService *integration.MobileService
 	tokenClientBuilder       mobile.TokenScopedClientBuilder
+	metricsGetter            mobile.MetricsGetter
 }
 
 // NewMobileServiceHandler returns a new MobileServiceHandler
-func NewMobileServiceHandler(logger *logrus.Logger, integrationService *integration.MobileService, tokenClientBuilder mobile.TokenScopedClientBuilder) *MobileServiceHandler {
+func NewMobileServiceHandler(logger *logrus.Logger, integrationService *integration.MobileService, tokenClientBuilder mobile.TokenScopedClientBuilder, mg mobile.MetricsGetter) *MobileServiceHandler {
 	return &MobileServiceHandler{
 		logger: logger,
 		mobileIntegrationService: integrationService,
 		tokenClientBuilder:       tokenClientBuilder,
+		metricsGetter:            mg,
 	}
 }
 
@@ -190,4 +192,37 @@ func (msh *MobileServiceHandler) Deconfigure(rw http.ResponseWriter, req *http.R
 		return
 	}
 	return
+}
+
+func (msh *MobileServiceHandler) GetMetrics(rw http.ResponseWriter, req *http.Request) {
+	params := mux.Vars(req)
+	serviceName := params["name"]
+	metric := req.URL.Query().Get("metric")
+	var encoder = json.NewEncoder(rw)
+	if serviceName == "" {
+		http.Error(rw, "missing service name. cannot be empty", http.StatusBadRequest)
+		return
+	}
+
+	if metric == "" {
+		metrics := msh.metricsGetter.GetAll(serviceName)
+		if nil == metrics {
+			http.Error(rw, "no metrics found for service", http.StatusNotFound)
+			return
+		}
+		if err := encoder.Encode(metrics); err != nil {
+			handleCommonErrorCases(err, rw, msh.logger)
+			return
+		}
+		return
+	}
+	serviceMetric := msh.metricsGetter.GetOne(serviceName, metric)
+	if nil == serviceMetric {
+		http.Error(rw, "no metrics or metric found for service", http.StatusNotFound)
+		return
+	}
+	if err := encoder.Encode(serviceMetric); err != nil {
+		handleCommonErrorCases(err, rw, msh.logger)
+		return
+	}
 }

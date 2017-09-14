@@ -111,21 +111,9 @@ const (
 //'xData': ["dates", Fri Aug 25 2017 10:53:04 GMT+0100 (IST), Sat Aug 26 2017 10:53:04 GMT+0100 (IST)]
 //'yData': ['used', '20', '20', '35', '70', '20', '87', '14', '95', '25', '28', '44', '56', '66', '16', '67', '88', '76', '65', '87']
 
-// Metric is a common container for returning metrics to the dashboard
-type Metric struct {
-	Type  string   `json:"type"`
-	Total string   `json:"total"`
-	XData []string `json:"xData"`
-	YData []string `json:"yData"`
-}
-
-type MetricList []*Metric
-
-func (mm MetricList) Get(t string) *Metric {
-	for _, m := range mm {
-		if m.Type == t {
-			return m
-		}
-	}
-	return nil
+// GatheredMetric is a common container for returning metrics to the dashboard
+type GatheredMetric struct {
+	Type string           `json:"type"`
+	X    []string         `json:"x"`
+	Y    map[string][]int `json:"y"`
 }

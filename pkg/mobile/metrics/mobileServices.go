@@ -19,6 +19,16 @@ type GathererScheduler struct {
 	waitGroup *sync.WaitGroup
 }
 
+//might be able to make internal
+type metric struct {
+	Type   string
+	XValue string
+	YValue int
+}
+
+// Gatherer is something that knows how to Gather metrics
+type Gatherer func() ([]*metric, error)
+
 // NewGathererScheduler creates a default GathererScheduler
 func NewGathererScheduler(ticker *time.Ticker, cancel chan struct{}, logger *logrus.Logger) *GathererScheduler {
 	return &GathererScheduler{
@@ -32,32 +42,48 @@ func NewGathererScheduler(ticker *time.Ticker, cancel chan struct{}, logger *log
 }
 
 type metricsMap struct {
-	data map[string][]*mobile.Metric
+	data map[string][]*mobile.GatheredMetric
 	*sync.RWMutex
 }
 
 var internalMetrics = &metricsMap{
 	RWMutex: &sync.RWMutex{},
-	data:    map[string][]*mobile.Metric{},
+	data:    map[string][]*mobile.GatheredMetric{},
 }
 
-func (mm *metricsMap) add(name string, m *mobile.Metric) {
+func (mm *metricsMap) add(name string, m *metric) {
+	fmt.Println("addming ", m, "to ", name)
 	mm.Lock()
 	defer mm.Unlock()
-	mm.data[name] = append(mm.data[name], m)
+	gathered := mm.data[name]
+	if len(gathered) == 0 {
+		gathered = []*mobile.GatheredMetric{{
+			Type: m.Type,
+			X:    []string{},
+			Y:    map[string][]int{},
+		}}
+		mm.data[name] = gathered
+	}
+	for i := range gathered {
+		gm := gathered[i]
+		if gm.Type == m.Type {
+			gm.X = append(gm.X, m.XValue)
+			gm.Y[gm.Type] = append(gm.Y[gm.Type], m.YValue)
+		}
+		gathered[i] = gm
+	}
 }
 
-func (mm *metricsMap) read(name string) []*mobile.Metric {
+func (mm *metricsMap) read(name string) []*mobile.GatheredMetric {
 	mm.RLock()
 	defer mm.RUnlock()
 	return mm.data[name]
 }
 
-// Gatherer is something that knows how to Gather metrics
-type Gatherer func() (*mobile.Metric, error)
-
 // Add allows new Gatherers to be added
-func (gs *GathererScheduler) Add(serviceName string, metricGatherer Gatherer) {}
+func (gs *GathererScheduler) Add(serviceName string, metricGatherer Gatherer) {
+	gs.jobs[serviceName] = metricGatherer
+}
 
 // Run will start the jobs on a schedule
 func (gs *GathererScheduler) Run() {
@@ -84,10 +110,12 @@ func (gs *GathererScheduler) execute() {
 		go func(service string, gather Gatherer) {
 			gs.waitGroup.Add(1)
 			defer gs.waitGroup.Done()
-			m, err := gather()
+			ms, err := gather()
 			if err != nil {
 				gs.logger.Error("failed to gather metrics for service ", service, err)
-				fmt.Println("gathered metrics for service ", service, m)
+			}
+			fmt.Println("gathered metrics for service ", service, ms)
+			for _, m := range ms {
 				gs.metrics.add(service, m)
 			}
 		}(s, g)
@@ -97,11 +125,20 @@ func (gs *GathererScheduler) execute() {
 type MetricsService struct{}
 
 // Get will return the gathered metrics for a service
-func (ms *MetricsService) Get(serviceName, metric string) *mobile.Metric {
+func (ms *MetricsService) GetAll(serviceName string) []*mobile.GatheredMetric {
 	internalMetrics.RLock()
 	defer internalMetrics.RUnlock()
-	metrics := internalMetrics.data[serviceName]
-	for _, m := range metrics {
+	return internalMetrics.data[serviceName]
+}
+
+func (ms *MetricsService) GetOne(serviceName, metric string) *mobile.GatheredMetric {
+	internalMetrics.RLock()
+	defer internalMetrics.RUnlock()
+	all := internalMetrics.data[serviceName]
+	if len(all) == 0 {
+		return nil
+	}
+	for _, m := range all {
 		if m.Type == metric {
 			return m
 		}
