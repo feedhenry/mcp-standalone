@@ -5,6 +5,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"os/signal"
+	"time"
 
 	"fmt"
 
@@ -13,6 +15,7 @@ import (
 	"github.com/feedhenry/mcp-standalone/pkg/data"
 	"github.com/feedhenry/mcp-standalone/pkg/k8s"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile/integration"
+	"github.com/feedhenry/mcp-standalone/pkg/mobile/metrics"
 	"github.com/feedhenry/mcp-standalone/pkg/openshift"
 	"github.com/feedhenry/mcp-standalone/pkg/web"
 	"github.com/feedhenry/mcp-standalone/pkg/web/middleware"
@@ -67,12 +70,25 @@ func main() {
 		httpClientBuilder  = clients.NewHttpClientBuilder()
 		openshiftUser      = openshift.UserAccess{Logger: logger}
 		mwAccess           = middleware.NewAccess(logger, k8host, openshiftUser.ReadUserFromToken)
+		stop               = make(chan struct{})
+		s                  = make(chan os.Signal, 1)
 	)
 	tokenClientBuilder.SAToken = token
 
 	k8sMetadata, err := k8s.GetMetadata(k8host, httpClientBuilder.Insecure(true).Build())
 	if err != nil {
 		panic(err)
+	}
+
+	//kick off metrics scheduler
+	{
+		//TODO move time interval to config
+		interval := time.NewTicker(5 * time.Second)
+		// send a message to the signal channel for any interrupt type signals (ctl+c etc)
+		signal.Notify(s, os.Interrupt)
+		gatherer := metrics.NewGathererScheduler(interval, stop, logger)
+		// start collecting metrics
+		go gatherer.Run()
 	}
 
 	//oauth handler
@@ -126,10 +142,13 @@ func main() {
 
 	handler := web.BuildHTTPHandler(router, mwAccess)
 	logger.Info("starting server on port "+*port, " using key ", *key, " and cert ", *cert, "target namespace is ", *namespace)
-
-	if err := http.ListenAndServeTLS(*port, *cert, *key, handler); err != nil {
-		panic(err)
-	}
+	go func() {
+		if err := http.ListenAndServeTLS(*port, *cert, *key, handler); err != nil {
+			panic(err)
+		}
+	}()
+	<-s //wait for itterupt
+	close(stop)
 }
 
 func readSAToken(path string) (string, error) {
