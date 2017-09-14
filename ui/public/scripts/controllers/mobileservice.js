@@ -48,7 +48,6 @@ angular.module('mobileControlPanelApp').controller('MobileServiceController', [
         // before fetching metrics.
         // Charts may not initialise if the UI isn't ready with the div placeholders
         mcpApi.mobileServiceMetrics($routeParams.service).then(data => {
-          debugger;
           var charts = [];
           var chartConfigs = [];
           data.forEach(columns => {
@@ -83,12 +82,15 @@ angular.module('mobileControlPanelApp').controller('MobileServiceController', [
       });
 
     $scope.$watch('charts', charts => {
-      setTimeout(() => {
-        charts.forEach(chart => {
-          debugger;
-          c3.generate(chart);
-        });
-      }, 500);
+      $timeout(
+        () => {
+          charts.forEach(chart => {
+            c3.generate(chart);
+          });
+        },
+        0,
+        false
+      );
     });
 
     $scope.status = function(integration, service) {
