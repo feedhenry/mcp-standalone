@@ -68,7 +68,13 @@ func (mm *metricsMap) add(name string, m *metric) {
 		gm := gathered[i]
 		if gm.Type == m.Type {
 			gm.X = append(gm.X, m.XValue)
+			if len(gm.X) > 30 {
+				gm.X = gm.X[1:]
+			}
 			gm.Y[gm.Type] = append(gm.Y[gm.Type], m.YValue)
+			if len(gm.Y[gm.Type]) > 30 {
+				gm.Y[gm.Type] = gm.Y[gm.Type][1:]
+			}
 		}
 		gathered[i] = gm
 	}

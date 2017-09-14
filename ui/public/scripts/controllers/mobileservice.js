@@ -9,9 +9,10 @@
  */
 angular.module('mobileControlPanelApp').controller('MobileServiceController', [
   '$scope',
+  '$timeout',
   'mcpApi',
   '$routeParams',
-  function($scope, mcpApi, $routeParams) {
+  function($scope, $timeout, mcpApi, $routeParams) {
     $scope.alerts = {};
     $scope.projectName = $routeParams.project;
     $scope.breadcrumbs = [
@@ -24,19 +25,14 @@ angular.module('mobileControlPanelApp').controller('MobileServiceController', [
       }
     ];
 
+    $scope.charts = [];
     $scope.integrations = [];
-    mcpApi
-      .mobileService($routeParams.service, 'true')
-      .then(s => {
+    Promise.all([
+      mcpApi.mobileService($routeParams.service, 'true').then(s => {
         $scope.service = s;
         $scope.integrations = Object.keys(s.integrations);
-      })
-      .catch(e => {
-        console.error('failed to read service ', e);
-      });
-    mcpApi
-      .mobileApps()
-      .then(apps => {
+      }),
+      mcpApi.mobileApps().then(apps => {
         $scope.mobileappsCount = apps.length;
         $scope.mobileapps = {};
         for (var i = 0; i < apps.length; i++) {
@@ -46,9 +42,55 @@ angular.module('mobileControlPanelApp').controller('MobileServiceController', [
         $scope.clients = Object.keys($scope.mobileapps);
         $scope.clientType = $scope.clients[0];
       })
-      .catch(e => {
-        console.error(e);
+    ])
+      .then(() => {
+        // wait for apps & services, and hence the UI being redrawn,
+        // before fetching metrics.
+        // Charts may not initialise if the UI isn't ready with the div placeholders
+        mcpApi.mobileServiceMetrics($routeParams.service).then(data => {
+          debugger;
+          var charts = [];
+          var chartConfigs = [];
+          data.forEach(columns => {
+            var c3ChartDefaults = $().c3ChartDefaults();
+            var chartConfig = c3ChartDefaults.getDefaultLineConfig();
+            chartConfig.axis = {
+              x: {
+                type: 'timeseries',
+                tick: {
+                  // 11:34:55
+                  format: '%H:%M:%S'
+                }
+              }
+            };
+            chartConfig.data = {
+              x: 'x',
+              xFormat: '%Y-%m-%d %H:%M:%S',
+              columns: columns,
+              type: 'line'
+            };
+            var chartName = columns[1][0];
+            chartConfig.bindto = '#line-chart-' + chartName;
+            chartConfig.title = chartName;
+            charts.push(chartConfig);
+          });
+
+          $scope.charts = charts;
+        });
+      })
+      .catch(error => {
+        console.error(error);
       });
+
+    $scope.$watch('charts', charts => {
+      setTimeout(() => {
+        charts.forEach(chart => {
+          debugger;
+          c3.generate(chart);
+        });
+      }, 500);
+    });
+
     $scope.status = function(integration, service) {
       if ($scope.processing(integration, service)) {
         return 2;
