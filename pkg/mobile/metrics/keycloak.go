@@ -8,6 +8,6 @@ type Keycloak struct{}
 func (kc *Keycloak) Gather() ([]*metric, error) {
 	now := time.Now()
 
-	m := &metric{Type: "logins", XValue: now.Format(time.RFC3339), YValue: 10}
+	m := &metric{Type: "logins", XValue: now.Format("2006-01-02 15:04:05"), YValue: 10}
 	return []*metric{m}, nil
 }
