@@ -43,7 +43,12 @@ var resolveMCPRoute = {
     'ProjectsService',
     'DataService',
     function($route, ProjectsService, DataService) {
-      if (window.MCP_URL) {
+      // this is reset to null so that it is not persisted from a request in one namespace
+      // to a request in a different namespace
+      window.MCP_URL = null;
+      //GLOBAL_MCP_URL is used either for local development or a global MCP server
+      if (typeof window.GLOBAL_MCP_URL !== 'undefined') {
+        window.MCP_URL = window.GLOBAL_MCP_URL;
         return;
       }
       return ProjectsService.get($route.current.params.project).then(
