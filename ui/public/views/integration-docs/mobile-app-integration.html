@@ -1,6 +1,6 @@
 
 <div ng-if="mobileappsCount > 0">
-  <ul class="nav nav-pills nav-justified">
+  <ul ng-if="mobileappsCount > 1" class="nav nav-pills nav-justified">
     <li ng-repeat="c in clients" role="presentation" ng-class="{'active' : c == clientType}"><a ng-click="installationOpt(c)" href="#">{{c}}</a></li>
   </ul>
   <p>
