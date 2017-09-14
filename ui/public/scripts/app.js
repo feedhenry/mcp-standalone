@@ -10,7 +10,8 @@ window.OPENSHIFT_CONSTANTS.PROJECT_NAVIGATION.splice(1, 0, {
   prefixes: [
     '/browse/mobileapps',
     '/browse/mobileservices',
-    '/create-mobileapp'
+    '/create-mobileapp',
+    '/create-mobileservice'
   ],
   isValid: function() {
     // TODO: Can this check if any mobile apps exist first?
