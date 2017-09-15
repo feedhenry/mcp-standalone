@@ -205,6 +205,13 @@ func (msr *MobileServiceRepo) UpdateEnabledIntegrations(svcName string, integrat
 	return nil
 }
 
+func (msr *MobileServiceRepo) Delete(serviceID string) error {
+	if err := msr.client.Delete(serviceID, &meta_v1.DeleteOptions{}); err != nil {
+		return errors.Wrap(err, "mobile serive repo failed to delete underlying secret")
+	}
+	return nil
+}
+
 func convertSecretToMobileService(s v1.Secret) *mobile.Service {
 	params := map[string]string{}
 	for key, value := range s.Data {

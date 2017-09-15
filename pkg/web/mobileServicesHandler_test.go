@@ -383,3 +383,40 @@ func TestCreateMobileService(t *testing.T) {
 		})
 	}
 }
+
+func TestMobileServiceHandler_Delete(t *testing.T) {
+	cases := []struct {
+		Name        string
+		StatusCode  int
+		ServiceName string
+		ExpectError bool
+	}{
+		{
+			Name:        "test delete mobile service ok",
+			StatusCode:  200,
+			ServiceName: "test-service",
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.Name, func(t *testing.T) {
+			handler := setupMobileServiceHandler(nil)
+			server := httptest.NewServer(handler)
+			defer server.Close()
+
+			req, err := http.NewRequest("DELETE", server.URL+"/mobileservice/"+tc.ServiceName, nil)
+			if err != nil {
+				t.Fatal("did not expect an error creating delete request ", err)
+			}
+			client := http.Client{}
+			res, err := client.Do(req)
+			if err != nil {
+				t.Fatal("did not expect an error doing the delete request ", err)
+			}
+			defer res.Body.Close()
+			if res.StatusCode != tc.StatusCode {
+				t.Fatalf("expected response code %v but got %v ", http.StatusOK, res.StatusCode)
+			}
+		})
+	}
+
+}
