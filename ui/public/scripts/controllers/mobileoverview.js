@@ -35,6 +35,16 @@ angular.module('mobileControlPanelApp').controller('MobileOverviewController', [
       _.spread(function(project, context) {
         $scope.project = project;
         $scope.projectContext = context;
+        DataService.list(
+          {
+            group: 'servicecatalog.k8s.io',
+            resource: 'serviceclasses'
+          },
+          context,
+          function(serviceClasses) {
+            $scope.serviceClasses = serviceClasses._data;
+          }
+        );
         mcpApi
           .mobileApps()
           .then(apps => {
@@ -67,6 +77,40 @@ angular.module('mobileControlPanelApp').controller('MobileOverviewController', [
       $location.path(
         'project/' + $routeParams.project + '/browse/mobileservices/' + id
       );
+    };
+
+    $scope.getIcon = function(service) {
+      for (var serviceName in $scope.serviceClasses) {
+        var serviceClass = $scope.serviceClasses[serviceName];
+        if (
+          serviceName === service.name ||
+          serviceName.toLowerCase().indexOf(service.name) >= 0
+        ) {
+          if (
+            typeof serviceClass.externalMetadata[
+              'console.openshift.io/iconClass'
+            ] !== 'undefined'
+          ) {
+            return formatIconClasses(
+              serviceClass.externalMetadata['console.openshift.io/iconClass']
+            );
+          }
+        }
+      }
+      return formatIconClasses('fa-clone');
+    };
+
+    formatIconClasses = function(icon) {
+      bits = icon.split('-', 2);
+      switch (bits[0]) {
+        case 'font':
+        case 'icon':
+          return 'font-icon ' + icon;
+        case 'fa':
+          return 'fa ' + icon;
+        default:
+          return icon;
+      }
     };
   }
 ]);
