@@ -86,10 +86,10 @@ func main() {
 	//kick off metrics scheduler
 	{
 		//TODO move time interval to config
-		interval := time.NewTicker(5 * time.Second)
+		interval := time.NewTicker(10 * time.Second)
 		gatherer := metrics.NewGathererScheduler(interval, stop, logger)
 		// add metrics gatherers
-		kcMetrics := &metrics.Keycloak{}
+		kcMetrics := metrics.NewKeycloak(httpClientBuilder, tokenClientBuilder, "keycloak",logger)
 		gatherer.Add("keycloak", kcMetrics.Gather)
 		// start collecting metrics
 		go gatherer.Run()
