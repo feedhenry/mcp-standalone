@@ -13,6 +13,7 @@ type AppCruder interface {
 	DeleteByName(name string) error
 	List() ([]*App, error)
 	Update(app *App) (*App, error)
+	UpdateAppAPIKeys(app *App) error
 }
 
 type ServiceCruder interface {

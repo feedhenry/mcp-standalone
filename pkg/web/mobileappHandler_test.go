@@ -1,6 +1,7 @@
 package web_test
 
 import (
+	"bytes"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -8,6 +9,7 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
+	"github.com/feedhenry/mcp-standalone/pkg/mobile/app"
 	"github.com/feedhenry/mcp-standalone/pkg/web"
 	kerror "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -22,9 +24,74 @@ func setupMobileAppHandler(kclient kubernetes.Interface) http.Handler {
 	r := web.NewRouter()
 	logger := logrus.StandardLogger()
 	clientBuilder := buildDefaultTestTokenClientBuilder(kclient)
-	handler := web.NewMobileAppHandler(logger, clientBuilder)
+	appService := &app.Service{}
+	handler := web.NewMobileAppHandler(logger, clientBuilder, appService)
 	web.MobileAppRoute(r, handler)
 	return web.BuildHTTPHandler(r, nil)
+}
+
+func TestCreateMobileApp(t *testing.T) {
+	cases := []struct {
+		Name       string
+		Client     func() kubernetes.Interface
+		StatusCode int
+		Validate   func(app *mobile.App, t *testing.T)
+		MobileApp  *mobile.App
+	}{
+		{
+			Name: "test create via api is ok",
+			Client: func() kubernetes.Interface {
+				client := &fake.Clientset{}
+				client.AddReactor("get", "configmaps", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
+					return true, &v1.ConfigMap{
+						Data: map[string]string{},
+					}, nil
+				})
+				return client
+			},
+			StatusCode: 201,
+			MobileApp: &mobile.App{
+				Name:       "myApp",
+				ClientType: "cordova",
+			},
+		},
+		{
+			Name: "test create via api errors",
+			Client: func() kubernetes.Interface {
+				client := &fake.Clientset{}
+				client.AddReactor("get", "configmaps", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
+					return true, &v1.ConfigMap{
+						Data: map[string]string{},
+					}, nil
+				})
+				return client
+			},
+			StatusCode: 500,
+			MobileApp: &mobile.App{
+				Name: "myApp",
+			},
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.Name, func(t *testing.T) {
+			kclient := tc.Client()
+			handler := setupMobileAppHandler(kclient)
+			server := httptest.NewServer(handler)
+			defer server.Close()
+			body, err := json.Marshal(tc.MobileApp)
+			if err != nil {
+				t.Fatal("failed to marshal body for app, create request", err)
+			}
+			res, err := http.Post(server.URL+"/mobileapp", "application/json", bytes.NewReader(body))
+			if err != nil {
+				t.Fatal("encountered error performed create request", err)
+			}
+			defer res.Body.Close()
+			if tc.StatusCode != res.StatusCode {
+				t.Fatalf("incorrect status code %d, expected %d", res.StatusCode, tc.StatusCode)
+			}
+		})
+	}
 }
 
 func TestReadMobileApp(t *testing.T) {

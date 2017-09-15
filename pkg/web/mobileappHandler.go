@@ -6,23 +6,25 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
+	"github.com/feedhenry/mcp-standalone/pkg/mobile/app"
 	"github.com/feedhenry/mcp-standalone/pkg/web/headers"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
-	"github.com/satori/go.uuid"
 )
 
 // MobileAppHandler handle mobile actions
 type MobileAppHandler struct {
 	logger             *logrus.Logger
 	tokenClientBuilder mobile.TokenScopedClientBuilder
+	appService         *app.Service
 }
 
 // NewMobileAppHandler returns a new mobile app handler
-func NewMobileAppHandler(logger *logrus.Logger, tokenClientBuilder mobile.TokenScopedClientBuilder) *MobileAppHandler {
+func NewMobileAppHandler(logger *logrus.Logger, tokenClientBuilder mobile.TokenScopedClientBuilder, appService *app.Service) *MobileAppHandler {
 	return &MobileAppHandler{
 		logger:             logger,
 		tokenClientBuilder: tokenClientBuilder,
+		appService:         appService,
 	}
 }
 
@@ -99,34 +101,22 @@ func (m *MobileAppHandler) Create(rw http.ResponseWriter, req *http.Request) {
 		handleCommonErrorCases(err, rw, m.logger)
 		return
 	}
-	uid := uuid.NewV4()
+	app := &mobile.App{}
 	decoder := json.NewDecoder(req.Body)
-	app := &mobile.App{MetaData: map[string]string{}}
-
 	if err := decoder.Decode(app); err != nil {
 		err = errors.Wrap(err, "mobile app create: Attempted to decode payload in app")
 		handleCommonErrorCases(err, rw, m.logger)
 		return
 	}
-	//todo logic is creeping in here should only be for parsing and rendering. Move to mobile package
-	app.APIKey = uid.String()
-	switch app.ClientType {
-	case "android":
-		app.MetaData["icon"] = "fa-android"
-		break
-	case "iOS":
-		app.MetaData["icon"] = "fa-apple"
-		break
-	case "cordova":
-		app.MetaData["icon"] = "icon-cordova"
-		break
-	}
+	app.MetaData = map[string]string{}
 
-	if err := appRepo.Create(app); err != nil {
-		err = errors.Wrap(err, "mobile app create: Attempted to create app via app repo")
+	if err := m.appService.Create(appRepo, app); err != nil {
+		err = errors.Wrap(err, "mobile app handler, failed to create app")
 		handleCommonErrorCases(err, rw, m.logger)
 		return
 	}
+	//todo logic is creeping in here should only be for parsing and rendering. Move to mobile package
+
 	rw.WriteHeader(http.StatusCreated)
 }
 

@@ -47,6 +47,10 @@ type MockAppCruder struct {
 	Err  error
 }
 
+func (mac *MockAppCruder) UpdateAppAPIKeys(app *mobile.App) error {
+	return mac.Err
+}
+
 func (mac *MockAppCruder) ReadByName(name string) (*mobile.App, error) {
 
 	return mac.App, mac.Err

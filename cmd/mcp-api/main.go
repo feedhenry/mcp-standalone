@@ -12,6 +12,7 @@ import (
 	"github.com/feedhenry/mcp-standalone/pkg/clients"
 	"github.com/feedhenry/mcp-standalone/pkg/data"
 	"github.com/feedhenry/mcp-standalone/pkg/k8s"
+	"github.com/feedhenry/mcp-standalone/pkg/mobile/app"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile/integration"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile/metrics"
 	"github.com/feedhenry/mcp-standalone/pkg/openshift"
@@ -75,6 +76,7 @@ func main() {
 	tokenClientBuilder.SAToken = token
 	// send a message to the signal channel for any interrupt type signals (ctl+c etc)
 	signal.Notify(s, os.Interrupt)
+	appService := &app.Service{}
 
 	k8sMetadata, err := k8s.GetMetadata(k8host, httpClientBuilder.Insecure(true).Build())
 	if err != nil {
@@ -101,7 +103,7 @@ func main() {
 
 	//mobileapp handler
 	{
-		appHandler := web.NewMobileAppHandler(logger, tokenClientBuilder)
+		appHandler := web.NewMobileAppHandler(logger, tokenClientBuilder, appService)
 		web.MobileAppRoute(router, appHandler)
 	}
 

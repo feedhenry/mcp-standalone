@@ -11,6 +11,8 @@ import (
 	v1 "k8s.io/client-go/pkg/api/v1"
 )
 
+const apiKeyMapName = "mcp-mobile-keys"
+
 // MobileAppValidator defines what a validator should do
 type MobileAppValidator interface {
 	PreCreate(a *mobile.App) error
@@ -33,6 +35,19 @@ func NewMobileAppRepo(c corev1.ConfigMapInterface, v MobileAppValidator) *Mobile
 		rep.validator = &DefaultMobileAppValidator{}
 	}
 	return rep
+}
+
+// UpdateAppApiKeys adds new app api key to config map
+func (mar *MobileAppRepo) UpdateAppAPIKeys(app *mobile.App) error {
+	cm, err := mar.client.Get(apiKeyMapName, meta_v1.GetOptions{})
+	if err != nil {
+		return errors.Wrap(err, "updating api key config map, could not read")
+	}
+	cm.Data[app.ID] = app.APIKey
+	if _, err := mar.client.Update(cm); err != nil {
+		return errors.Wrap(err, "updating api key, could not save config map")
+	}
+	return nil
 }
 
 // ReadByName attempts to read a mobile app by its unique name
