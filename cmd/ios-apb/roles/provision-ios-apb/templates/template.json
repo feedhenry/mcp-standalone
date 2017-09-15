@@ -7,6 +7,13 @@
     },
     "objects": [
         {
+            "kind": "ConfigMap",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "mcp-mobile-keys"
+            }
+        },
+        {
             "kind": "DeploymentConfig",
             "apiVersion": "v1",
             "metadata": {
@@ -193,6 +200,6 @@
         }
     ],
     "parameters":[
-       
+
     ]
 }
