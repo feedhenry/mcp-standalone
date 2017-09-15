@@ -59,6 +59,8 @@ This document is intended to walk you through setting up a local openshift devel
 - `ansible-playbook` tools [installed](http://docs.ansible.com/ansible/latest/intro_installation.html)
 - Local clone of this repo
 
+__Note:__ On Linux you also need to have the `libselinux-python` package installed!
+
 Execute these commands to clone the repo to the correct location.
 ```sh
 mkdir -p ~/go/src/github.com/feedhenry/mcp-standalone && cd ~/go/src/github.com/feedhenry/mcp-standalone
@@ -98,8 +100,11 @@ Now we need to install any dependencies. The next step is executed from inside t
 sudo ansible-galaxy install -r requirements.yml
 ```
 
-Next we need to configure Docker to accept an insecure registry required as part of the cluster setup.
-For Linux follow steps 2 and 3 [here](https://github.com/openshift/origin/blob/master/docs/cluster_up_down.md#linux) and the same for Mac [here](https://github.com/openshift/origin/blob/master/docs/cluster_up_down.md#macos-with-docker-for-mac)
+#### Docker Firewall setup
+
+Next we need to configure Docker registry _and_ ports required as part of the cluster setup:
+ * Linux: Follow steps 2 _and_ 3 [here](https://github.com/openshift/origin/blob/master/docs/cluster_up_down.md#linux)
+ * Mac: Follow steps 2 _and_ 3 [here](https://github.com/openshift/origin/blob/master/docs/cluster_up_down.md#macos-with-docker-for-mac)
 
 For Linux we also need to add an extra port to the `dockerc` zone:
 ```sh
