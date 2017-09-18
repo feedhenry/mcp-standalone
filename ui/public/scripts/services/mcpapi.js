@@ -89,6 +89,28 @@ angular.module('mobileControlPanelApp').service('mcpApi', [
             return res.data;
           });
       },
+      deleteService: function(service) {
+        if (!window.MCP_URL) {
+          return Promise.reject('No MCP URL');
+        }
+
+        return $http
+          .delete(`${getMobileServicesURL()}/${service.id}`, requestConfig)
+          .then(res => {
+            return res.data;
+          });
+      },
+      deleteApp: function(app) {
+        if (!window.MCP_URL) {
+          return Promise.reject('No MCP URL');
+        }
+
+        return $http
+          .delete(`${getMobileAppsURL()}/${app.id}`, requestConfig)
+          .then(res => {
+            return res.data;
+          });
+      },
       integrateService: function(params) {
         if (!window.MCP_URL) {
           return new Promise(function(resolve, reject) {
