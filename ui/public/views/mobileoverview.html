@@ -128,8 +128,8 @@
                           </li><!-- end ngIf: row.rgv | canI : 'update' -->
                           </ul>
                           </div>
-                    <div class="card-pf-top-element" ng-click="openService(service.id)">
-                      <span class="fa icon card-pf-icon-circle"></span>
+                    <div class="card-pf-top-element card-icon ng-scope" ng-click="openService(service.id)">
+                      <span class="card-pf-icon-circle icon {{getIcon(service)}}"></span>
                     </div>
                     
                     <h2 class="card-pf-title text-center" ng-click="openService(service.id)">
