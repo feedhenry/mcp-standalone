@@ -204,6 +204,10 @@ func (msh *MobileServiceHandler) GetMetrics(rw http.ResponseWriter, req *http.Re
 		return
 	}
 
+	if strings.HasPrefix(serviceName, "fh-sync-server") {
+		serviceName = "fh-sync-server"
+	}
+
 	if metric == "" {
 		metrics := msh.metricsGetter.GetAll(serviceName)
 		if nil == metrics {
