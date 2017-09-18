@@ -113,7 +113,7 @@ const (
 
 // GatheredMetric is a common container for returning metrics to the dashboard
 type GatheredMetric struct {
-	Type string           `json:"type"`
-	X    []string         `json:"x"`
-	Y    map[string][]int `json:"y"`
+	Type string             `json:"type"`
+	X    []string           `json:"x"`
+	Y    map[string][]int64 `json:"y"`
 }

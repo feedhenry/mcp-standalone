@@ -2,7 +2,6 @@ package metrics
 
 import (
 	"encoding/json"
-	"math/rand"
 	"strings"
 
 	"time"
@@ -14,6 +13,8 @@ import (
 
 	"io/ioutil"
 
+	"strconv"
+
 	"github.com/Sirupsen/logrus"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
 	"github.com/pkg/errors"
@@ -22,7 +23,7 @@ import (
 type Keycloak struct {
 	requestBuilder     mobile.HTTPRequesterBuilder
 	tokenClientBuilder mobile.TokenScopedClientBuilder
-	serviceName        string
+	ServiceName        string
 	logger             *logrus.Logger
 }
 
@@ -33,18 +34,21 @@ type token struct {
 
 var tokenCache = map[string]*token{}
 
-func NewKeycloak(rbuilder mobile.HTTPRequesterBuilder, tokenCBuilder mobile.TokenScopedClientBuilder, serviceName string, l *logrus.Logger) *Keycloak {
-	return &Keycloak{requestBuilder: rbuilder, tokenClientBuilder: tokenCBuilder, serviceName: serviceName, logger: l}
+const timeFomrat = "2006-01-02 15:04:05"
+
+func NewKeycloak(rbuilder mobile.HTTPRequesterBuilder, tokenCBuilder mobile.TokenScopedClientBuilder, l *logrus.Logger) *Keycloak {
+	return &Keycloak{requestBuilder: rbuilder, tokenClientBuilder: tokenCBuilder, logger: l, ServiceName: "keycloak"}
 }
 
 // Gather will retrieve varous metrics from keycloak
 func (kc *Keycloak) Gather() ([]*metric, error) {
+	fmt.Print("keycloak gather called")
 	svc, err := kc.tokenClientBuilder.UseDefaultSAToken().MobileServiceCruder("")
 	if err != nil {
 		return nil, errors.Wrap(err, "keycloack gather failed to create svcruder")
 	}
 	kcServices, err := svc.List(func(attrs mobile.Attributer) bool {
-		return attrs.GetName() == kc.serviceName
+		return attrs.GetName() == kc.ServiceName
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "keycloack gather failed to list existing services")
@@ -58,17 +62,100 @@ func (kc *Keycloak) Gather() ([]*metric, error) {
 	username := kcService.Params["admin_username"]
 	pass := kcService.Params["admin_password"]
 	realm := kcService.Params["realm"]
-	now := time.Now()
 
 	token, err := kc.getToken(host, username, pass, realm)
 	if err != nil {
 		return nil, err
 	}
 
-	kc.getClientStats(host, token, realm)
+	cs, err := kc.getClientStats(host, token, realm)
+	if err != nil {
+		kc.logger.Error("keycloak: failed to get client stats ", err)
+	}
+	events, err := kc.getRealmEvents(host, token, realm)
+	if err != nil {
+		kc.logger.Error("keycloak: failed to get realm events ", err)
+	}
+	var kcMetrics = []*metric{}
+	if len(cs) > 0 {
+		clientMetrics := processClientStats(cs)
+		kcMetrics = append(kcMetrics, clientMetrics...)
+	}
 
-	m := &metric{Type: "logins", XValue: now.Format("2006-01-02 15:04:05"), YValue: rand.Intn(100)}
-	return []*metric{m}, nil
+	if len(events) > 0 {
+		eventMetrics := processRealmEvents(events)
+		kcMetrics = append(kcMetrics, eventMetrics...)
+	}
+
+	fmt.Println("keycloak metrics ", kcMetrics)
+
+	return kcMetrics, nil
+}
+
+//[
+//     {
+//       x: [
+//         '2013-01-01 11:22:45',
+//         '2013-01-02 11:22:45',
+//         '2013-01-03 11:22:45',
+//         '2013-01-04 11:22:45',
+//         '2013-01-05 11:22:45',
+//         '2013-01-06 11:22:45'
+//       ],
+//       y: {
+//         data5: [90, 150, 160, 165, 180, 5]
+//       }
+//     },
+//     {
+//       x: [
+//         '2013-01-01 11:22:45',
+//         '2013-01-02 11:22:45',
+//         '2013-01-03 11:22:45',
+//         '2013-01-04 11:22:45',
+//         '2013-01-05 11:22:45',
+//         '2013-01-06 11:22:45'
+//       ],
+//       y: {
+//         data3: [70, 100, 390, 295, 170, 220]
+//       }
+//     }
+//   ]
+func processClientStats(stats []*clientStat) []*metric {
+	fmt.Println("process stats ", stats)
+	now := time.Now().Format(timeFomrat)
+	ret := []*metric{}
+	for _, s := range stats {
+		active, _ := strconv.ParseInt(s.Active, 10, 0)
+		m := &metric{
+			Type:   s.ClientID,
+			XValue: now,
+			YValue: active,
+		}
+		ret = append(ret, m)
+	}
+	fmt.Println("processed ", ret)
+	return ret
+
+}
+
+func processRealmEvents(events []*eventType) []*metric {
+	ret := []*metric{}
+	now := time.Now().Format(timeFomrat)
+	for _, e := range events {
+		added := false
+		for i := range ret {
+			existing := ret[i]
+			if existing.Type == e.Type {
+				existing.YValue++
+				added = true
+				break
+			}
+		}
+		if !added {
+			ret = append(ret, &metric{Type: e.Type, XValue: now, YValue: 1})
+		}
+	}
+	return ret
 }
 
 func (kc *Keycloak) getToken(host, user, pass, realm string) (string, error) {
@@ -112,8 +199,8 @@ func (kc *Keycloak) getToken(host, user, pass, realm string) (string, error) {
 
 //{"clientId":"account","active":"1","id":"fad0b64e-818e-4545-8b25-6a32e80c8484"
 type clientStat struct {
-	clientID string `json:"clientID"`
-	active   string `json:"active"`
+	ClientID string `json:"clientID"`
+	Active   string `json:"active"`
 }
 
 func (kc *Keycloak) getClientStats(host, token, realm string) ([]*clientStat, error) {
@@ -141,7 +228,11 @@ func (kc *Keycloak) getClientStats(host, token, realm string) ([]*clientStat, er
 
 }
 
-func (kc *Keycloak) getAdminEvents(host, token, realm string) {
+type eventType struct {
+	Type string `json:"type"`
+}
+
+func (kc *Keycloak) getRealmEvents(host, token, realm string) ([]*eventType, error) {
 	//url /admin/realms/{realm}/admin-events
 	u := fmt.Sprintf("%s/auth/admin/realms/%s/events", host, realm)
 	fmt.Println("calling ", u)
@@ -159,6 +250,10 @@ func (kc *Keycloak) getAdminEvents(host, token, realm string) {
 		fmt.Println("unexpected response code fro")
 	}
 	defer res.Body.Close()
-	data, err := ioutil.ReadAll(res.Body)
-	fmt.Println(err, string(data))
+	var events = []*eventType{}
+	decoder := json.NewDecoder(res.Body)
+	if err := decoder.Decode(&events); err != nil {
+		return nil, errors.Wrap(err, "keycloak: failed to decode events response")
+	}
+	return events, nil
 }

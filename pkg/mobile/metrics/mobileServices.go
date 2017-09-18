@@ -23,7 +23,7 @@ type GathererScheduler struct {
 type metric struct {
 	Type   string
 	XValue string
-	YValue int
+	YValue int64
 }
 
 // Gatherer is something that knows how to Gather metrics
@@ -52,7 +52,7 @@ var internalMetrics = &metricsMap{
 }
 
 func (mm *metricsMap) add(name string, m *metric) {
-	fmt.Println("addming ", m, "to ", name)
+	fmt.Println("adding ", m, "to ", name)
 	mm.Lock()
 	defer mm.Unlock()
 	gathered := mm.data[name]
@@ -60,13 +60,16 @@ func (mm *metricsMap) add(name string, m *metric) {
 		gathered = []*mobile.GatheredMetric{{
 			Type: m.Type,
 			X:    []string{},
-			Y:    map[string][]int{},
+			Y:    map[string][]int64{},
 		}}
 		mm.data[name] = gathered
 	}
+	typeFound := false
 	for i := range gathered {
 		gm := gathered[i]
 		if gm.Type == m.Type {
+			fmt.Println("found type ", gm.Type)
+			typeFound = true
 			gm.X = append(gm.X, m.XValue)
 			if len(gm.X) > 30 {
 				gm.X = gm.X[1:]
@@ -75,9 +78,21 @@ func (mm *metricsMap) add(name string, m *metric) {
 			if len(gm.Y[gm.Type]) > 30 {
 				gm.Y[gm.Type] = gm.Y[gm.Type][1:]
 			}
+			gathered[i] = gm
 		}
-		gathered[i] = gm
+
 	}
+	if !typeFound {
+		fmt.Println("type not fount", m.Type)
+		gathered = append(gathered, &mobile.GatheredMetric{
+			Type: m.Type,
+			X:    []string{m.XValue},
+			Y: map[string][]int64{
+				m.Type: {m.YValue},
+			},
+		})
+	}
+	mm.data[name] = gathered
 }
 
 func (mm *metricsMap) read(name string) []*mobile.GatheredMetric {
@@ -108,10 +123,11 @@ func (gs *GathererScheduler) Run() {
 }
 
 func (gs *GathererScheduler) execute() {
+
 	//wait for the previous group to be done. If all completed will continue on
-	gs.logger.Debug("executing gatherers after previos set done")
+	gs.logger.Info("executing gatherers after previous set done")
 	gs.waitGroup.Wait()
-	gs.logger.Debug("executing gatherers previos complete")
+	gs.logger.Debug("executing gatherers previous complete")
 	for s, g := range gs.jobs {
 		go func(service string, gather Gatherer) {
 			gs.waitGroup.Add(1)
