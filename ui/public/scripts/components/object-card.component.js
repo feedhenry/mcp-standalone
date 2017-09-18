@@ -11,7 +11,7 @@ angular.module('mobileControlPanelApp').component('objectCard', {
               <kebab actions=actions action-selected=actionSelected></kebab>
               <div class="card-pf-body">
                 <div class="card-pf-top-element card-icon ng-scope" ng-click="selected($ctrl.object)">
-                  <span class="card-pf-icon-circle icon {{getIcon($ctrl.object)}}"></span>
+                  <span class="card-pf-icon-circle icon fa {{getIcon($ctrl.object)}}"></span>
                 </div>
                 <h2 class="card-pf-title text-center">
                   {{$ctrl.object.name}}
