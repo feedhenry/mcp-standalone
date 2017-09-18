@@ -86,9 +86,15 @@ func main() {
 		//TODO move time interval to config
 		interval := time.NewTicker(5 * time.Second)
 		gatherer := metrics.NewGathererScheduler(interval, stop, logger)
+
 		// add metrics gatherers
 		kcMetrics := metrics.NewKeycloak(httpClientBuilder, tokenClientBuilder, logger)
 		gatherer.Add(kcMetrics.ServiceName, kcMetrics.Gather)
+
+		// add fh-sync-server gatherers
+		syncMetrics := metrics.NewFhSyncServer(httpClientBuilder, tokenClientBuilder, logger)
+		gatherer.Add(syncMetrics.ServiceName, syncMetrics.Gather)
+
 		// start collecting metrics
 		go gatherer.Run()
 	}

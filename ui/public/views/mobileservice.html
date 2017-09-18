@@ -256,6 +256,12 @@
                     <div id="line-chart-{{chart.title}}" class="line-chart-pf"></div>
                   </div>
 
+                  <div ng-if="charts.length == 0">
+                    <div class="empty-state-message text-center">
+                      <h2>No Stats currently available for this service</h2>
+                    </div>
+                  </div>
+
                 </uib-tab>
                 <uib-tab active="selectedTab.integrations" ng-if="service">
                   <uib-tab-heading>Integrations</uib-tab-heading>
