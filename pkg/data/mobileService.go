@@ -135,6 +135,9 @@ func (msr *MobileServiceRepo) List(filter mobile.AttrFilterFunc) ([]*mobile.Serv
 		return nil, errors.Wrap(err, "failed to list secrets in namespace")
 	}
 	ret := []*mobile.Service{}
+	if nil == svs {
+		return nil, errors.New("no secrets returned for list")
+	}
 	for _, item := range svs.Items {
 		if filter(&secretAttributer{&item}) {
 			ret = append(ret, convertSecretToMobileService(item))

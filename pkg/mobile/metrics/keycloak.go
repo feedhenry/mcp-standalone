@@ -42,19 +42,19 @@ func NewKeycloak(rbuilder mobile.HTTPRequesterBuilder, tokenCBuilder mobile.Toke
 
 // Gather will retrieve varous metrics from keycloak
 func (kc *Keycloak) Gather() ([]*metric, error) {
-	fmt.Print("keycloak gather called")
+	kc.logger.Debug("keycloak metrics gathering ")
 	svc, err := kc.tokenClientBuilder.UseDefaultSAToken().MobileServiceCruder("")
 	if err != nil {
-		return nil, errors.Wrap(err, "keycloack gather failed to create svcruder")
+		return nil, errors.Wrap(err, "keycloak gather failed to create svcruder using default service account token")
 	}
 	kcServices, err := svc.List(func(attrs mobile.Attributer) bool {
 		return attrs.GetName() == kc.ServiceName
 	})
 	if err != nil {
-		return nil, errors.Wrap(err, "keycloack gather failed to list existing services")
+		return nil, errors.Wrap(err, "keycloak gather failed to list existing services")
 	}
 	if len(kcServices) == 0 {
-		return nil, errors.New(" no keycloak service present")
+		return nil, errors.New(" no keycloak service present in namespace ")
 	}
 	kcService := kcServices[0] //TODO deal with more than one
 	//TODO get protocol from secret
@@ -62,12 +62,10 @@ func (kc *Keycloak) Gather() ([]*metric, error) {
 	username := kcService.Params["admin_username"]
 	pass := kcService.Params["admin_password"]
 	realm := kcService.Params["realm"]
-
 	token, err := kc.getToken(host, username, pass, realm)
 	if err != nil {
 		return nil, err
 	}
-
 	cs, err := kc.getClientStats(host, token, realm)
 	if err != nil {
 		kc.logger.Error("keycloak: failed to get client stats ", err)
@@ -81,47 +79,14 @@ func (kc *Keycloak) Gather() ([]*metric, error) {
 		clientMetrics := processClientStats(cs)
 		kcMetrics = append(kcMetrics, clientMetrics...)
 	}
-
 	if len(events) > 0 {
 		eventMetrics := processRealmEvents(events)
 		kcMetrics = append(kcMetrics, eventMetrics...)
 	}
-
-	fmt.Println("keycloak metrics ", kcMetrics)
-
 	return kcMetrics, nil
 }
 
-//[
-//     {
-//       x: [
-//         '2013-01-01 11:22:45',
-//         '2013-01-02 11:22:45',
-//         '2013-01-03 11:22:45',
-//         '2013-01-04 11:22:45',
-//         '2013-01-05 11:22:45',
-//         '2013-01-06 11:22:45'
-//       ],
-//       y: {
-//         data5: [90, 150, 160, 165, 180, 5]
-//       }
-//     },
-//     {
-//       x: [
-//         '2013-01-01 11:22:45',
-//         '2013-01-02 11:22:45',
-//         '2013-01-03 11:22:45',
-//         '2013-01-04 11:22:45',
-//         '2013-01-05 11:22:45',
-//         '2013-01-06 11:22:45'
-//       ],
-//       y: {
-//         data3: [70, 100, 390, 295, 170, 220]
-//       }
-//     }
-//   ]
 func processClientStats(stats []*clientStat) []*metric {
-	fmt.Println("process stats ", stats)
 	now := time.Now().Format(timeFomrat)
 	ret := []*metric{}
 	for _, s := range stats {
@@ -133,9 +98,7 @@ func processClientStats(stats []*clientStat) []*metric {
 		}
 		ret = append(ret, m)
 	}
-	fmt.Println("processed ", ret)
 	return ret
-
 }
 
 func processRealmEvents(events []*eventType) []*metric {
@@ -185,14 +148,21 @@ func (kc *Keycloak) getToken(host, user, pass, realm string) (string, error) {
 	}
 	data, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return "", errors.Wrap(err, "failed to read response ")
+		return "", errors.Wrap(err, "keylcloak: failed to read response ")
 	}
 	payload := map[string]interface{}{}
 	if err := json.Unmarshal(data, &payload); err != nil {
-		return "", errors.Wrap(err, "failed to Unmarshal listPushApplications ")
+		return "", errors.Wrap(err, "failed to Unmarshal keycloak response ")
 	}
-	validFor := payload["expires_in"].(float64)
-	accessToken := payload["access_token"].(string)
+
+	validFor, ok := payload["expires_in"].(float64)
+	if !ok {
+		return "", errors.New("payload expires_in failed to convert to float64 or was not present ")
+	}
+	accessToken, ok := payload["access_token"].(string)
+	if !ok {
+		return "", errors.New("payload access_token failed to convert to string or was not present ")
+	}
 	tokenCache[realm] = &token{val: accessToken, validUntil: tokenRequestTime + int64(validFor) - 2} //give a bit of a margin of error
 	return accessToken, nil
 }
@@ -235,19 +205,18 @@ type eventType struct {
 func (kc *Keycloak) getRealmEvents(host, token, realm string) ([]*eventType, error) {
 	//url /admin/realms/{realm}/admin-events
 	u := fmt.Sprintf("%s/auth/admin/realms/%s/events", host, realm)
-	fmt.Println("calling ", u)
 	httpClient := kc.requestBuilder.Insecure(true).Timeout(10).Build()
 	req, err := http.NewRequest("GET", u, nil)
 	if err != nil {
-
+		return nil, errors.Wrap(err, "failed to crate get request for events ")
 	}
 	req.Header.Set("Authorization", "Bearer "+token)
 	res, err := httpClient.Do(req)
 	if err != nil {
-		fmt.Println("error calling events ", err)
+		return nil, errors.Wrap(err, "failed to execute request to get realm events")
 	}
 	if res.StatusCode != 200 {
-		fmt.Println("unexpected response code fro")
+		return nil, errors.New("unexpected response code when getting realm events expected 200 but got: " + res.Status)
 	}
 	defer res.Body.Close()
 	var events = []*eventType{}

@@ -1,7 +1,6 @@
 package metrics
 
 import (
-	"fmt"
 	"sync"
 	"time"
 
@@ -52,7 +51,6 @@ var internalMetrics = &metricsMap{
 }
 
 func (mm *metricsMap) add(name string, m *metric) {
-	fmt.Println("adding ", m, "to ", name)
 	mm.Lock()
 	defer mm.Unlock()
 	gathered := mm.data[name]
@@ -68,22 +66,20 @@ func (mm *metricsMap) add(name string, m *metric) {
 	for i := range gathered {
 		gm := gathered[i]
 		if gm.Type == m.Type {
-			fmt.Println("found type ", gm.Type)
 			typeFound = true
 			gm.X = append(gm.X, m.XValue)
 			if len(gm.X) > 30 {
-				gm.X = gm.X[1:]
+				gm.X = gm.X[len(gm.X)-30:]
 			}
 			gm.Y[gm.Type] = append(gm.Y[gm.Type], m.YValue)
 			if len(gm.Y[gm.Type]) > 30 {
-				gm.Y[gm.Type] = gm.Y[gm.Type][1:]
+				gm.Y[gm.Type] = gm.Y[gm.Type][len(gm.Y[gm.Type])-30:]
 			}
 			gathered[i] = gm
 		}
 
 	}
 	if !typeFound {
-		fmt.Println("type not fount", m.Type)
 		gathered = append(gathered, &mobile.GatheredMetric{
 			Type: m.Type,
 			X:    []string{m.XValue},
@@ -136,7 +132,6 @@ func (gs *GathererScheduler) execute() {
 			if err != nil {
 				gs.logger.Error("failed to gather metrics for service ", service, err)
 			}
-			fmt.Println("gathered metrics for service ", service, ms)
 			for _, m := range ms {
 				gs.metrics.add(service, m)
 			}
