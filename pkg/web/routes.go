@@ -49,11 +49,6 @@ func StaticRoute(handler *StaticHandler) {
 	http.HandleFunc(handler.prefix+"/", handler.Static)
 }
 
-// OAuthRoute configures & sets up the /oauth route.
-func OAuthRoute(r *mux.Router, handler *OAuthHandler) {
-	r.HandleFunc("/oauth/token", handler.OAuthToken)
-}
-
 // MobileAppRoute configure and setup the /mobileapp route. The middleware.Builder is responsible for building per request instances of clients
 func MobileAppRoute(r *mux.Router, handler *MobileAppHandler) {
 	r.HandleFunc("/mobileapp", prometheus.InstrumentHandlerFunc("mobileapp create", handler.Create)).Methods("POST")
