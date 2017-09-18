@@ -188,6 +188,7 @@ func (ss *FhSyncServer) Gather() ([]*metric, error) {
 		ackProcessTime, _ := strconv.ParseInt(ackProcessTimeStr, 10, 64)
 		ssMetrics = append(ssMetrics, &metric{Type: "ack_worker_process_time_ms", XValue: now.Format("2006-01-02 15:04:05"), YValue: ackProcessTime})
 	}
+	ss.logger.Debugf("ssMetrics %v", ssMetrics)
 
 	return ssMetrics, nil
 }
@@ -205,16 +206,14 @@ func (ss *FhSyncServer) getStats(host string) (*statsResponse, error) {
 	if err != nil {
 		return &statsResponse{}, errors.Wrap(err, "error reading stats response body")
 	}
-	fmt.Printf("\n\ndata %s ", string(data))
+	ss.logger.Debugf("raw stats response %v", data)
 
 	var stats statsResponse
 	decoder := json.NewDecoder(bytes.NewBuffer(data))
 	if err := decoder.Decode(&stats); err != nil {
 		return &statsResponse{}, errors.Wrap(err, "failed to decode stats response")
 	}
-
-	fmt.Printf("\n\nstats %v ", stats)
-	fmt.Printf("\n\nstats.JobQueueSize.SyncWorker.NumberOfRecords (%v) ", stats.Metrics.JobQueueSize.SyncWorker.NumberOfRecords)
+	ss.logger.Debugf("decoded stats response %v", stats)
 
 	return &stats, nil
 }
