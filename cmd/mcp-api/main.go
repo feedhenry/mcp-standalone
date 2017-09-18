@@ -6,8 +6,6 @@ import (
 	"net/http"
 	"os"
 
-	"fmt"
-
 	"github.com/Sirupsen/logrus"
 	"github.com/feedhenry/mcp-standalone/pkg/clients"
 	"github.com/feedhenry/mcp-standalone/pkg/data"
@@ -75,13 +73,6 @@ func main() {
 		panic(err)
 	}
 
-	//oauth handler
-	var oauthClientID = fmt.Sprintf("system:serviceaccount:%s:mcp-standalone", *namespace)
-	{
-		oauthHandler := web.NewOauthHandler(logger, *k8sMetadata, oauthClientID, token, *namespace)
-		web.OAuthRoute(router, oauthHandler)
-	}
-
 	//mobileapp handler
 	{
 		appHandler := web.NewMobileAppHandler(logger, tokenClientBuilder)
@@ -114,7 +105,7 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		consoleConfigHandler := web.NewConsoleConfigHandler(logger, k8MetaHost, k8sMetadata.AuthorizationEndpoint, oauthClientID, *namespace)
+		consoleConfigHandler := web.NewConsoleConfigHandler(logger, k8MetaHost, k8sMetadata.AuthorizationEndpoint, *namespace)
 		web.ConsoleConfigRoute(router, consoleConfigHandler)
 	}
 

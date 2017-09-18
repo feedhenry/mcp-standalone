@@ -36,20 +36,20 @@ image: build
 
 run_server:
 	@echo Running Server
-	time go install ./cmd/mcp-api
+	time go build ./cmd/mcp-api
 	oc login -u developer -panything
 	oc new-project $(NAMESPACE) | true
 	oc create -f install/openshift/sa.local.json -n  $(NAMESPACE) | true
 	oc policy add-role-to-user edit system:serviceaccount:$(NAMESPACE):mcp-standalone -n  $(NAMESPACE) | true
 	oc sa get-token mcp-standalone -n  $(NAMESPACE) > token
-	mcp-api -namespace=$(NAMESPACE) -k8-host=$(OSCP) -satoken-path=./token -log-level=debug
+	./mcp-api -namespace=$(NAMESPACE) -k8-host=$(OSCP) -satoken-path=./token -log-level=debug
 
 
 test: test-unit
 
 test-unit:
 	@echo Running tests:
-	go test -cover $(UNIT_TEST_FLAGS) \
+	go test -race -cover $(UNIT_TEST_FLAGS) \
 	  $(addprefix $(PKG)/,$(TEST_DIRS))
 
 apbs:
