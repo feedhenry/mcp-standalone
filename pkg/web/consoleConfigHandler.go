@@ -76,7 +76,7 @@ type mcpConsoleConfig struct {
 }
 
 // NewConsoleConfigHandler returns a new console config handler
-func NewConsoleConfigHandler(logger *logrus.Logger, k8sHost, k8sAuthorizeEndpoint, oauthClientID, namespace string) *ConsoleConfigHandler {
+func NewConsoleConfigHandler(logger *logrus.Logger, k8sHost, k8sAuthorizeEndpoint, namespace string) *ConsoleConfigHandler {
 	mcpConsoleConfig := mcpConsoleConfig{
 		APIGroupAddr:      k8sHost,
 		APIGroupPrefix:    "/apis",
@@ -87,7 +87,6 @@ func NewConsoleConfigHandler(logger *logrus.Logger, k8sHost, k8sAuthorizeEndpoin
 		OAuthAuthorizeURI: k8sAuthorizeEndpoint,
 		OAuthTokenURI:     "",
 		OAuthRedirectBase: "",
-		OAuthClientID:     oauthClientID,
 		LogoutURI:         "",
 		Scope:             fmt.Sprintf("user:info user:check-access role:edit:%s:!", namespace),
 	}

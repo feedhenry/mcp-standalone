@@ -21,6 +21,7 @@ type ServiceCruder interface {
 	ListConfigs(AttrFilterFunc) ([]*ServiceConfig, error)
 	UpdateEnabledIntegrations(svcName string, integrations map[string]string) error
 	Create(ms *Service) error
+	Delete(serviceID string) error
 }
 
 type Attributer interface {

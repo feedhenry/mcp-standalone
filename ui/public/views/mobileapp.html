@@ -1,6 +1,6 @@
 <project-header class="top-header"></project-header>
 <project-page class="overview">
-  
+
   <div class="middle-section">
     <div class="middle-container">
 
@@ -85,8 +85,8 @@ org.feedhenry.mobile.apiKey = "{{app.apiKey}}"</pre>
                   <pre ng-if="app.clientType == 'cordova'" class="prettyprint lang-json">
 {
   "host":"{{route}}",
-  "appID":{{app.id}}""
-  "apiKey":{{app.apiKey}}
+  "appID":"{{app.id}}",
+  "apiKey":"{{app.apiKey}}"
 }</pre>
 
                   <h4>SDK Initialisation</h4>
@@ -115,7 +115,7 @@ sdk.configure()
     let syncConf = conf.forService('fh-sync');
 })
 .catch((e)=>console.error);</pre>
-              
+
                   <h3>Example Apps</h3>
 
                   <!-- TODO: fix links to real docs & template, only if available. Otherwise leave empty -->

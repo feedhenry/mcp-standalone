@@ -222,3 +222,46 @@ func TestReadMobileService(t *testing.T) {
 		})
 	}
 }
+
+func TestMobileServiceRepo_Delete(t *testing.T) {
+	cases := []struct {
+		Name        string
+		ExpectError bool
+		Client      func() corev1.SecretInterface
+		ServiceName string
+	}{
+		{
+			Name:        "test delete service ok",
+			ServiceName: "myservice",
+			Client: func() corev1.SecretInterface {
+				client := &fake.Clientset{}
+				client.AddReactor("get", "secrets", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
+					return true, &v1.Secret{
+						ObjectMeta: metav1.ObjectMeta{
+							Labels: map[string]string{"group": "notmobile"},
+							Name:   "myservice",
+						},
+						Data: map[string][]byte{
+							"name": []byte("myservice"),
+							"uri":  []byte("https://test.com"),
+						},
+					}, nil
+				})
+				return client.CoreV1().Secrets("test")
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.Name, func(t *testing.T) {
+			mobileRepo := data.NewMobileServiceRepo(tc.Client())
+			err := mobileRepo.Delete(tc.ServiceName)
+			if tc.ExpectError && err == nil {
+				t.Fatal("expected an error but got none")
+			}
+			if !tc.ExpectError && err != nil {
+				t.Fatalf("did not expect an error but got %v ", err)
+			}
+		})
+	}
+}

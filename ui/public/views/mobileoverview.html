@@ -71,17 +71,8 @@
             </h1>
             <div ng-if="mobileapps.length > 0" class="row row-cards-pf">
               <div ng-repeat="mobileapp in mobileapps" class="col-xs-12 col-sm-6 col-md-3">
-                <div class="card-pf card-pf-view card-pf-view-select card-pf-view-multi-select" ng-click="openApp(mobileapp.id)">
-                  <div class="card-pf-body">
-                    <div class="card-pf-top-element">
-                      <span class="fa icon {{mobileapp.metadata.icon}} card-pf-icon-circle"></span>
-                    </div>
-                    <h2 class="card-pf-title text-center">
-                      {{mobileapp.name}}
-                    </h2>
-                    <p class="card-pf-info text-center"> {{mobileapp.description}}</p>
-                  </div>
-                </div>
+                <object-card object=mobileapp selected=openApp action-selected=actionSelected></object-card>
+              </div>
               </div>
             </div>
 
@@ -118,31 +109,7 @@
             <!-- TODO: limit this to 'mobile'' services -->
             <div ng-if="services.length > 0" class="row row-cards-pf">
               <div ng-repeat="service in services" class="col-xs-12 col-sm-6 col-md-3">
-                <div class="card-pf card-pf-view card-pf-view-select card-pf-view-multi-select" >
-                  <div class="card-pf-body">
-                      <div uib-dropdown="" class="dropdown pull-right">
-                          <a href="" uib-dropdown-toggle="" class="actions-dropdown-kebab dropdown-toggle" aria-haspopup="true" aria-expanded="false"><i class="fa fa-ellipsis-v"></i><span class="sr-only">Actions</span></a>
-                          <ul class="dropdown-menu dropdown-menu-right" uib-dropdown-menu="" role="menu">
-                          <!-- ngIf: row.rgv | canI : 'update' --><li role="menuitem" class="ng-scope">
-                          <a ng-click="" href="">Delete</a>
-                          </li><!-- end ngIf: row.rgv | canI : 'update' -->
-                          </ul>
-                          </div>
-                    <div class="card-pf-top-element" ng-click="openService(service.id)">
-                      <span class="fa icon card-pf-icon-circle"></span>
-                    </div>
-                    
-                    <h2 class="card-pf-title text-center" ng-click="openService(service.id)">
-                      {{service.name}}
-                    </h2>
-                    <p>
-                    <span >id: {{service.id}}</span>
-                    </p>
-                    <span ng-if="service.labels.external == 'true'" style="color: red;"><em> External Service</em></span>
-                    <span ng-if="service.labels.external != 'true'" style="color: blue;"><em> Local Service</em></span>
-                    
-                    <!--<h6 class="text-center">Integrations:<em> fh-sync, mobile clients</em></h6>-->
-                  </div>
+                <object-card object=service selected=openService action-selected=actionSelected service-classes=serviceClasses></object-card>
                 </div>
               </div>
             </div>

@@ -194,6 +194,27 @@ func (msh *MobileServiceHandler) Deconfigure(rw http.ResponseWriter, req *http.R
 	return
 }
 
+func (msh *MobileServiceHandler) Delete(rw http.ResponseWriter, req *http.Request) {
+	rw.Header().Set("Content-Type", "application/json")
+	token := headers.DefaultTokenRetriever(req.Header)
+	params := mux.Vars(req)
+	svcCruder, err := msh.tokenClientBuilder.MobileServiceCruder(token)
+	if err != nil {
+		handleCommonErrorCases(errors.Wrap(err, "web.msh.Deconfigure -> could not create service cruder"), rw, msh.logger)
+		return
+	}
+	serviceName := params["name"]
+	if serviceName == "" {
+		http.Error(rw, "service name cannot be empty", http.StatusBadRequest)
+		return
+	}
+	if err := svcCruder.Delete(serviceName); err != nil {
+		handleCommonErrorCases(errors.Wrap(err, "web.msh.Delete could not delete service "), rw, msh.logger)
+		return
+	}
+
+}
+
 func (msh *MobileServiceHandler) GetMetrics(rw http.ResponseWriter, req *http.Request) {
 	params := mux.Vars(req)
 	serviceName := params["name"]
