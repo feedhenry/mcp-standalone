@@ -41,15 +41,6 @@ type statsResponse struct {
 			} `json:"master"`
 		} `json:"RSS Memory Usage"`
 		JobProcessTime struct {
-			SyncWorker struct {
-				Current         string    `json:"current"`
-				Max             string    `json:"max"`
-				Min             string    `json:"min"`
-				Average         string    `json:"average"`
-				NumberOfRecords int64     `json:"numberOfRecords"`
-				From            time.Time `json:"from"`
-				End             time.Time `json:"end"`
-			} `json:"sync_worker"`
 			AckWorker struct {
 				Current         string    `json:"current"`
 				Max             string    `json:"max"`
@@ -59,6 +50,15 @@ type statsResponse struct {
 				From            time.Time `json:"from"`
 				End             time.Time `json:"end"`
 			} `json:"ack_worker"`
+			SyncWorker struct {
+				Current         string    `json:"current"`
+				Max             string    `json:"max"`
+				Min             string    `json:"min"`
+				Average         string    `json:"average"`
+				NumberOfRecords int64     `json:"numberOfRecords"`
+				From            time.Time `json:"from"`
+				End             time.Time `json:"end"`
+			} `json:"sync_worker"`
 			PendingWorker struct {
 				Current         string    `json:"current"`
 				Max             string    `json:"max"`
@@ -108,8 +108,26 @@ type statsResponse struct {
 				From            time.Time `json:"from"`
 				End             time.Time `json:"end"`
 			} `json:"sync"`
+			SyncRecords struct {
+				Current         string    `json:"current"`
+				Max             string    `json:"max"`
+				Min             string    `json:"min"`
+				Average         string    `json:"average"`
+				NumberOfRecords int64     `json:"numberOfRecords"`
+				From            time.Time `json:"from"`
+				End             time.Time `json:"end"`
+			} `json:"syncRecords"`
 		} `json:"API Process Time"`
 		MongodbOperationTime struct {
+			DoFindAndDeleteUpdate struct {
+				Current         string    `json:"current"`
+				Max             string    `json:"max"`
+				Min             string    `json:"min"`
+				Average         string    `json:"average"`
+				NumberOfRecords int64     `json:"numberOfRecords"`
+				From            time.Time `json:"from"`
+				End             time.Time `json:"end"`
+			} `json:"doFindAndDeleteUpdate"`
 			DoUpdateManyDatasetClients struct {
 				Current         string    `json:"current"`
 				Max             string    `json:"max"`
@@ -128,6 +146,60 @@ type statsResponse struct {
 				From            time.Time `json:"from"`
 				End             time.Time `json:"end"`
 			} `json:"doListDatasetClients"`
+			DoUpdateDatasetClient struct {
+				Current         string    `json:"current"`
+				Max             string    `json:"max"`
+				Min             string    `json:"min"`
+				Average         string    `json:"average"`
+				NumberOfRecords int64     `json:"numberOfRecords"`
+				From            time.Time `json:"from"`
+				End             time.Time `json:"end"`
+			} `json:"doUpdateDatasetClient"`
+			DoListUpdates struct {
+				Current         string    `json:"current"`
+				Max             string    `json:"max"`
+				Min             string    `json:"min"`
+				Average         string    `json:"average"`
+				NumberOfRecords int64     `json:"numberOfRecords"`
+				From            time.Time `json:"from"`
+				End             time.Time `json:"end"`
+			} `json:"doListUpdates"`
+			DoReadDatasetClient struct {
+				Current         string    `json:"current"`
+				Max             string    `json:"max"`
+				Min             string    `json:"min"`
+				Average         string    `json:"average"`
+				NumberOfRecords int64     `json:"numberOfRecords"`
+				From            time.Time `json:"from"`
+				End             time.Time `json:"end"`
+			} `json:"doReadDatasetClient"`
+			DoUpdateDatasetClientWithRecords struct {
+				Current         string    `json:"current"`
+				Max             string    `json:"max"`
+				Min             string    `json:"min"`
+				Average         string    `json:"average"`
+				NumberOfRecords int64     `json:"numberOfRecords"`
+				From            time.Time `json:"from"`
+				End             time.Time `json:"end"`
+			} `json:"doUpdateDatasetClientWithRecords"`
+			DoReadDatasetClientWithRecordsUseCache struct {
+				Current         string    `json:"current"`
+				Max             string    `json:"max"`
+				Min             string    `json:"min"`
+				Average         string    `json:"average"`
+				NumberOfRecords int64     `json:"numberOfRecords"`
+				From            time.Time `json:"from"`
+				End             time.Time `json:"end"`
+			} `json:"doReadDatasetClientWithRecordsUseCache"`
+			DoSaveUpdate struct {
+				Current         string    `json:"current"`
+				Max             string    `json:"max"`
+				Min             string    `json:"min"`
+				Average         string    `json:"average"`
+				NumberOfRecords int64     `json:"numberOfRecords"`
+				From            time.Time `json:"from"`
+				End             time.Time `json:"end"`
+			} `json:"doSaveUpdate"`
 		} `json:"Mongodb Operation Time"`
 	} `json:"metrics"`
 }
@@ -170,25 +242,75 @@ func (ss *FhSyncServer) Gather() ([]*metric, error) {
 
 	var ssMetrics = []*metric{}
 	if nil != stats {
+		// API Process Times
+		syncAPIProcessTime, err := stringToInt64(stats.Metrics.APIProcessTime.Sync.Current)
+		if err == nil {
+			ssMetrics = append(ssMetrics, &metric{Type: "api_process_time_sync_ms", XValue: now.Format("2006-01-02 15:04:05"), YValue: syncAPIProcessTime})
+		}
+		syncRecordsAPIProcessTime, err := stringToInt64(stats.Metrics.APIProcessTime.SyncRecords.Current)
+		if err == nil {
+			ssMetrics = append(ssMetrics, &metric{Type: "api_process_time_syncRecords_ms", XValue: now.Format("2006-01-02 15:04:05"), YValue: syncRecordsAPIProcessTime})
+		}
+
+		// Mongodb Operation Times
+		doUpdateManyDatasetClients, err := stringToInt64(stats.Metrics.MongodbOperationTime.DoUpdateManyDatasetClients.Current)
+		if err == nil {
+			ssMetrics = append(ssMetrics, &metric{Type: "mongodb_operation_time_doUpdateManyDatasetClients_ms", XValue: now.Format("2006-01-02 15:04:05"), YValue: doUpdateManyDatasetClients})
+		}
+		doListDatasetClients, err := stringToInt64(stats.Metrics.MongodbOperationTime.DoListDatasetClients.Current)
+		if err == nil {
+			ssMetrics = append(ssMetrics, &metric{Type: "mongodb_operation_time_doListDatasetClients_ms", XValue: now.Format("2006-01-02 15:04:05"), YValue: doListDatasetClients})
+		}
+		doSaveUpdate, err := stringToInt64(stats.Metrics.MongodbOperationTime.DoSaveUpdate.Current)
+		if err == nil {
+			ssMetrics = append(ssMetrics, &metric{Type: "mongodb_operation_time_doSaveUpdate_ms", XValue: now.Format("2006-01-02 15:04:05"), YValue: doSaveUpdate})
+		}
+		doUpdateDatasetClient, err := stringToInt64(stats.Metrics.MongodbOperationTime.DoUpdateDatasetClient.Current)
+		if err == nil {
+			ssMetrics = append(ssMetrics, &metric{Type: "mongodb_operation_time_doUpdateDatasetClient_ms", XValue: now.Format("2006-01-02 15:04:05"), YValue: doUpdateDatasetClient})
+		}
+		doListUpdates, err := stringToInt64(stats.Metrics.MongodbOperationTime.DoListUpdates.Current)
+		if err == nil {
+			ssMetrics = append(ssMetrics, &metric{Type: "mongodb_operation_time_doListUpdates_ms", XValue: now.Format("2006-01-02 15:04:05"), YValue: doListUpdates})
+		}
+		doReadDatasetClient, err := stringToInt64(stats.Metrics.MongodbOperationTime.DoReadDatasetClient.Current)
+		if err == nil {
+			ssMetrics = append(ssMetrics, &metric{Type: "mongodb_operation_time_doReadDatasetClient_ms", XValue: now.Format("2006-01-02 15:04:05"), YValue: doReadDatasetClient})
+		}
+		doUpdateDatasetClientWithRecords, err := stringToInt64(stats.Metrics.MongodbOperationTime.DoUpdateDatasetClientWithRecords.Current)
+		if err == nil {
+			ssMetrics = append(ssMetrics, &metric{Type: "mongodb_operation_time_doUpdateDatasetClientWithRecords_ms", XValue: now.Format("2006-01-02 15:04:05"), YValue: doUpdateDatasetClientWithRecords})
+		}
+		doReadDatasetClientWithRecordsUseCache, err := stringToInt64(stats.Metrics.MongodbOperationTime.DoReadDatasetClientWithRecordsUseCache.Current)
+		if err == nil {
+			ssMetrics = append(ssMetrics, &metric{Type: "mongodb_operation_time_doReadDatasetClientWithRecordsUseCache_ms", XValue: now.Format("2006-01-02 15:04:05"), YValue: doReadDatasetClientWithRecordsUseCache})
+		}
+		doFindAndDeleteUpdate, err := stringToInt64(stats.Metrics.MongodbOperationTime.DoFindAndDeleteUpdate.Current)
+		if err == nil {
+			ssMetrics = append(ssMetrics, &metric{Type: "mongodb_operation_time_doFindAndDeleteUpdate_ms", XValue: now.Format("2006-01-02 15:04:05"), YValue: doFindAndDeleteUpdate})
+		}
+
 		// sync worker stats
 		ssMetrics = append(ssMetrics, &metric{Type: "sync_worker_queue_count", XValue: now.Format("2006-01-02 15:04:05"), YValue: stats.Metrics.JobQueueSize.SyncWorker.Current})
-		syncProcessTimeStr := strings.Split(stats.Metrics.JobProcessTime.SyncWorker.Current, ".")[0]
-		syncProcessTime, _ := strconv.ParseInt(syncProcessTimeStr, 10, 64)
-		ssMetrics = append(ssMetrics, &metric{Type: "sync_worker_process_time_ms", XValue: now.Format("2006-01-02 15:04:05"), YValue: syncProcessTime})
+		syncProcessTime, err := stringToInt64(stats.Metrics.JobProcessTime.SyncWorker.Current)
+		if err == nil {
+			ssMetrics = append(ssMetrics, &metric{Type: "sync_worker_process_time_ms", XValue: now.Format("2006-01-02 15:04:05"), YValue: syncProcessTime})
+		}
 
 		// pending worker stats
 		ssMetrics = append(ssMetrics, &metric{Type: "pending_worker_queue_count", XValue: now.Format("2006-01-02 15:04:05"), YValue: stats.Metrics.JobQueueSize.PendingWorker.Current})
-		pendingProcessTimeStr := strings.Split(stats.Metrics.JobProcessTime.PendingWorker.Current, ".")[0]
-		pendingProcessTime, _ := strconv.ParseInt(pendingProcessTimeStr, 10, 64)
-		ssMetrics = append(ssMetrics, &metric{Type: "pending_worker_process_time_ms", XValue: now.Format("2006-01-02 15:04:05"), YValue: pendingProcessTime})
+		pendingProcessTime, err := stringToInt64(stats.Metrics.JobProcessTime.PendingWorker.Current)
+		if err == nil {
+			ssMetrics = append(ssMetrics, &metric{Type: "pending_worker_process_time_ms", XValue: now.Format("2006-01-02 15:04:05"), YValue: pendingProcessTime})
+		}
 
 		// ack worker stats
 		ssMetrics = append(ssMetrics, &metric{Type: "ack_worker_queue_count", XValue: now.Format("2006-01-02 15:04:05"), YValue: stats.Metrics.JobQueueSize.AckWorker.Current})
-		ackProcessTimeStr := strings.Split(stats.Metrics.JobProcessTime.AckWorker.Current, ".")[0]
-		ackProcessTime, _ := strconv.ParseInt(ackProcessTimeStr, 10, 64)
-		ssMetrics = append(ssMetrics, &metric{Type: "ack_worker_process_time_ms", XValue: now.Format("2006-01-02 15:04:05"), YValue: ackProcessTime})
+		ackProcessTime, err := stringToInt64(stats.Metrics.JobProcessTime.AckWorker.Current)
+		if err == nil {
+			ssMetrics = append(ssMetrics, &metric{Type: "ack_worker_process_time_ms", XValue: now.Format("2006-01-02 15:04:05"), YValue: ackProcessTime})
+		}
 	}
-	ss.logger.Debugf("ssMetrics %v", ssMetrics)
 
 	return ssMetrics, nil
 }
@@ -206,7 +328,7 @@ func (ss *FhSyncServer) getStats(host string) (*statsResponse, error) {
 	if err != nil {
 		return &statsResponse{}, errors.Wrap(err, "error reading stats response body")
 	}
-	ss.logger.Debugf("raw stats response %v", data)
+	ss.logger.Debugf("raw stats response %v", string(data))
 
 	var stats statsResponse
 	decoder := json.NewDecoder(bytes.NewBuffer(data))
@@ -216,4 +338,10 @@ func (ss *FhSyncServer) getStats(host string) (*statsResponse, error) {
 	ss.logger.Debugf("decoded stats response %v", stats)
 
 	return &stats, nil
+}
+
+func stringToInt64(val string) (int64, error) {
+	// string expected in format "00.00ms"
+	numOnly := strings.Split(val, ".")[0]
+	return strconv.ParseInt(numOnly, 10, 64)
 }
