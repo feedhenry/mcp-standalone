@@ -4,6 +4,8 @@ import (
 	"sync"
 	"time"
 
+	"runtime"
+
 	"github.com/Sirupsen/logrus"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
 )
@@ -126,6 +128,14 @@ func (gs *GathererScheduler) execute() {
 	gs.logger.Debug("executing gatherers previous complete")
 	for s, g := range gs.jobs {
 		go func(service string, gather Gatherer) {
+			defer func() {
+				if err := recover(); err != nil {
+					stack := make([]byte, 1024*8)
+					stack = stack[:runtime.Stack(stack, false)]
+					f := "PANIC: %s\n%s"
+					gs.logger.Errorf(f, err, stack)
+				}
+			}()
 			gs.waitGroup.Add(1)
 			defer gs.waitGroup.Done()
 			ms, err := gather()
