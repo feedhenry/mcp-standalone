@@ -45,6 +45,8 @@ angular.module('mobileControlPanelApp').controller('MobileOverviewController', [
 
         $scope.overviews.apps = {
           title: 'Mobile Apps',
+          text:
+            'You can create a Mobile App to enable Mobile Integrations with Mobile Enabled Services',
           actions: [
             {
               label: 'Create Mobile App',
@@ -61,6 +63,8 @@ angular.module('mobileControlPanelApp').controller('MobileOverviewController', [
         };
         $scope.overviews.services = {
           title: 'Mobile Enabled Services',
+          text:
+            'You can provision or link a Mobile Enabled Service to enable a Mobile App Integration.',
           actions: [
             {
               label: 'Add External Service',
@@ -128,19 +132,20 @@ angular.module('mobileControlPanelApp').controller('MobileOverviewController', [
         });
     };
 
-    $scope.openApp = function(app) {
-      $location.path(
-        'project/' + $routeParams.project + '/browse/mobileapps/' + app.id
-      );
-    };
-
-    $scope.openService = function(service) {
-      $location.path(
-        'project/' +
-          $routeParams.project +
-          '/browse/mobileservices/' +
-          service.id
-      );
+    $scope.objectSelected = function(object) {
+      const ojectIsService = !!object.integrations;
+      if (ojectIsService) {
+        $location.path(
+          'project/' +
+            $routeParams.project +
+            '/browse/mobileservices/' +
+            object.id
+        );
+      } else {
+        $location.path(
+          'project/' + $routeParams.project + '/browse/mobileapps/' + object.id
+        );
+      }
     };
   }
 ]);

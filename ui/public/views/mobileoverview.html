@@ -5,99 +5,16 @@
     <div class="middle-container">
 
       <div class="middle-content">
+
         <div class="container-fluid">
           <tasks></tasks>
           <alerts alerts="overview.state.alerts"></alerts>
         </div>
 
-        <div ng-if="mcpError" class="blank-slate-pf" id="">
-          <div class="blank-slate-pf-icon">
-            <span class="pficon pficon pficon-add-circle-o"></span>
-          </div>
-          <h1>
-            Get Started with the Mobile Control Panel
-          </h1>
-          <p>
-            The Mobile Control Panel helps you to create Mobile Apps & Services.
-          </p>
-          <p>
-            To get started, provision an instance of the Mobile Control Panel in your Project.
-          </p>
-          <p>
-            Learn more about Mobile Apps & Services <a href="http://feedhenry.org/docs/">in the documentation</a>.
-          </p>
-          <div class="blank-slate-pf-main-action">
-            <a ng-href="/" class="btn btn-primary btn-lg">Provision Mobile Control Panel</a>
-          </div>
-        </div>
+        <no-mcp ng-if="mcpError"></no-mcp>
+        <get-started ng-if="!mcpError && overviews.apps.objects.length === 0 && overviews.services.objects.length === 0" project-name=projectContext.projectName></get-started>
+        <mobile-overview ng-if="overviews.apps.objects.length > 0 || overviews.services.objects.length > 0" overviews=overviews object-selected=objectSelected action-selected=actionSelected></mobile-overview>
 
-        <div ng-if="!mcpError && overviews.apps.objects.length === 0 && overviews.services.objects.length === 0" class="blank-slate-pf" id="">
-          <div class="blank-slate-pf-icon">
-            <span class="pficon pficon pficon-add-circle-o"></span>
-          </div>
-          <h1>
-            Get Started with Mobile Apps & Services
-          </h1>
-          <p>
-            You can create a Mobile App to enable Mobile Integrations with Mobile Enabled Services.
-          </p>
-          <p>
-            You can provision or link a Mobile Enabled Service to enable a Mobile App Integration.
-          </p>
-          <p>
-            Learn more about Mobile Apps & Services <a href="http://feedhenry.org/docs/">in the documentation</a>.
-          </p>
-          <div class="blank-slate-pf-main-action">
-            <a ng-href="project/{{ projectName }}/create-mobileapp" class="btn btn-primary btn-lg">Create Mobile App</a>
-          </div>
-          <div class="blank-slate-pf-secondary-action">
-            <a ng-href="/" class="btn btn-default">Provision Catalog Service</a>
-            <a ng-href="project/{{ projectName }}/create-mobileservice" class="btn btn-default">Add External Service</a>
-          </div>
-        </div>
-        <div ng-if="overviews.apps.objects.length > 0 || overviews.services.objects.length > 0" class="cards-pf">
-          <overview model=overviews.apps object-selected=openApp action-selected=actionSelected></overview>
-            <div ng-if="overviews.apps.objects.length === 0 && overviews.services.objects.length > 0" class="blank-slate-pf " id="">
-              <div class="blank-slate-pf-icon">
-                <span class="pficon pficon pficon-add-circle-o"></span>
-              </div>
-              <h1>
-                Get Started with Mobile Apps
-              </h1>
-              <p>
-                You can create a Mobile App to enable Mobile Integrations with Mobile Enabled Services
-              </p>
-              <p>
-                Learn more about Mobile Apps <a href="http://feedhenry.org/docs/">in the documentation</a>.
-              </p>
-              <div class="blank-slate-pf-main-action">
-                <a ng-href="project/{{ projectName }}/create-mobileapp" class="btn btn-primary btn-lg">Create Mobile App</a>
-              </div>
-            </div>
-            <overview model=overviews.services object-selected=openService action-selected=actionSelected></overview>
-
-            <div ng-if="overviews.services.objects.length === 0 && overviews.apps.objects.length > 0" class="blank-slate-pf " id="">
-              <div class="blank-slate-pf-icon">
-                <span class="pficon pficon pficon-add-circle-o"></span>
-              </div>
-              <h1>
-                Get Started with Mobile Enabled Services
-              </h1>
-              <p>
-                You can provision or link a Mobile Enabled Service to enable a Mobile App Integration.
-              </p>
-              <p>
-                Learn more about Mobile Enabled Services <a href="http://feedhenry.org/docs/">in the documentation</a>.
-              </p>
-              <div class="blank-slate-pf-main-action">
-                <a ng-href="/" class="btn btn-primary btn-lg">Provision Catalog Service</a>
-              </div>
-              <div class="blank-slate-pf-secondary-action">
-                  <a ng-href="project/{{ projectName }}/create-mobileservice" class="btn btn-default">Add External Service</a>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   </div>
