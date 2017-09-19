@@ -1,3 +1,6 @@
+//Defines the core mobile domain objects.
+//This package should not depend on any of our other packages, it is ok for it to use std lib packages.
+
 package mobile
 
 import "strings"
@@ -11,11 +14,6 @@ type App struct {
 	Labels      map[string]string `json:"labels"`
 	APIKey      string            `json:"apiKey"`
 	MetaData    map[string]string `json:"metadata"`
-}
-
-type StatusError struct {
-	Message string
-	Code    int
 }
 
 //Service represents a serverside application that mobile application will interact with
@@ -68,14 +66,6 @@ type KeycloakConfig struct {
 }
 
 type AttrFilterFunc func(attrs Attributer) bool
-
-func (se *StatusError) Error() string {
-	return se.Message
-}
-
-func (se *StatusError) StatusCode() int {
-	return se.Code
-}
 
 //AppTypes are the valid app types
 type AppTypes []string

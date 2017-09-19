@@ -3,7 +3,6 @@ package integration
 import (
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
 	"github.com/pkg/errors"
-	kerror "k8s.io/apimachinery/pkg/api/errors"
 )
 
 // MobileService holds the business logic for dealing with the mobile services and integrations with those services
@@ -73,7 +72,7 @@ func (ms *MobileService) ReadMobileServiceAndIntegrations(serviceCruder mobile.S
 		integrations := svc.Capabilities["integrations"]
 		for _, v := range integrations {
 			isvs, err := serviceCruder.List(filterServices([]string{v}))
-			if err != nil && !kerror.IsNotFound(err) {
+			if err != nil {
 				return nil, errors.Wrap(err, "failed attempting to discover mobile services.")
 			}
 			if len(isvs) != 0 {
