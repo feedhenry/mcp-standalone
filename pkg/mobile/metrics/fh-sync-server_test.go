@@ -8,8 +8,6 @@ import (
 
 	"net/http"
 
-	"fmt"
-
 	"bytes"
 	"io/ioutil"
 
@@ -57,7 +55,6 @@ func TestFhSyncServer_Gather(t *testing.T) {
 				return &mock.Requester{
 					Test: t,
 					Responder: func(host string, path string, method string, t *testing.T) (*http.Response, error) {
-						fmt.Print(path)
 						if path == "/sys/info/stats" {
 							bod := bytes.NewReader([]byte(mockResponse))
 							return &http.Response{StatusCode: 200, Body: ioutil.NopCloser(bod)}, nil

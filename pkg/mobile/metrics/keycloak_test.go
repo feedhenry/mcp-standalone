@@ -11,8 +11,6 @@ import (
 
 	"net/http"
 
-	"fmt"
-
 	"bytes"
 	"io/ioutil"
 
@@ -78,7 +76,6 @@ func TestKeycloak_Gather(t *testing.T) {
 				return &mock.Requester{
 					Test: t,
 					Responder: func(host string, path string, method string, t *testing.T) (*http.Response, error) {
-						fmt.Print(path)
 						if path == "/auth/realms/master/protocol/openid-connect/token" {
 							bod := bytes.NewReader([]byte(`{"expires_in":102,"access_token":"token"}`))
 							return &http.Response{StatusCode: 200, Body: ioutil.NopCloser(bod)}, nil
@@ -175,7 +172,6 @@ func TestKeycloak_Gather(t *testing.T) {
 				return &mock.Requester{
 					Test: t,
 					Responder: func(host string, path string, method string, t *testing.T) (*http.Response, error) {
-						fmt.Print(path)
 						if path == "/auth/realms/master/protocol/openid-connect/token" {
 							bod := bytes.NewReader([]byte(`{"expires_in":102,"access_token":"token"}`))
 							return &http.Response{StatusCode: 200, Body: ioutil.NopCloser(bod)}, nil
