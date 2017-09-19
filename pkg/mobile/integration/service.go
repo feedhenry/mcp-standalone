@@ -146,21 +146,23 @@ func (ms *MobileService) UnmountSecretInComponent(svcCruder mobile.ServiceCruder
 		return errors.Wrap(err, "failed to find secret: '"+serviceSecret+"'")
 	}
 
-	err = unmounter.Unmount(serviceSecret, clientService)
-	if err != nil {
-		return errors.Wrap(err, "failed to unmount secret '"+serviceSecret+"' from component '"+clientService+"'")
-	}
-
 	//find the clientService secret name
 	css, err := svcCruder.List(filterServices([]string{clientService}))
 	if err != nil || len(css) == 0 {
 		return errors.New("failed to find secret for client service: '" + clientService + "'")
 	}
-	clientServiceSecret := css[0].ID
+	cService := css[0]
+
+	err = unmounter.Unmount(service, cService)
+	if err != nil {
+		return errors.Wrap(err, "failed to unmount secret '"+serviceSecret+"' from component '"+clientService+"'")
+	}
+
+	clientServiceId := cService.ID
 
 	//update secret with integration enabled
-	disabled := map[string]string{service.Name: "false"}
-	if err := svcCruder.UpdateEnabledIntegrations(clientServiceSecret, disabled); err != nil {
+	disabled := map[string]string{service.Type: "false"}
+	if err := svcCruder.UpdateEnabledIntegrations(clientServiceId, disabled); err != nil {
 		return errors.Wrap(err, "failed to update enabled services after unmounting secret")
 	}
 

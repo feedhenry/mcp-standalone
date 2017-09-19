@@ -61,7 +61,15 @@ type MountManager struct {
 
 // Mount a secret named mount into the service
 func (mm *MountManager) Mount(service, clientService *mobile.Service) error {
-	deploy, err := mm.k8s.AppsV1beta1().Deployments(clientService.Namespace).Get(clientService.Type, meta_v1.GetOptions{})
+	clientNamespace := clientService.Namespace
+	serviceNamespace := service.Namespace
+	if clientNamespace == "" {
+		clientNamespace = mm.namespace
+	}
+	if serviceNamespace == "" {
+		serviceNamespace = mm.namespace
+	}
+	deploy, err := mm.k8s.AppsV1beta1().Deployments(clientNamespace).Get(clientService.Type, meta_v1.GetOptions{})
 	if err != nil {
 		return errors.Wrap(err, "k8s.mm.Mount -> could not find deployment named: "+clientService.Type)
 	}
@@ -71,17 +79,17 @@ func (mm *MountManager) Mount(service, clientService *mobile.Service) error {
 	}
 
 	// if service and client are in different namespaces, the service secret needs to be copied into the client namespace
-	if service.Namespace != clientService.Namespace {
-		if s, _ := mm.k8s.CoreV1().Secrets(clientService.Namespace).Get(service.Type, meta_v1.GetOptions{}); s.Name != service.Type {
-			secret, err := mm.k8s.CoreV1().Secrets(service.Namespace).Get(service.Type, meta_v1.GetOptions{})
+	if serviceNamespace != clientNamespace {
+		if s, _ := mm.k8s.CoreV1().Secrets(clientNamespace).Get(service.Type, meta_v1.GetOptions{}); s.Name != service.Type {
+			secret, err := mm.k8s.CoreV1().Secrets(serviceNamespace).Get(service.Type, meta_v1.GetOptions{})
 			if err != nil {
-				return errors.Wrap(err, "k8s.mm.Mount -> could not find secret in "+service.Namespace+" named: "+service.Type)
+				return errors.Wrap(err, "k8s.mm.Mount -> could not find secret in "+serviceNamespace+" named: "+service.Type)
 			}
-			secret.Namespace = clientService.Namespace
+			secret.Namespace = clientNamespace
 			secret.ResourceVersion = ""
-			_, err = mm.k8s.CoreV1().Secrets(clientService.Namespace).Create(secret)
+			_, err = mm.k8s.CoreV1().Secrets(clientNamespace).Create(secret)
 			if err != nil {
-				return errors.Wrap(err, "k8s.mm.Mount -> could not copy secret into namespace: "+clientService.Namespace)
+				return errors.Wrap(err, "k8s.mm.Mount -> could not copy secret into namespace: "+clientNamespace)
 			}
 		}
 	}
@@ -103,7 +111,7 @@ func (mm *MountManager) Mount(service, clientService *mobile.Service) error {
 		deploy.Spec.Template.Spec.Containers[id].VolumeMounts = append(deploy.Spec.Template.Spec.Containers[id].VolumeMounts, newMount)
 	}
 
-	_, err = mm.k8s.AppsV1beta1().Deployments(clientService.Namespace).Update(deploy)
+	_, err = mm.k8s.AppsV1beta1().Deployments(clientNamespace).Update(deploy)
 	if err != nil {
 		return errors.Wrap(err, "k8s.mm.Mount -> could not update deploy config with new mount and volume")
 	}
@@ -112,27 +120,28 @@ func (mm *MountManager) Mount(service, clientService *mobile.Service) error {
 }
 
 // Unmount a secret named secret from the service
-func (mm *MountManager) Unmount(secret, clientService string) error {
-	if _, err := mm.k8s.CoreV1().Secrets(mm.namespace).Get(secret, meta_v1.GetOptions{}); err != nil {
-		return errors.New("k8s.mm.Unmount -> could not find secret: " + secret)
+func (mm *MountManager) Unmount(service, clientService *mobile.Service) error {
+	clientNamespace := clientService.Namespace
+	if clientNamespace == "" {
+		clientNamespace = mm.namespace
 	}
-	deploy, err := mm.k8s.AppsV1beta1().Deployments(mm.namespace).Get(clientService, meta_v1.GetOptions{})
+	deploy, err := mm.k8s.AppsV1beta1().Deployments(clientNamespace).Get(clientService.Type, meta_v1.GetOptions{})
 	if err != nil {
-		return errors.Wrap(err, "k8s.mm.Mount -> could not find deployment named: "+clientService)
+		return errors.Wrap(err, "k8s.mm.Mount -> could not find deployment named: "+clientService.Type)
 	}
-	id := findContainerID(clientService, deploy.Spec.Template.Spec.Containers)
+	id := findContainerID(clientService.Type, deploy.Spec.Template.Spec.Containers)
 	if id < 0 {
-		return errors.New("k8s.mm.Mount -> could not find container in deployment with name: " + clientService)
+		return errors.New("k8s.mm.Mount -> could not find container in deployment with name: " + clientService.Type)
 	}
 
-	if i, _ := findVolumeByName(secret, deploy.Spec.Template.Spec.Volumes); i >= 0 {
+	if i, _ := findVolumeByName(service.Type, deploy.Spec.Template.Spec.Volumes); i >= 0 {
 		deploy.Spec.Template.Spec.Volumes = append(deploy.Spec.Template.Spec.Volumes[:i], deploy.Spec.Template.Spec.Volumes[i+1:]...)
 	}
-	if i, _ := findMountByName(secret, deploy.Spec.Template.Spec.Containers[id].VolumeMounts); i >= 0 {
+	if i, _ := findMountByName(service.Type, deploy.Spec.Template.Spec.Containers[id].VolumeMounts); i >= 0 {
 		deploy.Spec.Template.Spec.Containers[id].VolumeMounts = append(deploy.Spec.Template.Spec.Containers[id].VolumeMounts[:i], deploy.Spec.Template.Spec.Containers[id].VolumeMounts[i+1:]...)
 	}
 
-	_, err = mm.k8s.AppsV1beta1().Deployments(mm.namespace).Update(deploy)
+	_, err = mm.k8s.AppsV1beta1().Deployments(clientNamespace).Update(deploy)
 	if err != nil {
 		return errors.Wrap(err, "k8s.mm.Unmount -> could not update deploy config with new mount and volume")
 	}

@@ -87,7 +87,7 @@ type VolumeMounter interface {
 
 // VolumeUnmounter defines an interface for unmounting volumes mounted in services
 type VolumeUnmounter interface {
-	Unmount(secret, clientService string) error
+	Unmount(service, clientService *Service) error
 }
 
 // VolumeMounterUnmounter can both mount and unmount volumes
