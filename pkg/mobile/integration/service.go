@@ -1,6 +1,8 @@
 package integration
 
 import (
+	"fmt"
+
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
 	"github.com/pkg/errors"
 )
@@ -44,8 +46,6 @@ var capabilities = map[string]map[string][]string{
 
 // DiscoverMobileServices will discover mobile services configured in the current namespace
 func (ms *MobileService) DiscoverMobileServices(serviceCruder mobile.ServiceCruder) ([]*mobile.Service, error) {
-	//todo move to config
-
 	svc, err := serviceCruder.List(filterServices(mobile.ServiceTypes))
 	if err != nil {
 		return nil, errors.Wrap(err, "Attempting to discover mobile services.")
@@ -60,33 +60,37 @@ func (ms *MobileService) DiscoverMobileServices(serviceCruder mobile.ServiceCrud
 	return svc, nil
 }
 
-// ReadMobileServiceAndIntegrations read servuce and any available service it can integrate with
+// ReadMobileServiceAndIntegrations read service and any available service it can integrate with
 func (ms *MobileService) ReadMobileServiceAndIntegrations(serviceCruder mobile.ServiceCruder, name string) (*mobile.Service, error) {
-	//todo move to config
 	svc, err := serviceCruder.Read(name)
 	if err != nil {
-		return nil, errors.Wrap(err, "Attempting to discover mobile services.")
+		return nil, errors.Wrap(err, "attempting to discover mobile services.")
 	}
-	svc.Capabilities = capabilities[svc.Name]
+	svc.Capabilities = capabilities[svc.Type]
 	if svc.Capabilities != nil {
+		fmt.Println("checking for capabilties of", svc.Type)
 		integrations := svc.Capabilities["integrations"]
 		for _, v := range integrations {
+			fmt.Println("checking for instance of", v)
 			isvs, err := serviceCruder.List(filterServices([]string{v}))
 			if err != nil {
 				return nil, errors.Wrap(err, "failed attempting to discover mobile services.")
 			}
-			if len(isvs) != 0 {
+			if len(isvs) > 0 {
+				fmt.Println("found", v)
 				is := isvs[0]
 				enabled := svc.Labels[is.Name] == "true"
 				svc.Integrations[v] = &mobile.ServiceIntegration{
 					ComponentSecret: svc.ID,
-					Component:       svc.Name,
+					Component:       svc.Type,
 					Namespace:       ms.namespace,
 					Service:         is.ID,
 					Enabled:         enabled,
 				}
 			}
 		}
+	} else {
+		fmt.Println("no capabilities found for", svc.Type)
 	}
 	return svc, nil
 }
@@ -112,21 +116,21 @@ func (ms *MobileService) MountSecretForComponent(svcCruder mobile.ServiceCruder,
 		return errors.Wrap(err, "failed to find secret: '"+serviceSecret+"'")
 	}
 
-	err = mounter.Mount(serviceSecret, clientService)
-	if err != nil {
-		return errors.Wrap(err, "failed to mount secret '"+serviceSecret+"' into service '"+clientService+"'")
-	}
-
-	//find the clientService secret name
 	cServiceList, err := svcCruder.List(filterServices([]string{clientService}))
 	if err != nil || len(cServiceList) == 0 {
 		return errors.New("failed to find secret for client service: '" + clientService + "'")
 	}
 	cService := cServiceList[0]
+
+	err = mounter.Mount(service, cService)
+	if err != nil {
+		return errors.Wrap(err, "failed to mount secret '"+serviceSecret+"' into service '"+clientService+"'")
+	}
+
 	clientServiceID := cService.ID
 
 	//update secret with integration enabled
-	enabled := map[string]string{service.Name: "true"}
+	enabled := map[string]string{service.Type: "true"}
 	if err := svcCruder.UpdateEnabledIntegrations(clientServiceID, enabled); err != nil {
 		return errors.Wrap(err, "failed to update enabled services after mounting secret")
 	}

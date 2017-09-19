@@ -82,7 +82,7 @@ type MounterBuilder interface {
 
 // VolumeMounter defines an interface for mounting volumes into services
 type VolumeMounter interface {
-	Mount(secret, clientService string) error
+	Mount(service, clientService *Service) error
 }
 
 // VolumeUnmounter defines an interface for unmounting volumes mounted in services

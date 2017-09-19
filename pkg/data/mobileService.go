@@ -116,6 +116,7 @@ func convertMobileAppToSecret(ms mobile.Service) *v1.Secret {
 	data["uri"] = []byte(ms.Host)
 	data["name"] = []byte(ms.Name)
 	data["type"] = []byte(ms.Type)
+	data["namespace"] = []byte(ms.Namespace)
 	for k, v := range ms.Params {
 		data[k] = []byte(v)
 	}
