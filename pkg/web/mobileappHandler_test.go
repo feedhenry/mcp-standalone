@@ -66,7 +66,7 @@ func TestCreateMobileApp(t *testing.T) {
 				})
 				return client
 			},
-			StatusCode: 500,
+			StatusCode: 400,
 			MobileApp: &mobile.App{
 				Name: "myApp",
 			},

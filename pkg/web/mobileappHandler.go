@@ -115,7 +115,6 @@ func (m *MobileAppHandler) Create(rw http.ResponseWriter, req *http.Request) {
 		handleCommonErrorCases(err, rw, m.logger)
 		return
 	}
-	//todo logic is creeping in here should only be for parsing and rendering. Move to mobile package
 
 	rw.WriteHeader(http.StatusCreated)
 }
