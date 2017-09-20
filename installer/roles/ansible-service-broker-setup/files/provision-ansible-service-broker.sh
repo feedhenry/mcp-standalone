@@ -4,7 +4,7 @@ readonly DOCKERHUB_USER="${1}"
 readonly DOCKERHUB_PASS="${2}"
 readonly DOCKERHUB_ORG="${3}"
 readonly LAUNCH_APB_ON_BIND="${4}"
-curl -s https://raw.githubusercontent.com/openshift/ansible-service-broker/master/templates/deploy-ansible-service-broker.template.yaml > /tmp/deploy-ansible-service-broker.template.yaml
+curl -s https://raw.githubusercontent.com/openshift/ansible-service-broker/d93206936751437cc7edaa15a2c88ef317d4c698/templates/deploy-ansible-service-broker.template.yaml > /tmp/deploy-ansible-service-broker.template.yaml
 
 oc login -u system:admin
 oc new-project ansible-service-broker
