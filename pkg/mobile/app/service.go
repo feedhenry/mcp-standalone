@@ -13,13 +13,13 @@ func (s *Service) Create(appCrudder mobile.AppCruder, app *mobile.App) error {
 	uid := uuid.NewV4()
 	app.APIKey = uid.String()
 	switch app.ClientType {
-	case "android":
+	case mobile.AndroidApp:
 		app.MetaData["icon"] = "fa-android"
 		break
-	case "iOS":
+	case mobile.IOSApp:
 		app.MetaData["icon"] = "fa-apple"
 		break
-	case "cordova":
+	case mobile.CordovaApp:
 		app.MetaData["icon"] = "icon-cordova"
 		break
 	}
