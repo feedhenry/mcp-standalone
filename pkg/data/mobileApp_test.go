@@ -300,6 +300,61 @@ func TestListMobileApp(t *testing.T) {
 
 }
 
+func TestUpdateAppAPIKeys(t *testing.T) {
+	cases := []struct {
+		Name        string
+		ExpectError bool
+		MobileApp   *mobile.App
+		Client      func(t *testing.T) corev1.ConfigMapInterface
+	}{
+		{
+			Name: "test update api key ok",
+			MobileApp: &mobile.App{
+				ID:         "anID",
+				APIKey:     "anAPIKey",
+				Name:       "test",
+				ClientType: "cordova",
+				MetaData:   map[string]string{},
+			},
+			Client: func(t *testing.T) corev1.ConfigMapInterface {
+				c := fake.Clientset{}
+				c.AddReactor("get", "configmaps", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
+					return true, &v1.ConfigMap{
+						ObjectMeta: metav1.ObjectMeta{
+							Labels: map[string]string{"group": "notmobile"},
+						},
+						Data: map[string]string{
+							"client123": "anAppKey",
+						},
+					}, nil
+				})
+				c.AddReactor("update", "configmaps", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
+					configmap := action.(ktesting.UpdateAction).GetObject().(*v1.ConfigMap)
+					key := configmap.Data["anID"]
+					if key != "anAPIKey" {
+						t.Fatal("Expected anID to have api key anAPIKey")
+					}
+					return true, nil, nil
+				})
+				return c.CoreV1().ConfigMaps("test")
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.Name, func(t *testing.T) {
+			appRepo := data.NewMobileAppRepo(tc.Client(t), data.DefaultMobileAppValidator{})
+			err := appRepo.UpdateAppAPIKeys(tc.MobileApp)
+			if tc.ExpectError && err == nil {
+				t.Fatal("expexted an error but got none")
+			}
+			if !tc.ExpectError && err != nil {
+				t.Fatalf("did not expect an err but got one %v", err)
+			}
+		})
+	}
+}
+
 func TestUpdateMobileApp(t *testing.T) {
 	cases := []struct {
 		Name        string

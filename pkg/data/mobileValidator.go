@@ -32,7 +32,10 @@ func (mv DefaultMobileAppValidator) PreUpdate(old *mobile.App, new *mobile.App) 
 
 func validateClientType(a *mobile.App) error {
 	if !mobile.ValidAppTypes.Contains(a.ClientType) {
-		return &mobile.StatusError{Message: "invalid clientTypes " + a.ClientType + " valid client types " + mobile.ValidAppTypes.String()}
+		return &mobile.StatusError{
+			Message: "invalid clientTypes " + a.ClientType + " valid client types " + mobile.ValidAppTypes.String(),
+			Code:    400,
+		}
 	}
 	return nil
 }

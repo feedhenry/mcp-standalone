@@ -23,5 +23,12 @@ func (se *StatusError) Error() string {
 }
 
 func (se *StatusError) StatusCode() int {
+	if se.Code == 0 {
+		return se.DefaultStatusCode()
+	}
 	return se.Code
+}
+
+func (se *StatusError) DefaultStatusCode() int {
+	return 500
 }

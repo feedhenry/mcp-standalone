@@ -47,8 +47,10 @@ type MockAppCruder struct {
 	Err  error
 }
 
+func (mac *MockAppCruder) UpdateAppAPIKeys(app *mobile.App) error {
+	return mac.Err
+}
 func (mac *MockAppCruder) ReadByName(name string) (*mobile.App, error) {
-
 	return mac.App, mac.Err
 }
 func (mac *MockAppCruder) Create(app *mobile.App) error {
@@ -62,4 +64,7 @@ func (mac *MockAppCruder) List() ([]*mobile.App, error) {
 }
 func (mac *MockAppCruder) Update(app *mobile.App) (*mobile.App, error) {
 	return mac.App, mac.Err
+}
+func (mac *MockAppCruder) CreateAppAPIKeyMap() error {
+	return mac.Err
 }

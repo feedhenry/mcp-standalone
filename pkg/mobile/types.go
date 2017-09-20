@@ -85,8 +85,17 @@ func (at AppTypes) String() string {
 	return strings.Join(at, " : ")
 }
 
+// AndroidApp Type for Android app
+const AndroidApp = "android"
+
+// IOSApp Type for iOS app
+const IOSApp = "iOS"
+
+// CordovaApp Type for Cordova app
+const CordovaApp = "cordova"
+
 //ValidAppTypes is a list of valid app types
-var ValidAppTypes = AppTypes{"cordova", "android", "iOS"}
+var ValidAppTypes = AppTypes{CordovaApp, AndroidApp, IOSApp}
 
 //TODO move out to config or env var
 //ServiceTypes are the service types that we are aware of and support
