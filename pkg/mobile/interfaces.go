@@ -30,6 +30,7 @@ type Attributer interface {
 	GetType() string
 }
 
+//TODO probably not a core interface but rather we should wrap it inside the other repos as a dependency and have it consumed via the builders
 type ClientBuilder interface {
 	WithToken(token string) ClientBuilder
 	WithNamespace(ns string) ClientBuilder
@@ -38,11 +39,13 @@ type ClientBuilder interface {
 	BuildClient() (kubernetes.Interface, error)
 }
 
+// TODO prob can remote the WithClient and instead use NewRepoBuilder(c corev1.ConfigMapInterface) and have this just expose Build() and perhaps add WithToken(token string)
 type AppRepoBuilder interface {
 	WithClient(c corev1.ConfigMapInterface) AppRepoBuilder
 	Build() AppCruder
 }
 
+// TODO prob can remote the WithClient and instead use NewRepoBuilder(c corev1.ConfigMapInterface) and have this just expose Build() and perhaps add WithToken(token string)
 type ServiceRepoBuilder interface {
 	WithClient(c corev1.SecretInterface) ServiceRepoBuilder
 	Build() ServiceCruder
@@ -68,6 +71,7 @@ type ExternalHTTPRequester interface {
 }
 
 // MounterBuilder creates VolumeMounterUnmounter objects
+// TODO prob can remote the WithClient and instead use NewMountBuilder(c corev1.ConfigMapInterface) and have this just expose Build() and perhaps add WithToken(token string)
 type MounterBuilder interface {
 	Build() VolumeMounterUnmounter
 	WithK8s(kubernetes.Interface) MounterBuilder
