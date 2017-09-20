@@ -8,8 +8,6 @@ import (
 	"os/signal"
 	"time"
 
-	"k8s.io/client-go/kubernetes"
-
 	"github.com/Sirupsen/logrus"
 	"github.com/feedhenry/mcp-standalone/pkg/clients"
 	"github.com/feedhenry/mcp-standalone/pkg/data"
@@ -21,9 +19,6 @@ import (
 	"github.com/feedhenry/mcp-standalone/pkg/web"
 	"github.com/feedhenry/mcp-standalone/pkg/web/middleware"
 	"github.com/pkg/errors"
-
-	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/pkg/api/v1"
 )
 
 func main() {
@@ -91,12 +86,7 @@ func main() {
 
 	// Ensure that the apiKey map exists
 	{
-		const apiKeyMapName = "mcp-mobile-keys"
-		k8sClient, err := tokenClientBuilder.K8s(token)
-		if err != nil {
-			panic(err)
-		}
-		err = setupAPIKeyMap(apiKeyMapName, namespace, k8sClient)
+		err := createAppAPIKeyMap(tokenClientBuilder, token)
 		if err != nil {
 			panic(err)
 		}
@@ -182,16 +172,13 @@ func readSAToken(path string) (string, error) {
 	return string(data), nil
 }
 
-func setupAPIKeyMap(name string, namespace *string, k8sClient kubernetes.Interface) error {
-	_, err := k8sClient.CoreV1().ConfigMaps(*namespace).Get(name, meta_v1.GetOptions{})
+func createAppAPIKeyMap(tokenClientBuilder *clients.TokenScopedClientBuilder, token string) error {
+	appRepo, err := tokenClientBuilder.MobileAppCruder(token)
 	if err != nil {
-		// apiKey map may not exist, create it
-		_, err := k8sClient.CoreV1().ConfigMaps(*namespace).Create(&v1.ConfigMap{
-			ObjectMeta: meta_v1.ObjectMeta{
-				Name: name,
-			},
-			Data: map[string]string{},
-		})
+		return err
+	}
+	err = appRepo.CreateAppAPIKeyMap()
+	if err != nil {
 		return err
 	}
 	return nil

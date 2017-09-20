@@ -53,6 +53,22 @@ func (mar *MobileAppRepo) UpdateAppAPIKeys(app *mobile.App) error {
 	return nil
 }
 
+// CreateAppAPIMap Ensure that the API Key map is created
+func (mar *MobileAppRepo) CreateAppAPIKeyMap() error {
+	_, err := mar.client.Get(apiKeyMapName, meta_v1.GetOptions{})
+	if err != nil {
+		// apiKey map may not exist, create it
+		_, err := mar.client.Create(&v1.ConfigMap{
+			ObjectMeta: meta_v1.ObjectMeta{
+				Name: apiKeyMapName,
+			},
+			Data: map[string]string{},
+		})
+		return err
+	}
+	return nil
+}
+
 // ReadByName attempts to read a mobile app by its unique name
 func (mar *MobileAppRepo) ReadByName(name string) (*mobile.App, error) {
 	_, cm, err := mar.readMobileAppAndConfigMap(name)
