@@ -31,7 +31,7 @@
           </div>
         </div>
 
-        <div ng-if="!mcpError && mobileapps.length === 0 && services.length === 0" class="blank-slate-pf" id="">
+        <div ng-if="!mcpError && overviews.apps.objects.length === 0 && overviews.services.objects.length === 0" class="blank-slate-pf" id="">
           <div class="blank-slate-pf-icon">
             <span class="pficon pficon pficon-add-circle-o"></span>
           </div>
@@ -55,28 +55,9 @@
             <a ng-href="project/{{ projectName }}/create-mobileservice" class="btn btn-default">Add External Service</a>
           </div>
         </div>
-
-        <div ng-if="mobileapps.length > 0 || services.length > 0" class="cards-pf">
-          <div class="container-fluid container-cards-pf">
-            <h1>
-              Mobile Apps
-              <span class="page-header-link">
-                <a ng-href="http://feedhenry.org/docs/" target="_blank" href="http://feedhenry.org/docs/">
-                Learn More <i class="fa fa-external-link" aria-hidden="true"></i>
-                </a>
-              </span>
-              <div ng-if="mobileapps.length > 0" class="pull-right">
-                <a ng-href="project/{{ projectName }}/create-mobileapp" class="btn btn-default">Create Mobile App</a>
-              </div>
-            </h1>
-            <div ng-if="mobileapps.length > 0" class="row row-cards-pf">
-              <div ng-repeat="mobileapp in mobileapps" class="col-xs-12 col-sm-6 col-md-3">
-                <object-card object=mobileapp selected=openApp action-selected=actionSelected></object-card>
-              </div>
-              </div>
-            </div>
-
-            <div ng-if="mobileapps.length === 0 && services.length > 0" class="blank-slate-pf " id="">
+        <div ng-if="overviews.apps.objects.length > 0 || overviews.services.objects.length > 0" class="cards-pf">
+          <overview model=overviews.apps object-selected=openApp action-selected=actionSelected></overview>
+            <div ng-if="overviews.apps.objects.length === 0 && overviews.services.objects.length > 0" class="blank-slate-pf " id="">
               <div class="blank-slate-pf-icon">
                 <span class="pficon pficon pficon-add-circle-o"></span>
               </div>
@@ -93,28 +74,9 @@
                 <a ng-href="project/{{ projectName }}/create-mobileapp" class="btn btn-primary btn-lg">Create Mobile App</a>
               </div>
             </div>
+            <overview model=overviews.services object-selected=openService action-selected=actionSelected></overview>
 
-            <h1>
-              Mobile Enabled Services
-              <span class="page-header-link">
-                <a ng-href="http://feedhenry.org/docs/" target="_blank" href="http://feedhenry.org/docs/">
-                Learn More <i class="fa fa-external-link" aria-hidden="true"></i>
-                </a>
-              </span>
-              <div class="pull-right ng-scope" ng-if="project && ('services' | canI : 'create')">
-                  <a ng-href="/" class="btn btn-default">Provision Catalog Service</a>
-                  <a ng-href="project/{{ projectName }}/create-mobileservice" class="btn btn-default">Add External Service</a>
-              </div>
-            </h1>
-            <!-- TODO: limit this to 'mobile'' services -->
-            <div ng-if="services.length > 0" class="row row-cards-pf">
-              <div ng-repeat="service in services" class="col-xs-12 col-sm-6 col-md-3">
-                <object-card object=service selected=openService action-selected=actionSelected service-classes=serviceClasses></object-card>
-                </div>
-              </div>
-            </div>
-
-            <div ng-if="services.length === 0 && mobileapps.length > 0" class="blank-slate-pf " id="">
+            <div ng-if="overviews.services.objects.length === 0 && overviews.apps.objects.length > 0" class="blank-slate-pf " id="">
               <div class="blank-slate-pf-icon">
                 <span class="pficon pficon pficon-add-circle-o"></span>
               </div>
