@@ -156,7 +156,17 @@ https://192.168.37.1:8443/console/
 
 #### Step 3.1, Add a mobile app
 
-In your project, click on the mobile tab located in the left hand navigation. Next click ```create app``` fill in some details and pick cordova as the type. Then click create. (note) you will need to accept the cert of the mobile server. You can do this by hitting https://localhost:3001 in your browser.
+In your project (the `localmcp` project), click on the mobile tab located in the left hand navigation. 
+
+##### Provision the Mobile Control Panel
+
+**Note:** If you the `Provision Mobile Control Panel` screen, when doing _Local Development_, it is due to an issue with the self-signed certificate of the locally running MCP server. You will get around it by accepting the certificate in the browser, by hitting `https://localhost:3001`!
+
+##### Creating a Mobile Application
+
+Next click ```Create Mobile App``` fill in some details and pick cordova as the type. Then click create.
+
+**NOTE:** _You will need to accept the cert of the mobile server. You can do this by hitting https://localhost:3001 in your browser._  It's also recommended to open the browsers developer tools for more infos, in case there are problems with the self-signed certificate, or other issues.
 
 #### Step 3.2, Launch Keycloak
 
