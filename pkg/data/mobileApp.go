@@ -43,6 +43,9 @@ func (mar *MobileAppRepo) UpdateAppAPIKeys(app *mobile.App) error {
 	if err != nil {
 		return errors.Wrap(err, "updating api key config map, could not read")
 	}
+	if cm.Data == nil {
+		cm.Data = map[string]string{}
+	}
 	cm.Data[app.ID] = app.APIKey
 	if _, err := mar.client.Update(cm); err != nil {
 		return errors.Wrap(err, "updating api key, could not save config map")

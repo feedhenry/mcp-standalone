@@ -8,6 +8,8 @@ import (
 	"os/signal"
 	"time"
 
+	"k8s.io/client-go/kubernetes"
+
 	"github.com/Sirupsen/logrus"
 	"github.com/feedhenry/mcp-standalone/pkg/clients"
 	"github.com/feedhenry/mcp-standalone/pkg/data"
@@ -19,6 +21,9 @@ import (
 	"github.com/feedhenry/mcp-standalone/pkg/web"
 	"github.com/feedhenry/mcp-standalone/pkg/web/middleware"
 	"github.com/pkg/errors"
+
+	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/pkg/api/v1"
 )
 
 func main() {
@@ -74,6 +79,7 @@ func main() {
 		s    = make(chan os.Signal, 1)
 	)
 	tokenClientBuilder.SAToken = token
+
 	// send a message to the signal channel for any interrupt type signals (ctl+c etc)
 	signal.Notify(s, os.Interrupt)
 	appService := &app.Service{}
@@ -81,6 +87,19 @@ func main() {
 	k8sMetadata, err := k8s.GetMetadata(k8host, httpClientBuilder.Insecure(true).Build())
 	if err != nil {
 		panic(err)
+	}
+
+	// Ensure that the apiKey map exists
+	{
+		const apiKeyMapName = "mcp-mobile-keys"
+		k8sClient, err := tokenClientBuilder.K8s(token)
+		if err != nil {
+			panic(err)
+		}
+		err = setupAPIKeyMap(apiKeyMapName, namespace, k8sClient)
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	//kick off metrics scheduler
@@ -161,4 +180,19 @@ func readSAToken(path string) (string, error) {
 		return "", errors.Wrap(err, "failed to read service account token ")
 	}
 	return string(data), nil
+}
+
+func setupAPIKeyMap(name string, namespace *string, k8sClient kubernetes.Interface) error {
+	_, err := k8sClient.CoreV1().ConfigMaps(*namespace).Get(name, meta_v1.GetOptions{})
+	if err != nil {
+		// apiKey map may not exist, create it
+		_, err := k8sClient.CoreV1().ConfigMaps(*namespace).Create(&v1.ConfigMap{
+			ObjectMeta: meta_v1.ObjectMeta{
+				Name: name,
+			},
+			Data: map[string]string{},
+		})
+		return err
+	}
+	return nil
 }
