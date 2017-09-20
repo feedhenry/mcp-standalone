@@ -168,6 +168,14 @@ Next click ```Create Mobile App``` fill in some details and pick cordova as the 
 
 **NOTE:** _You will need to accept the cert of the mobile server. You can do this by hitting https://localhost:3001 in your browser._  It's also recommended to open the browsers developer tools for more infos, in case there are problems with the self-signed certificate, or other issues.
 
+*NOTE*: The cert can get out of sync at times. If you see a bad cert error you can clear the cert cache.
+
+Linux:
+```sh
+rm ~/.pki/nssdb/cert9.db
+```
+And then restart your browser.
+
 #### Step 3.2, Launch Keycloak
 
 From the Service Catalog, select `Keycloak (APB)`, and either enter values for the username and password or accept the defaults, select `localmcp` as the project to add it to, then click `next`.
