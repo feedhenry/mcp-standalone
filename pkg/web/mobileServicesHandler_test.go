@@ -20,6 +20,7 @@ import (
 	"github.com/feedhenry/mcp-standalone/pkg/data"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile/integration"
+	"github.com/feedhenry/mcp-standalone/pkg/mobile/metrics"
 	"github.com/feedhenry/mcp-standalone/pkg/mock"
 	"github.com/feedhenry/mcp-standalone/pkg/web"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -35,8 +36,9 @@ func setupMobileServiceHandler(kclient kubernetes.Interface) http.Handler {
 		kclient = &fake.Clientset{}
 	}
 	clientBuilder := buildDefaultTestTokenClientBuilder(kclient)
+	metricGetter := &metrics.MetricsService{}
 	ms := &integration.MobileService{}
-	handler := web.NewMobileServiceHandler(logger, ms, clientBuilder)
+	handler := web.NewMobileServiceHandler(logger, ms, clientBuilder, metricGetter)
 	web.MobileServiceRoute(r, handler)
 	return web.BuildHTTPHandler(r, nil)
 }

@@ -5,12 +5,15 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"os/signal"
+	"time"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/feedhenry/mcp-standalone/pkg/clients"
 	"github.com/feedhenry/mcp-standalone/pkg/data"
 	"github.com/feedhenry/mcp-standalone/pkg/k8s"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile/integration"
+	"github.com/feedhenry/mcp-standalone/pkg/mobile/metrics"
 	"github.com/feedhenry/mcp-standalone/pkg/openshift"
 	"github.com/feedhenry/mcp-standalone/pkg/web"
 	"github.com/feedhenry/mcp-standalone/pkg/web/middleware"
@@ -65,12 +68,35 @@ func main() {
 		httpClientBuilder  = clients.NewHttpClientBuilder()
 		openshiftUser      = openshift.UserAccess{Logger: logger}
 		mwAccess           = middleware.NewAccess(logger, k8host, openshiftUser.ReadUserFromToken)
+		// these channels control when background proccess should stop
+		stop = make(chan struct{})
+		s    = make(chan os.Signal, 1)
 	)
 	tokenClientBuilder.SAToken = token
+	// send a message to the signal channel for any interrupt type signals (ctl+c etc)
+	signal.Notify(s, os.Interrupt)
 
 	k8sMetadata, err := k8s.GetMetadata(k8host, httpClientBuilder.Insecure(true).Build())
 	if err != nil {
 		panic(err)
+	}
+
+	//kick off metrics scheduler
+	{
+		//TODO move time interval to config
+		interval := time.NewTicker(5 * time.Second)
+		gatherer := metrics.NewGathererScheduler(interval, stop, logger)
+
+		// add metrics gatherers
+		kcMetrics := metrics.NewKeycloak(httpClientBuilder, tokenClientBuilder, logger)
+		gatherer.Add(kcMetrics.ServiceName, kcMetrics.Gather)
+
+		// add fh-sync-server gatherers
+		syncMetrics := metrics.NewFhSyncServer(httpClientBuilder, tokenClientBuilder, logger)
+		gatherer.Add(syncMetrics.ServiceName, syncMetrics.Gather)
+
+		// start collecting metrics
+		go gatherer.Run()
 	}
 
 	//mobileapp handler
@@ -82,7 +108,8 @@ func main() {
 	//mobileservice handler
 	{
 		integrationSvc := integration.NewMobileSevice(*namespace)
-		svcHandler := web.NewMobileServiceHandler(logger, integrationSvc, tokenClientBuilder)
+		metricSvc := &metrics.MetricsService{}
+		svcHandler := web.NewMobileServiceHandler(logger, integrationSvc, tokenClientBuilder, metricSvc)
 		web.MobileServiceRoute(router, svcHandler)
 	}
 
@@ -117,10 +144,13 @@ func main() {
 
 	handler := web.BuildHTTPHandler(router, mwAccess)
 	logger.Info("starting server on port "+*port, " using key ", *key, " and cert ", *cert, "target namespace is ", *namespace)
-
-	if err := http.ListenAndServeTLS(*port, *cert, *key, handler); err != nil {
-		panic(err)
-	}
+	go func() {
+		if err := http.ListenAndServeTLS(*port, *cert, *key, handler); err != nil {
+			panic(err)
+		}
+	}()
+	<-s //wait for itterupt
+	close(stop)
 }
 
 func readSAToken(path string) (string, error) {

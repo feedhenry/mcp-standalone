@@ -111,6 +111,71 @@ angular.module('mobileControlPanelApp').service('mcpApi', [
             return res.data;
           });
       },
+      mobileServiceMetrics: function(name) {
+        // TODO: Avoid duplicate code for checking existance of MCP Url
+        if (!window.MCP_URL) {
+          return new Promise(function(resolve, reject) {
+            return reject('No MCP URL');
+          });
+        }
+        let url = getMobileServicesURL() + '/' + name + '/metrics';
+        console.log('calling ', url);
+        return $http.get(url, requestConfig).then(res => {
+          // return new Promise(function(resolve, reject) {
+          // var res = {
+          //   data: [
+          //     {
+          //       x: [
+          //         '2013-01-01 11:22:45',
+          //         '2013-01-02 11:22:45',
+          //         '2013-01-03 11:22:45',
+          //         '2013-01-04 11:22:45',
+          //         '2013-01-05 11:22:45',
+          //         '2013-01-06 11:22:45'
+          //       ],
+          //       y: {
+          //         data5: [90, 150, 160, 165, 180, 5]
+          //       }
+          //     },
+          //     {
+          //       x: [
+          //         '2013-01-01 11:22:45',
+          //         '2013-01-02 11:22:45',
+          //         '2013-01-03 11:22:45',
+          //         '2013-01-04 11:22:45',
+          //         '2013-01-05 11:22:45',
+          //         '2013-01-06 11:22:45'
+          //       ],
+          //       y: {
+          //         data3: [70, 100, 390, 295, 170, 220]
+          //       }
+          //     }
+          //   ]
+          // };
+          // console.log('res.data', res.data);
+
+          var data = [];
+          res.data.forEach(raw => {
+            // x axis
+            //   from -> ['val1', 'val2', val3'],
+            //     to -> ['x', 'val1', 'val2', val3'],
+            raw.x.unshift('x');
+
+            _.forIn(raw.y, (val, key) => {
+              var columns = [raw.x];
+
+              // y axis
+              //   from -> [30, 200, 100, 400, 150, 250]
+              //     to -> ['data1', 30, 200, 100, 400, 150, 250],
+              val.unshift(key);
+              columns.push(val);
+              data.push(columns);
+            });
+          });
+
+          return data;
+        });
+      },
       integrateService: function(params) {
         if (!window.MCP_URL) {
           return new Promise(function(resolve, reject) {

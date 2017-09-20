@@ -7,7 +7,8 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-//TODO WE may want to move this out to the data package as it is sepcific to kubnernetes
+//Note a concern with this pattern is that it essentially becomes a registry that all handlers depend on, this will have an impact on tests
+//as we will always first need to construct this before we can do anything
 
 // TokenScopedClientBuilder builds a client bound to a particular token.
 // if there is token passed it will attempt to use the default sa token
