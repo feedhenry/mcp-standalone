@@ -111,6 +111,9 @@ angular.module('mobileControlPanelApp').controller('MobileServiceController', [
       }
       return false;
     };
+    $scope.debug = function(service) {
+      console.log(service);
+    };
     $scope.processing = function(integration, service) {
       if (!service) {
         return false;

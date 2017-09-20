@@ -45,7 +45,7 @@ var capabilities = map[string]map[string][]string{
 }
 
 // DiscoverMobileServices will discover mobile services configured in the current namespace
-func (ms *MobileService) DiscoverMobileServices(serviceCruder mobile.ServiceCruder) ([]*mobile.Service, error) {
+func (ms *MobileService) DiscoverMobileServices(serviceCruder mobile.ServiceCruder, authChecker mobile.AuthChecker) ([]*mobile.Service, error) {
 	svc, err := serviceCruder.List(filterServices(mobile.ServiceTypes))
 	if err != nil {
 		return nil, errors.Wrap(err, "Attempting to discover mobile services.")
@@ -53,15 +53,25 @@ func (ms *MobileService) DiscoverMobileServices(serviceCruder mobile.ServiceCrud
 	for _, s := range svc {
 		s.Capabilities = capabilities[s.Name]
 		//non external services are part of the current namespace //TODO maybe should be added to the apbs
-		if s.External == false && s.Namespace == "" {
-			s.Namespace = ms.namespace
+		if s.External == false {
+			if s.Namespace == "" {
+				s.Namespace = ms.namespace
+			}
+			s.Writeable = true
+		}
+		if s.External {
+			perm, err := authChecker.Check("deployments", s.Namespace)
+			if err != nil {
+				return nil, errors.Wrap(err, "error checking access permissions")
+			}
+			s.Writeable = perm
 		}
 	}
 	return svc, nil
 }
 
 // ReadMobileServiceAndIntegrations read service and any available service it can integrate with
-func (ms *MobileService) ReadMobileServiceAndIntegrations(serviceCruder mobile.ServiceCruder, name string) (*mobile.Service, error) {
+func (ms *MobileService) ReadMobileServiceAndIntegrations(serviceCruder mobile.ServiceCruder, authChecker mobile.AuthChecker, name string) (*mobile.Service, error) {
 	svc, err := serviceCruder.Read(name)
 	if err != nil {
 		return nil, errors.Wrap(err, "attempting to discover mobile services.")
@@ -91,6 +101,14 @@ func (ms *MobileService) ReadMobileServiceAndIntegrations(serviceCruder mobile.S
 		}
 	} else {
 		fmt.Println("no capabilities found for", svc.Type)
+	}
+	svc.Writeable = true
+	if svc.External {
+		perm, err := authChecker.Check("deployments", svc.Namespace)
+		if err != nil {
+			return nil, errors.Wrap(err, "error checking access permissions")
+		}
+		svc.Writeable = perm
 	}
 	return svc, nil
 }

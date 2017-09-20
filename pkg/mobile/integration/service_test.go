@@ -13,15 +13,28 @@ import (
 	ktesting "k8s.io/client-go/testing"
 )
 
+type mockAuthChecker struct {
+	checkBoolRes bool
+	checkErrRes  error
+}
+
+func (mac *mockAuthChecker) Check(resource, namespace string) (bool, error) {
+	return mac.checkBoolRes, mac.checkErrRes
+}
+
 func TestMobileServiceDiscovery(t *testing.T) {
 	cases := []struct {
 		Name          string
 		ExpectError   bool
 		ServiceCruder func() mobile.ServiceCruder
+		authChecker   func() mobile.AuthChecker
 		Validate      func(svs []*mobile.Service, t *testing.T)
 	}{
 		{
 			Name: "test discover mobile services ok",
+			authChecker: func() mobile.AuthChecker {
+				return &mockAuthChecker{}
+			},
 			ServiceCruder: func() mobile.ServiceCruder {
 				client := &fake.Clientset{}
 				client.AddReactor("list", "secrets", func(a ktesting.Action) (bool, runtime.Object, error) {
@@ -69,7 +82,7 @@ func TestMobileServiceDiscovery(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
 			is := integration.MobileService{}
-			svcs, err := is.DiscoverMobileServices(tc.ServiceCruder())
+			svcs, err := is.DiscoverMobileServices(tc.ServiceCruder(), tc.authChecker())
 			if tc.ExpectError && err == nil {
 				t.Fatalf("expected an err but got none!")
 			}

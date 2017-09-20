@@ -59,6 +59,7 @@ type TokenScopedClientBuilder interface {
 	K8s(token string) (kubernetes.Interface, error)
 	UseDefaultSAToken() TokenScopedClientBuilder
 	VolumeMounterUnmounter(token string) (VolumeMounterUnmounter, error)
+	AuthChecker(token string, ignoreCerts bool) AuthChecker
 }
 
 type HTTPRequesterBuilder interface {
@@ -94,6 +95,18 @@ type VolumeUnmounter interface {
 type VolumeMounterUnmounter interface {
 	VolumeMounter
 	VolumeUnmounter
+}
+
+// AuthCheckerBuilder builds AuthCheckers
+type AuthCheckerBuilder interface {
+	Build() AuthChecker
+	WithToken(token string) AuthCheckerBuilder
+	IgnoreCerts() AuthCheckerBuilder
+}
+
+// AuthChecker performs a check for authorization to write the provided resource in the provided namespace
+type AuthChecker interface {
+	Check(resource, namespace string) (bool, error)
 }
 
 type MetricsGetter interface {

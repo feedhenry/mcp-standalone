@@ -31,6 +31,7 @@ type Service struct {
 	Labels       map[string]string              `json:"labels"`
 	Integrations map[string]*ServiceIntegration `json:"integrations"`
 	External     bool                           `json:"external"`
+	Writeable    bool                           `json:"writeable"`
 }
 
 func NewMobileService() *Service {

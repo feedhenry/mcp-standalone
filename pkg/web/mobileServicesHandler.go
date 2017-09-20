@@ -43,7 +43,8 @@ func (msh *MobileServiceHandler) List(rw http.ResponseWriter, req *http.Request)
 		handleCommonErrorCases(err, rw, msh.logger)
 		return
 	}
-	svc, err := msh.mobileIntegrationService.DiscoverMobileServices(serviceCruder)
+	authChecker := msh.tokenClientBuilder.AuthChecker(token, true)
+	svc, err := msh.mobileIntegrationService.DiscoverMobileServices(serviceCruder, authChecker)
 	if err != nil {
 		err = errors.Wrap(err, "attempted to list mobile services")
 		handleCommonErrorCases(err, rw, msh.logger)
@@ -73,10 +74,11 @@ func (msh *MobileServiceHandler) Read(rw http.ResponseWriter, req *http.Request)
 		handleCommonErrorCases(err, rw, msh.logger)
 		return
 	}
+	authChecker := msh.tokenClientBuilder.AuthChecker(token, true)
 
 	if withIntegrations != "" {
 		fmt.Println("with Integrations", serviceName)
-		ms, err = msh.mobileIntegrationService.ReadMobileServiceAndIntegrations(serviceCruder, serviceName)
+		ms, err = msh.mobileIntegrationService.ReadMobileServiceAndIntegrations(serviceCruder, authChecker, serviceName)
 		if err != nil {
 			handleCommonErrorCases(err, rw, msh.logger)
 			return

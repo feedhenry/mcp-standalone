@@ -4,6 +4,7 @@
     </div>
   </div>
   
+  <button ng-click="debug(service)" type="button">Debug</button>
   <div ng-if="integrations.length > 0 && mobileappsCount === 0">
     <div class="empty-state-message text-center">
       <h2>Get started with Mobile Integrations.</h2>
@@ -15,7 +16,6 @@
       </p>
     </div>
   </div>
-
   <div ng-if="integrations.length > 0 && mobileappsCount > 0">
     <form class="form-horizontal">
       <div class="form-group" ng-repeat="(key, value) in service.integrations">
