@@ -62,19 +62,18 @@ func main() {
 		k8host = "https://" + os.Getenv("KUBERNETES_SERVICE_HOST") + ":" + os.Getenv("KUBERNETES_SERVICE_PORT")
 	}
 	var (
-		k8ClientBuilder    = k8s.NewClientBuilder(*namespace, k8host)
-		mounterBuilder     = k8s.NewMounterBuilder(*namespace)
-		appRepoBuilder     = data.NewMobileAppRepoBuilder(k8ClientBuilder, *namespace, token)
-		svcRepoBuilder     = data.NewServiceRepoBuilder(k8ClientBuilder, *namespace, token)
-		tokenClientBuilder = clients.NewTokenScopedClientBuilder(k8ClientBuilder, mounterBuilder, *namespace, logger)
-		httpClientBuilder  = clients.NewHttpClientBuilder()
-		openshiftUser      = openshift.UserAccess{Logger: logger}
-		mwAccess           = middleware.NewAccess(logger, k8host, openshiftUser.ReadUserFromToken)
+		//setup out builders
+		k8ClientBuilder   = k8s.NewClientBuilder(*namespace, k8host)
+		mounterBuilder    = k8s.NewMounterBuilder(k8ClientBuilder, *namespace, token)
+		appRepoBuilder    = data.NewMobileAppRepoBuilder(k8ClientBuilder, *namespace, token)
+		svcRepoBuilder    = data.NewServiceRepoBuilder(k8ClientBuilder, *namespace, token)
+		httpClientBuilder = clients.NewHttpClientBuilder()
+		openshiftUser     = openshift.UserAccess{Logger: logger}
+		mwAccess          = middleware.NewAccess(logger, k8host, openshiftUser.ReadUserFromToken)
 		// these channels control when background proccess should stop
 		stop = make(chan struct{})
 		s    = make(chan os.Signal, 1)
 	)
-	tokenClientBuilder.SAToken = token
 
 	// send a message to the signal channel for any interrupt type signals (ctl+c etc)
 	signal.Notify(s, os.Interrupt)
@@ -121,7 +120,7 @@ func main() {
 	{
 		integrationSvc := integration.NewMobileSevice(*namespace)
 		metricSvc := &metrics.MetricsService{}
-		svcHandler := web.NewMobileServiceHandler(logger, integrationSvc, tokenClientBuilder, metricSvc, svcRepoBuilder)
+		svcHandler := web.NewMobileServiceHandler(logger, integrationSvc, mounterBuilder, metricSvc, svcRepoBuilder)
 		web.MobileServiceRoute(router, svcHandler)
 	}
 

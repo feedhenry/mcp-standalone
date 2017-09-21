@@ -73,10 +73,11 @@ type ExternalHTTPRequester interface {
 }
 
 // MounterBuilder creates VolumeMounterUnmounter objects
-// TODO prob can remote the WithClient and instead use NewMountBuilder(c corev1.ConfigMapInterface) and have this just expose Build() and perhaps add WithToken(token string)
 type MounterBuilder interface {
-	Build() VolumeMounterUnmounter
-	WithK8s(kubernetes.Interface) MounterBuilder
+	Build() (VolumeMounterUnmounter, error)
+	WithToken(token string) MounterBuilder
+	//UseDefaultSAToken delegates off to the service account token setup with the MCP. This should only be used for APIs where no real token is provided and should always be protected
+	UseDefaultSAToken() MounterBuilder
 }
 
 // VolumeMounter defines an interface for mounting volumes into services

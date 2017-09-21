@@ -19,18 +19,18 @@ import (
 type MobileServiceHandler struct {
 	logger                   *logrus.Logger
 	mobileIntegrationService *integration.MobileService
-	tokenClientBuilder       mobile.TokenScopedClientBuilder
+	mounterBuilder           mobile.MounterBuilder
 	serviceRepoBuilder       mobile.ServiceRepoBuilder
 	metricsGetter            mobile.MetricsGetter
 }
 
 // NewMobileServiceHandler returns a new MobileServiceHandler
-func NewMobileServiceHandler(logger *logrus.Logger, integrationService *integration.MobileService, tokenClientBuilder mobile.TokenScopedClientBuilder, mg mobile.MetricsGetter, serviceRepoBuilder mobile.ServiceRepoBuilder) *MobileServiceHandler {
+func NewMobileServiceHandler(logger *logrus.Logger, integrationService *integration.MobileService, mounterBuilder mobile.MounterBuilder, mg mobile.MetricsGetter, serviceRepoBuilder mobile.ServiceRepoBuilder) *MobileServiceHandler {
 	return &MobileServiceHandler{
 		logger: logger,
 		mobileIntegrationService: integrationService,
-		tokenClientBuilder:       tokenClientBuilder,
 		metricsGetter:            mg,
+		mounterBuilder:           mounterBuilder,
 		serviceRepoBuilder:       serviceRepoBuilder,
 	}
 }
@@ -138,7 +138,7 @@ func (msh *MobileServiceHandler) Configure(rw http.ResponseWriter, req *http.Req
 		return
 	}
 
-	mounter, err := msh.tokenClientBuilder.VolumeMounterUnmounter(token)
+	mounter, err := msh.mounterBuilder.WithToken(token).Build()
 	if err != nil {
 		handleCommonErrorCases(errors.Wrap(err, "web.msh.Configure -> could not create mounter"), rw, msh.logger)
 		return
@@ -182,7 +182,7 @@ func (msh *MobileServiceHandler) Deconfigure(rw http.ResponseWriter, req *http.R
 		return
 	}
 
-	unmounter, err := msh.tokenClientBuilder.VolumeMounterUnmounter(token)
+	unmounter, err := msh.mounterBuilder.WithToken(token).Build()
 	if err != nil {
 		handleCommonErrorCases(errors.Wrap(err, "web.msh.Deconfigure -> could not create volume unmounter"), rw, msh.logger)
 		return

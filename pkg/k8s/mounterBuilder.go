@@ -10,23 +10,47 @@ import (
 
 // MounterBuilder is a factory for MountManager
 type MounterBuilder struct {
-	k8s       kubernetes.Interface
-	namespace string
+	namespace     string
+	saToken       string
+	token         string
+	clientBuilder mobile.ClientBuilder
 }
 
 // NewMounterBuilder creates a new MounterBuilder in the provided namespace
-func NewMounterBuilder(namespace string) mobile.MounterBuilder {
-	return &MounterBuilder{namespace: namespace}
+func NewMounterBuilder(clientBuilder mobile.ClientBuilder, namespace, saToken string) mobile.MounterBuilder {
+	return &MounterBuilder{
+		namespace:     namespace,
+		clientBuilder: clientBuilder,
+		saToken:       saToken,
+	}
 }
 
-// WithK8s will return a pointer to a MounterBuilder using the provided kubernetes client
-func (mb *MounterBuilder) WithK8s(k8s kubernetes.Interface) mobile.MounterBuilder {
-	return &MounterBuilder{k8s: k8s, namespace: mb.namespace}
+func (mb *MounterBuilder) WithToken(token string) mobile.MounterBuilder {
+	return &MounterBuilder{
+		namespace:     mb.namespace,
+		token:         token,
+		saToken:       mb.saToken,
+		clientBuilder: mb.clientBuilder,
+	}
+}
+
+//UseDefaultSAToken delegates off to the service account token setup with the MCP. This should only be used for APIs where no real token is provided and should always be protected
+func (mb *MounterBuilder) UseDefaultSAToken() mobile.MounterBuilder {
+	return &MounterBuilder{
+		namespace:     mb.namespace,
+		token:         mb.saToken,
+		saToken:       mb.saToken,
+		clientBuilder: mb.clientBuilder,
+	}
 }
 
 // Build a new MountManager from the configured MounterBuilder
-func (mb *MounterBuilder) Build() mobile.VolumeMounterUnmounter {
-	return &MountManager{k8s: mb.k8s, namespace: mb.namespace}
+func (mb *MounterBuilder) Build() (mobile.VolumeMounterUnmounter, error) {
+	k8, err := mb.clientBuilder.WithToken(mb.token).BuildClient()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create mount builder")
+	}
+	return &MountManager{k8s: k8, namespace: mb.namespace}, nil
 }
 
 // MountManager can mount and unmount into services

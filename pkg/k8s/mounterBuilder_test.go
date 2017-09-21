@@ -5,6 +5,7 @@ import (
 
 	ktesting "k8s.io/client-go/testing"
 
+	"github.com/feedhenry/mcp-standalone/pkg/mock"
 	kerror "k8s.io/apimachinery/pkg/api/errors"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -179,8 +180,14 @@ func TestMount(t *testing.T) {
 	}
 
 	for _, testCase := range cases {
-		mb := NewMounterBuilder(testCase.Namespace).WithK8s(testCase.K8sClient()).Build()
-		err := mb.Mount(testCase.Secret, testCase.Service)
+		cb := &mock.ClientBuilder{
+			Fakeclient: testCase.K8sClient(),
+		}
+		mb, err := NewMounterBuilder(cb, testCase.Namespace, "test").WithToken("").Build()
+		if err != nil {
+			t.Fatalf("unexpected error creating mount builder")
+		}
+		err = mb.Mount(testCase.Secret, testCase.Service)
 		testCase.Validate(t, err)
 	}
 }
@@ -254,8 +261,14 @@ func TestUnmount(t *testing.T) {
 	}
 
 	for _, testCase := range cases {
-		mb := NewMounterBuilder(testCase.Namespace).WithK8s(testCase.K8sClient()).Build()
-		err := mb.Unmount(testCase.Secret, testCase.Service)
+		cb := &mock.ClientBuilder{
+			Fakeclient: testCase.K8sClient(),
+		}
+		mb, err := NewMounterBuilder(cb, testCase.Namespace, "test").WithToken("").Build()
+		if err != nil {
+			t.Fatalf("unexpected error creating mount builder")
+		}
+		err = mb.Unmount(testCase.Secret, testCase.Service)
 		testCase.Validate(t, err)
 	}
 }
