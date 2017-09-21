@@ -21,9 +21,10 @@
       <div class="form-group" ng-repeat="(key, value) in service.integrations">
         <label class="col-sm-2 control-label" for="integration-{{key}}">{{key}}</label>
         <div class="col-sm-10" ng-switch="status(key, service)">
-          <button ng-switch-when="0" ng-click="enableIntegration(service.integrations[key])" class="btn btn-primary" type="button">Create Integration</button>
-          <button ng-switch-when="1" ng-click="disableIntegration(service.integrations[key])" class="btn btn-danger" type="button">Destroy Integration</button>
+          <button ng-switch-when="0" ng-if="serviceWriteable(service)" ng-click="enableIntegration(service.integrations[key])" class="btn btn-primary" type="button">Create Integration</button>
+          <button ng-switch-when="1" ng-if="serviceWriteable(service)" ng-click="disableIntegration(service.integrations[key])" class="btn btn-danger" type="button">Destroy Integration</button>
           <div    ng-switch-when="2" class="spinner spinner-inline"></div>
+          <span ng-if="!serviceWriteable(service)">{{service.name}} is not writeable; this means that it cannot be automatically configured with an integration.</span>
         </div>
       </div>
     </form>
