@@ -1,8 +1,6 @@
 package integration
 
 import (
-	"fmt"
-
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
 	"github.com/pkg/errors"
 )
@@ -78,16 +76,13 @@ func (ms *MobileService) ReadMobileServiceAndIntegrations(serviceCruder mobile.S
 	}
 	svc.Capabilities = capabilities[svc.Type]
 	if svc.Capabilities != nil {
-		fmt.Println("checking for capabilties of", svc.Type)
 		integrations := svc.Capabilities["integrations"]
 		for _, v := range integrations {
-			fmt.Println("checking for instance of", v)
 			isvs, err := serviceCruder.List(filterServices([]string{v}))
 			if err != nil {
 				return nil, errors.Wrap(err, "failed attempting to discover mobile services.")
 			}
 			if len(isvs) > 0 {
-				fmt.Println("found", v)
 				is := isvs[0]
 				enabled := svc.Labels[is.Name] == "true"
 				svc.Integrations[v] = &mobile.ServiceIntegration{
@@ -99,8 +94,6 @@ func (ms *MobileService) ReadMobileServiceAndIntegrations(serviceCruder mobile.S
 				}
 			}
 		}
-	} else {
-		fmt.Println("no capabilities found for", svc.Type)
 	}
 	svc.Writeable = true
 	if svc.External {

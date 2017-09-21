@@ -3,7 +3,6 @@ package openshift
 import (
 	"crypto/tls"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -88,7 +87,6 @@ func (ac *AuthChecker) Check(resource, namespace string) (bool, error) {
 	if err != nil {
 		return false, errors.Wrap(err, "openshift.ac.Check -> failed to retrieve user details")
 	}
-	fmt.Printf("%+v\n", user)
 	u, err := url.Parse(ac.Host)
 	if err != nil {
 		return false, errors.Wrap(err, "openshift.ac.Check -> failed to parse openshift host when attempting to check authorization")
@@ -126,7 +124,7 @@ func (ac *AuthChecker) Check(resource, namespace string) (bool, error) {
 			return false, &AuthenticationError{Message: "openshift.ac.Check -> (" + strconv.Itoa(resp.StatusCode) + ") access was denied", StatusCode: resp.StatusCode}
 		}
 
-		return false, errors.New(fmt.Sprintf("openshift.ac.Check -> unexpected response code from openshift %v", resp.StatusCode))
+		return false, errors.New("openshift.ac.Check -> unexpected response code from openshift " + strconv.Itoa(resp.StatusCode))
 	}
 	data, err := ioutil.ReadAll(resp.Body)
 	if err != nil {

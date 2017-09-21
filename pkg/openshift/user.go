@@ -2,7 +2,6 @@ package openshift
 
 import (
 	"crypto/tls"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -12,6 +11,7 @@ import (
 	"encoding/json"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
 	"github.com/pkg/errors"
+	"strconv"
 )
 
 const (
@@ -57,7 +57,7 @@ func (ua *UserAccess) ReadUserFromToken(host, token string, insecure bool) (mobi
 			return user, &AuthenticationError{Message: "access was denied", StatusCode: resp.StatusCode}
 		}
 
-		return user, errors.New(fmt.Sprintf("unexpected response code from openshift %v", resp.StatusCode))
+		return user, errors.New("unexpected response code from openshift " + strconv.Itoa(resp.StatusCode))
 	}
 	data, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
