@@ -4,9 +4,7 @@ import (
 	"testing"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/feedhenry/mcp-standalone/pkg/clients"
 	"github.com/feedhenry/mcp-standalone/pkg/data"
-	"github.com/feedhenry/mcp-standalone/pkg/k8s"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
 
 	"net/http"
@@ -23,18 +21,6 @@ import (
 	v1 "k8s.io/client-go/pkg/api/v1"
 	ktesting "k8s.io/client-go/testing"
 )
-
-func buildDefaultTestTokenClientBuilder(kclient kubernetes.Interface) mobile.TokenScopedClientBuilder {
-	logger := logrus.StandardLogger()
-	cb := &mock.ClientBuilder{
-		Fakeclient: kclient,
-	}
-	svcRepoBuilder := data.NewServiceRepoBuilder()
-	svcRepoBuilder = svcRepoBuilder.WithClient(kclient.CoreV1().Secrets("test"))
-	mounterBuilder := k8s.NewMounterBuilder("test")
-	clientBuilder := clients.NewTokenScopedClientBuilder(cb, svcRepoBuilder, mounterBuilder, "test", logger)
-	return clientBuilder
-}
 
 func TestKeycloak_Gather(t *testing.T) {
 
@@ -202,7 +188,11 @@ func TestKeycloak_Gather(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
 			httpClientBuilder := &mock.HttpClientBuilder{Requester: tc.Requester(t)}
-			kc := NewKeycloak(httpClientBuilder, buildDefaultTestTokenClientBuilder(tc.Client()), logrus.StandardLogger())
+			cb := &mock.ClientBuilder{
+				Fakeclient: tc.Client(),
+			}
+			serviceRepoBuilder := data.NewServiceRepoBuilder(cb, "test", "test")
+			kc := NewKeycloak(httpClientBuilder, serviceRepoBuilder, logrus.StandardLogger())
 			metrics, err := kc.Gather()
 			if err == nil && tc.ExpectError {
 				t.Fatal("expected an error but got none")

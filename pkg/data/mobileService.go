@@ -70,7 +70,7 @@ func (sa *secretAttributer) GetType() string {
 	return strings.TrimSpace(string(sa.Secret.Data["type"]))
 }
 
-// MobileServiceRepo implments the mobile.ServiceCruder interface. it backed by the secret resource in kubernetes
+// MobileServiceRepo implements the mobile.ServiceCruder interface. it backed by the secret resource in kubernetes
 type MobileServiceRepo struct {
 	client     corev1.SecretInterface
 	convertors map[string]SecretConvertor
@@ -237,23 +237,47 @@ func convertSecretToMobileService(s v1.Secret) *mobile.Service {
 }
 
 // NewServiceRepoBuilder provides an implementation of mobile.ServiceRepoBuilder
-func NewServiceRepoBuilder() mobile.ServiceRepoBuilder {
-	return &MobileServiceRepoBuilder{}
+func NewServiceRepoBuilder(clientBuilder mobile.ClientBuilder, namespace, saToken string) mobile.ServiceRepoBuilder {
+	return &MobileServiceRepoBuilder{
+		clientBuilder: clientBuilder,
+		saToken:       saToken,
+		namespace:     namespace,
+	}
 }
 
 // MobileServiceRepoBuilder builds a ServiceCruder
 type MobileServiceRepoBuilder struct {
-	client corev1.SecretInterface
+	clientBuilder mobile.ClientBuilder
+	token         string
+	namespace     string
+	saToken       string
 }
 
-// WithClient sets the client to use
-func (marb *MobileServiceRepoBuilder) WithClient(client corev1.SecretInterface) mobile.ServiceRepoBuilder {
+func (marb *MobileServiceRepoBuilder) WithToken(token string) mobile.ServiceRepoBuilder {
 	return &MobileServiceRepoBuilder{
-		client: client,
+		clientBuilder: marb.clientBuilder,
+		token:         token,
+		saToken:       marb.saToken,
+		namespace:     marb.namespace,
 	}
 }
 
+//UseDefaultSAToken delegates off to the service account token setup with the MCP. This should only be used for APIs where no real token is provided and should always be protected
+func (marb *MobileServiceRepoBuilder) UseDefaultSAToken() mobile.ServiceRepoBuilder {
+	return &MobileServiceRepoBuilder{
+		clientBuilder: marb.clientBuilder,
+		token:         marb.saToken,
+		saToken:       marb.saToken,
+		namespace:     marb.namespace,
+	}
+
+}
+
 // Build builds the final repo
-func (marb *MobileServiceRepoBuilder) Build() mobile.ServiceCruder {
-	return NewMobileServiceRepo(marb.client)
+func (marb *MobileServiceRepoBuilder) Build() (mobile.ServiceCruder, error) {
+	k8client, err := marb.clientBuilder.WithToken(marb.token).BuildClient()
+	if err != nil {
+		return nil, errors.Wrap(err, "MobileAppRepoBuilder failed to build a configmap client")
+	}
+	return NewMobileServiceRepo(k8client.CoreV1().Secrets(marb.namespace)), nil
 }

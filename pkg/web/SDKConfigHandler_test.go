@@ -25,13 +25,13 @@ import (
 func setupSDKHandler(kclient kubernetes.Interface) http.Handler {
 	r := web.NewRouter()
 	logger := logrus.StandardLogger()
-	clientBuilder := buildDefaultTestTokenClientBuilder(kclient)
 	cb := &mock.ClientBuilder{
 		Fakeclient: kclient,
 	}
 	appRepoBuilder := data.NewMobileAppRepoBuilder(cb, "test", "test")
+	serviceRepoBuilder := data.NewServiceRepoBuilder(cb, "test", "test")
 	ms := &integration.SDKService{}
-	sdkConfigHandler := web.NewSDKConfigHandler(logger, ms, clientBuilder, appRepoBuilder)
+	sdkConfigHandler := web.NewSDKConfigHandler(logger, ms, serviceRepoBuilder, appRepoBuilder)
 	web.SDKConfigRoute(r, sdkConfigHandler)
 	return web.BuildHTTPHandler(r, nil)
 }

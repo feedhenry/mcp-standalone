@@ -14,17 +14,17 @@ import (
 // SDKConfigHandler handles sdk configuration requests
 type SDKConfigHandler struct {
 	mobileIntegrationService *integration.SDKService
-	tokenScopedBuilder       mobile.TokenScopedClientBuilder
 	appRepoBuilder           mobile.AppRepoBuilder
+	serviceRepoBuilder       mobile.ServiceRepoBuilder
 	logger                   *logrus.Logger
 }
 
 // NewSDKConfigHandler returns an sdk handler
-func NewSDKConfigHandler(logger *logrus.Logger, service *integration.SDKService, builder mobile.TokenScopedClientBuilder, repoBuilder mobile.AppRepoBuilder) *SDKConfigHandler {
+func NewSDKConfigHandler(logger *logrus.Logger, service *integration.SDKService, serviceRepoBuilder mobile.ServiceRepoBuilder, repoBuilder mobile.AppRepoBuilder) *SDKConfigHandler {
 	return &SDKConfigHandler{
 		mobileIntegrationService: service,
 		logger:             logger,
-		tokenScopedBuilder: builder,
+		serviceRepoBuilder: serviceRepoBuilder,
 		appRepoBuilder:     repoBuilder,
 	}
 }
@@ -45,7 +45,7 @@ func (sdk *SDKConfigHandler) Read(rw http.ResponseWriter, req *http.Request) {
 		handleCommonErrorCases(err, rw, sdk.logger)
 		return
 	}
-	svcCruder, err := sdk.tokenScopedBuilder.UseDefaultSAToken().MobileServiceCruder("")
+	svcCruder, err := sdk.serviceRepoBuilder.UseDefaultSAToken().Build()
 	if err != nil {
 		err = errors.Wrap(err, "failed to create token scoped service client")
 		handleCommonErrorCases(err, rw, sdk.logger)

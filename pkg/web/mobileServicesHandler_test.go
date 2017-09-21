@@ -38,7 +38,11 @@ func setupMobileServiceHandler(kclient kubernetes.Interface) http.Handler {
 	clientBuilder := buildDefaultTestTokenClientBuilder(kclient)
 	metricGetter := &metrics.MetricsService{}
 	ms := &integration.MobileService{}
-	handler := web.NewMobileServiceHandler(logger, ms, clientBuilder, metricGetter)
+	cb := &mock.ClientBuilder{
+		Fakeclient: kclient,
+	}
+	serviceCruder := data.NewServiceRepoBuilder(cb, "test", "test")
+	handler := web.NewMobileServiceHandler(logger, ms, clientBuilder, metricGetter, serviceCruder)
 	web.MobileServiceRoute(r, handler)
 	return web.BuildHTTPHandler(r, nil)
 }
@@ -48,10 +52,8 @@ func buildDefaultTestTokenClientBuilder(kclient kubernetes.Interface) mobile.Tok
 	cb := &mock.ClientBuilder{
 		Fakeclient: kclient,
 	}
-	svcRepoBuilder := data.NewServiceRepoBuilder()
-	svcRepoBuilder = svcRepoBuilder.WithClient(kclient.CoreV1().Secrets("test"))
 	mounterBuilder := k8s.NewMounterBuilder("test")
-	clientBuilder := clients.NewTokenScopedClientBuilder(cb, svcRepoBuilder, mounterBuilder, "test", logger)
+	clientBuilder := clients.NewTokenScopedClientBuilder(cb, mounterBuilder, "test", logger)
 	return clientBuilder
 }
 

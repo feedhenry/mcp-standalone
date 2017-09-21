@@ -92,13 +92,13 @@ type statsResponse struct {
 
 type FhSyncServer struct {
 	requestBuilder     mobile.HTTPRequesterBuilder
-	tokenClientBuilder mobile.TokenScopedClientBuilder
+	serviceRepoBuilder mobile.ServiceRepoBuilder
 	ServiceName        string
 	logger             *logrus.Logger
 }
 
-func NewFhSyncServer(rbuilder mobile.HTTPRequesterBuilder, tokenCBuilder mobile.TokenScopedClientBuilder, l *logrus.Logger) *FhSyncServer {
-	return &FhSyncServer{requestBuilder: rbuilder, tokenClientBuilder: tokenCBuilder, ServiceName: "fh-sync-server", logger: l}
+func NewFhSyncServer(rbuilder mobile.HTTPRequesterBuilder, serviceRepoBuilder mobile.ServiceRepoBuilder, l *logrus.Logger) *FhSyncServer {
+	return &FhSyncServer{requestBuilder: rbuilder, serviceRepoBuilder: serviceRepoBuilder, ServiceName: "fh-sync-server", logger: l}
 }
 
 /*
@@ -111,7 +111,7 @@ var stringToInt64Regex = regexp.MustCompile(`(\d+)\.?\d*\w*`)
 
 // Gather will retrieve varous metrics from fh-sync-server
 func (ss *FhSyncServer) Gather() ([]*metric, error) {
-	svc, err := ss.tokenClientBuilder.UseDefaultSAToken().MobileServiceCruder("")
+	svc, err := ss.serviceRepoBuilder.UseDefaultSAToken().Build()
 	if err != nil {
 		return nil, errors.Wrap(err, "fh-sync-server gather failed to create svcruder")
 	}
@@ -138,7 +138,7 @@ func (ss *FhSyncServer) Gather() ([]*metric, error) {
 	var stringToInt64 = func(val string) int64 {
 		numOnly := stringToInt64Regex.FindStringSubmatch(val)
 		if len(numOnly) < 2 {
-			err := fmt.Errorf("No numerial value found in string %s", val)
+			err := fmt.Errorf("no numerial value found in string %s", val)
 			parseErrors = append(parseErrors, err)
 			return -1
 		}

@@ -33,7 +33,6 @@ func main() {
 		saTokenPath     = flag.String("satoken-path", "var/run/secrets/kubernetes.io/serviceaccount/token", "where on disk the service account token to use is ")
 		staticDirectory = flag.String("web-dir", "./web/app", "Location of static content to serve at /console. index.html will be used as a fallback for requested files that don't exist")
 		k8host          string
-		svcRepoBuilder  = &data.MobileServiceRepoBuilder{}
 	)
 	flag.StringVar(&k8host, "k8-host", "", "kubernetes target")
 	flag.Parse()
@@ -66,7 +65,8 @@ func main() {
 		k8ClientBuilder    = k8s.NewClientBuilder(*namespace, k8host)
 		mounterBuilder     = k8s.NewMounterBuilder(*namespace)
 		appRepoBuilder     = data.NewMobileAppRepoBuilder(k8ClientBuilder, *namespace, token)
-		tokenClientBuilder = clients.NewTokenScopedClientBuilder(k8ClientBuilder, svcRepoBuilder, mounterBuilder, *namespace, logger)
+		svcRepoBuilder     = data.NewServiceRepoBuilder(k8ClientBuilder, *namespace, token)
+		tokenClientBuilder = clients.NewTokenScopedClientBuilder(k8ClientBuilder, mounterBuilder, *namespace, logger)
 		httpClientBuilder  = clients.NewHttpClientBuilder()
 		openshiftUser      = openshift.UserAccess{Logger: logger}
 		mwAccess           = middleware.NewAccess(logger, k8host, openshiftUser.ReadUserFromToken)
@@ -100,11 +100,11 @@ func main() {
 		gatherer := metrics.NewGathererScheduler(interval, stop, logger)
 
 		// add metrics gatherers
-		kcMetrics := metrics.NewKeycloak(httpClientBuilder, tokenClientBuilder, logger)
+		kcMetrics := metrics.NewKeycloak(httpClientBuilder, svcRepoBuilder, logger)
 		gatherer.Add(kcMetrics.ServiceName, kcMetrics.Gather)
 
 		// add fh-sync-server gatherers
-		syncMetrics := metrics.NewFhSyncServer(httpClientBuilder, tokenClientBuilder, logger)
+		syncMetrics := metrics.NewFhSyncServer(httpClientBuilder, svcRepoBuilder, logger)
 		gatherer.Add(syncMetrics.ServiceName, syncMetrics.Gather)
 
 		// start collecting metrics
@@ -121,14 +121,14 @@ func main() {
 	{
 		integrationSvc := integration.NewMobileSevice(*namespace)
 		metricSvc := &metrics.MetricsService{}
-		svcHandler := web.NewMobileServiceHandler(logger, integrationSvc, tokenClientBuilder, metricSvc)
+		svcHandler := web.NewMobileServiceHandler(logger, integrationSvc, tokenClientBuilder, metricSvc, svcRepoBuilder)
 		web.MobileServiceRoute(router, svcHandler)
 	}
 
 	//sdk handler
 	{
 		sdkService := &integration.SDKService{}
-		sdkHandler := web.NewSDKConfigHandler(logger, sdkService, tokenClientBuilder, appRepoBuilder)
+		sdkHandler := web.NewSDKConfigHandler(logger, sdkService, svcRepoBuilder, appRepoBuilder)
 		web.SDKConfigRoute(router, sdkHandler)
 	}
 	//sys handler

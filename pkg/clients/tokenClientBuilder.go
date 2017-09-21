@@ -13,24 +13,22 @@ import (
 // TokenScopedClientBuilder builds a client bound to a particular token.
 // if there is token passed it will attempt to use the default sa token
 type TokenScopedClientBuilder struct {
-	clientBuilder      mobile.ClientBuilder
-	serviceRepoBuilder mobile.ServiceRepoBuilder
-	namespace          string
-	logger             *logrus.Logger
-	mounterBuilder     mobile.MounterBuilder
-	useSaToken         bool
+	clientBuilder  mobile.ClientBuilder
+	namespace      string
+	logger         *logrus.Logger
+	mounterBuilder mobile.MounterBuilder
+	useSaToken     bool
 	// this is initialised to the service acount token in the container
 	SAToken string
 }
 
 // NewTokenScopedClientBuilder returns a new client builder that builds clients using the token provided
-func NewTokenScopedClientBuilder(cb mobile.ClientBuilder, srv mobile.ServiceRepoBuilder, mb mobile.MounterBuilder, namespace string, logger *logrus.Logger) *TokenScopedClientBuilder {
+func NewTokenScopedClientBuilder(cb mobile.ClientBuilder, mb mobile.MounterBuilder, namespace string, logger *logrus.Logger) *TokenScopedClientBuilder {
 	return &TokenScopedClientBuilder{
-		clientBuilder:      cb,
-		serviceRepoBuilder: srv,
-		namespace:          namespace,
-		logger:             logger,
-		mounterBuilder:     mb,
+		clientBuilder:  cb,
+		namespace:      namespace,
+		logger:         logger,
+		mounterBuilder: mb,
 	}
 }
 
@@ -58,17 +56,6 @@ func (rsb *TokenScopedClientBuilder) K8s(token string) (kubernetes.Interface, er
 
 	}
 	return k8client, nil
-}
-
-// MobileServiceCruder builds a token scoped service cruder
-func (rsb *TokenScopedClientBuilder) MobileServiceCruder(token string) (mobile.ServiceCruder, error) {
-	token = rsb.token(token)
-	k8client, err := rsb.clientBuilder.WithToken(token).BuildClient()
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to create request scoped kubernetes client with token")
-	}
-	return rsb.serviceRepoBuilder.WithClient(k8client.CoreV1().Secrets(rsb.namespace)).Build(), nil
-
 }
 
 func (rsb *TokenScopedClientBuilder) VolumeMounterUnmounter(token string) (mobile.VolumeMounterUnmounter, error) {

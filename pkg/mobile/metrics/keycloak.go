@@ -22,7 +22,7 @@ import (
 
 type Keycloak struct {
 	requestBuilder     mobile.HTTPRequesterBuilder
-	tokenClientBuilder mobile.TokenScopedClientBuilder
+	serviceRepoBuilder mobile.ServiceRepoBuilder
 	ServiceName        string
 	logger             *logrus.Logger
 }
@@ -36,14 +36,14 @@ var tokenCache = map[string]*token{}
 
 const timeFomrat = "2006-01-02 15:04:05"
 
-func NewKeycloak(rbuilder mobile.HTTPRequesterBuilder, tokenCBuilder mobile.TokenScopedClientBuilder, l *logrus.Logger) *Keycloak {
-	return &Keycloak{requestBuilder: rbuilder, tokenClientBuilder: tokenCBuilder, logger: l, ServiceName: "keycloak"}
+func NewKeycloak(rbuilder mobile.HTTPRequesterBuilder, serviceRepoBuilder mobile.ServiceRepoBuilder, l *logrus.Logger) *Keycloak {
+	return &Keycloak{requestBuilder: rbuilder, serviceRepoBuilder: serviceRepoBuilder, logger: l, ServiceName: "keycloak"}
 }
 
 // Gather will retrieve varous metrics from keycloak
 func (kc *Keycloak) Gather() ([]*metric, error) {
 	kc.logger.Debug("keycloak metrics gathering ")
-	svc, err := kc.tokenClientBuilder.UseDefaultSAToken().MobileServiceCruder("")
+	svc, err := kc.serviceRepoBuilder.UseDefaultSAToken().Build()
 	if err != nil {
 		return nil, errors.Wrap(err, "keycloak gather failed to create svcruder using default service account token")
 	}
