@@ -42,10 +42,11 @@ type ClientBuilder interface {
 	BuildClient() (kubernetes.Interface, error)
 }
 
-// TODO prob can remote the WithClient and instead use NewRepoBuilder(c corev1.ConfigMapInterface) and have this just expose Build() and perhaps add WithToken(token string)
 type AppRepoBuilder interface {
-	WithClient(c corev1.ConfigMapInterface) AppRepoBuilder
-	Build() AppCruder
+	WithToken(token string) AppRepoBuilder
+	//UseDefaultSAToken delegates off to the service account token setup with the MCP. This should only be used for APIs where no real token is provided and should always be protected
+	UseDefaultSAToken() AppRepoBuilder
+	Build() (AppCruder, error)
 }
 
 // TODO prob can remote the WithClient and instead use NewRepoBuilder(c corev1.ConfigMapInterface) and have this just expose Build() and perhaps add WithToken(token string)
@@ -56,7 +57,6 @@ type ServiceRepoBuilder interface {
 
 type TokenScopedClientBuilder interface {
 	K8s(token string) (kubernetes.Interface, error)
-	MobileAppCruder(token string) (AppCruder, error)
 	MobileServiceCruder(token string) (ServiceCruder, error)
 	UseDefaultSAToken() TokenScopedClientBuilder
 	VolumeMounterUnmounter(token string) (VolumeMounterUnmounter, error)

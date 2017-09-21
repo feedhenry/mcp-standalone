@@ -48,12 +48,10 @@ func buildDefaultTestTokenClientBuilder(kclient kubernetes.Interface) mobile.Tok
 	cb := &mock.ClientBuilder{
 		Fakeclient: kclient,
 	}
-	appRepoBuilder := data.NewMobileAppRepoBuilder()
-	appRepoBuilder = appRepoBuilder.WithClient(kclient.CoreV1().ConfigMaps("test"))
 	svcRepoBuilder := data.NewServiceRepoBuilder()
 	svcRepoBuilder = svcRepoBuilder.WithClient(kclient.CoreV1().Secrets("test"))
 	mounterBuilder := k8s.NewMounterBuilder("test")
-	clientBuilder := clients.NewTokenScopedClientBuilder(cb, appRepoBuilder, svcRepoBuilder, mounterBuilder, "test", logger)
+	clientBuilder := clients.NewTokenScopedClientBuilder(cb, svcRepoBuilder, mounterBuilder, "test", logger)
 	return clientBuilder
 }
 

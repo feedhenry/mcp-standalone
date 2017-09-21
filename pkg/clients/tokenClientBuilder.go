@@ -14,7 +14,6 @@ import (
 // if there is token passed it will attempt to use the default sa token
 type TokenScopedClientBuilder struct {
 	clientBuilder      mobile.ClientBuilder
-	appRepoBuilder     mobile.AppRepoBuilder
 	serviceRepoBuilder mobile.ServiceRepoBuilder
 	namespace          string
 	logger             *logrus.Logger
@@ -25,10 +24,9 @@ type TokenScopedClientBuilder struct {
 }
 
 // NewTokenScopedClientBuilder returns a new client builder that builds clients using the token provided
-func NewTokenScopedClientBuilder(cb mobile.ClientBuilder, arb mobile.AppRepoBuilder, srv mobile.ServiceRepoBuilder, mb mobile.MounterBuilder, namespace string, logger *logrus.Logger) *TokenScopedClientBuilder {
+func NewTokenScopedClientBuilder(cb mobile.ClientBuilder, srv mobile.ServiceRepoBuilder, mb mobile.MounterBuilder, namespace string, logger *logrus.Logger) *TokenScopedClientBuilder {
 	return &TokenScopedClientBuilder{
 		clientBuilder:      cb,
-		appRepoBuilder:     arb,
 		serviceRepoBuilder: srv,
 		namespace:          namespace,
 		logger:             logger,
@@ -49,16 +47,6 @@ func (rsb *TokenScopedClientBuilder) UseDefaultSAToken() mobile.TokenScopedClien
 	var cloned = *rsb
 	cloned.useSaToken = true
 	return &cloned
-}
-
-// MobileAppCruder returns a token scoped MobileAppCruder
-func (rsb *TokenScopedClientBuilder) MobileAppCruder(token string) (mobile.AppCruder, error) {
-	token = rsb.token(token)
-	k8s, err := rsb.K8s(token)
-	if err != nil {
-		return nil, err
-	}
-	return rsb.appRepoBuilder.WithClient(k8s.CoreV1().ConfigMaps(rsb.namespace)).Build(), nil
 }
 
 // K8s will build a token scoped kuberentes client
