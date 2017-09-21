@@ -11,10 +11,10 @@ import (
 	"strconv"
 	"time"
 
+	"bytes"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
 	"github.com/pkg/errors"
 	"strings"
-	"bytes"
 )
 
 //AuthCheckerBuilder for building AuthCheckers
@@ -39,7 +39,7 @@ func (acb *AuthCheckerBuilder) Build() mobile.AuthChecker {
 		Host:          acb.Host,
 		Token:         acb.Token,
 		SkipCertCheck: acb.SkipCertCheck,
-		UserRepo: 	   acb.UserRepo,
+		UserRepo:      acb.UserRepo,
 	}
 }
 
@@ -49,7 +49,7 @@ func (acb *AuthCheckerBuilder) IgnoreCerts() mobile.AuthCheckerBuilder {
 		Host:          acb.Host,
 		Token:         acb.Token,
 		SkipCertCheck: true,
-		UserRepo:	   acb.UserRepo,
+		UserRepo:      acb.UserRepo,
 	}
 }
 
@@ -59,27 +59,28 @@ func (acb *AuthCheckerBuilder) WithToken(token string) mobile.AuthCheckerBuilder
 		Host:          acb.Host,
 		SkipCertCheck: acb.SkipCertCheck,
 		Token:         token,
-		UserRepo:	   acb.UserRepo,
+		UserRepo:      acb.UserRepo,
 	}
 }
+
 // WithUserRepo stores the provided userrrepo for creating future AuthCheckers
 func (acb *AuthCheckerBuilder) WithUserRepo(repo mobile.UserRepo) mobile.AuthCheckerBuilder {
 	return &AuthCheckerBuilder{
 		Host:          acb.Host,
 		SkipCertCheck: acb.SkipCertCheck,
 		Token:         acb.Token,
-		UserRepo:	   repo,
+		UserRepo:      repo,
 	}
 }
 
 type authCheckJsonPayload struct {
-	Verb               string `json:"verb"`
-	Resource           string `json:"resource"`
+	Verb     string `json:"verb"`
+	Resource string `json:"resource"`
 }
 
 type authCheckResponse struct {
-	Users           []string `json:"users"`
-	Groups          []string `json:"groups"`
+	Users  []string `json:"users"`
+	Groups []string `json:"groups"`
 }
 
 // Check that the resource in the provided namespace can be written to by the current user
@@ -93,10 +94,10 @@ func (ac *AuthChecker) Check(resource, namespace string) (bool, error) {
 	if err != nil {
 		return false, errors.Wrap(err, "openshift.ac.Check -> failed to parse openshift host when attempting to check authorization")
 	}
-	u.Path = path.Join("/oapi/v1/namespaces/"+namespace+"/localresourceaccessreviews")
+	u.Path = path.Join("/oapi/v1/namespaces/" + namespace + "/localresourceaccessreviews")
 	payload := authCheckJsonPayload{
-		Verb:               "update",
-		Resource:           "deploymentconfigs",
+		Verb:     "update",
+		Resource: "deploymentconfigs",
 	}
 	bytePayload, err := json.Marshal(payload)
 	if err != nil {
@@ -121,7 +122,7 @@ func (ac *AuthChecker) Check(resource, namespace string) (bool, error) {
 	if resp.StatusCode == http.StatusForbidden {
 		// user does not have permission to create the permission check in the namespace
 		return false, nil
-	} else if resp.StatusCode != http.StatusCreated  {
+	} else if resp.StatusCode != http.StatusCreated {
 		if resp.StatusCode == http.StatusUnauthorized || resp.StatusCode == http.StatusForbidden {
 			return false, &AuthenticationError{Message: "openshift.ac.Check -> (" + strconv.Itoa(resp.StatusCode) + ") access was denied", StatusCode: resp.StatusCode}
 		}

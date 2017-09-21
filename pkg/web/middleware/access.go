@@ -6,10 +6,10 @@ import (
 	"regexp"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/feedhenry/mcp-standalone/pkg/mobile"
 	"github.com/feedhenry/mcp-standalone/pkg/openshift"
 	"github.com/feedhenry/mcp-standalone/pkg/web/headers"
 	"github.com/pkg/errors"
-	"github.com/feedhenry/mcp-standalone/pkg/mobile"
 )
 
 type UserChecker func(host, token string, skipTLS bool) (mobile.User, error)

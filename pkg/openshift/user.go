@@ -9,9 +9,9 @@ import (
 	"path"
 	"time"
 
-	"github.com/pkg/errors"
-	"github.com/feedhenry/mcp-standalone/pkg/mobile"
 	"encoding/json"
+	"github.com/feedhenry/mcp-standalone/pkg/mobile"
+	"github.com/pkg/errors"
 )
 
 const (
@@ -20,12 +20,14 @@ const (
 
 type UserChecker func(host, token string, skipTLS bool) (User, error)
 
-type UserAccess struct {}
+type UserAccess struct{}
 
 type userResponse struct {
 	Identities []string `json:"identities"`
 	Groups     []string `json:"groups"`
-	Metadata   struct{Name string `json:"name"`} `json:"metadata"`
+	Metadata   struct {
+		Name string `json:"name"`
+	} `json:"metadata"`
 }
 
 func (ua *UserAccess) ReadUserFromToken(host, token string, insecure bool) (mobile.User, error) {
@@ -89,7 +91,7 @@ func IsAuthenticationError(err error) bool {
 }
 
 type User struct {
-	User string
+	User   string
 	Groups []string
 }
 
@@ -97,7 +99,7 @@ func (u *User) Username() string {
 	return u.User
 }
 
-func (u *User)InAnyGroup(groups []string) bool {
+func (u *User) InAnyGroup(groups []string) bool {
 	for _, group := range groups {
 		for _, userGroup := range u.Groups {
 			if group == userGroup {
@@ -109,9 +111,9 @@ func (u *User)InAnyGroup(groups []string) bool {
 }
 
 type UserRepoBuilder struct {
-	token  string
-	client mobile.UserAccessChecker
-	host   string
+	token       string
+	client      mobile.UserAccessChecker
+	host        string
 	ignoreCerts bool
 }
 
@@ -132,9 +134,9 @@ func (urb *UserRepoBuilder) Build() mobile.UserRepo {
 }
 
 type UserRepo struct {
-	token string
-	client mobile.UserAccessChecker
-	host string
+	token       string
+	client      mobile.UserAccessChecker
+	host        string
 	ignoreCerts bool
 }
 
