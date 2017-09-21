@@ -68,3 +68,6 @@ func (mac *MockAppCruder) Update(app *mobile.App) (*mobile.App, error) {
 func (mac *MockAppCruder) CreateAppAPIKeyMap() error {
 	return mac.Err
 }
+func (mac *MockAppCruder) RemoveAppAPIKeyByID(appID string) error {
+	return mac.Err
+}

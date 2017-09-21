@@ -37,7 +37,7 @@ func NewMobileAppRepo(c corev1.ConfigMapInterface, v MobileAppValidator) *Mobile
 	return rep
 }
 
-// UpdateAppApiKeys adds new app api key to config map
+// UpdateAppApiKeys adds new app api key to apiKey mapping
 func (mar *MobileAppRepo) UpdateAppAPIKeys(app *mobile.App) error {
 	cm, err := mar.client.Get(apiKeyMapName, meta_v1.GetOptions{})
 	if err != nil {
@@ -48,7 +48,23 @@ func (mar *MobileAppRepo) UpdateAppAPIKeys(app *mobile.App) error {
 	}
 	cm.Data[app.ID] = app.APIKey
 	if _, err := mar.client.Update(cm); err != nil {
-		return errors.Wrap(err, "updating api key, could not save config map")
+		return errors.Wrap(err, "updating api key map, could not save map")
+	}
+	return nil
+}
+
+// DeleteAppAPIKey remove api key from apiKey mapping
+func (mar *MobileAppRepo) RemoveAppAPIKeyByID(appID string) error {
+	cm, err := mar.client.Get(apiKeyMapName, meta_v1.GetOptions{})
+	if err != nil {
+		return errors.Wrap(err, "deleting api key map, could not read")
+	}
+	if cm.Data == nil {
+		cm.Data = map[string]string{}
+	}
+	delete(cm.Data, appID)
+	if _, err := mar.client.Update(cm); err != nil {
+		return errors.Wrap(err, "deleting api key map, could not save map")
 	}
 	return nil
 }
