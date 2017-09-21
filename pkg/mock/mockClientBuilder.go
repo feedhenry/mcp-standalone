@@ -3,7 +3,6 @@ package mock
 import (
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
 	"k8s.io/client-go/kubernetes"
-	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
 type ClientBuilder struct {
@@ -28,43 +27,4 @@ func (cb *ClientBuilder) WithHostAndNamespace(host, ns string) mobile.ClientBuil
 func (cb *ClientBuilder) BuildClient() (kubernetes.Interface, error) {
 	return cb.Fakeclient, nil
 
-}
-
-type AppRepoBuilder struct {
-	AppCruder *MockAppCruder
-}
-
-func (arb *AppRepoBuilder) WithClient(c corev1.ConfigMapInterface) mobile.AppRepoBuilder {
-	return &AppRepoBuilder{AppCruder: arb.AppCruder}
-}
-func (arb *AppRepoBuilder) Build() mobile.AppCruder {
-	return arb.AppCruder
-}
-
-type MockAppCruder struct {
-	App  *mobile.App
-	Apps []*mobile.App
-	Err  error
-}
-
-func (mac *MockAppCruder) UpdateAppAPIKeys(app *mobile.App) error {
-	return mac.Err
-}
-func (mac *MockAppCruder) ReadByName(name string) (*mobile.App, error) {
-	return mac.App, mac.Err
-}
-func (mac *MockAppCruder) Create(app *mobile.App) error {
-	return mac.Err
-}
-func (mac *MockAppCruder) DeleteByName(name string) error {
-	return mac.Err
-}
-func (mac *MockAppCruder) List() ([]*mobile.App, error) {
-	return mac.Apps, mac.Err
-}
-func (mac *MockAppCruder) Update(app *mobile.App) (*mobile.App, error) {
-	return mac.App, mac.Err
-}
-func (mac *MockAppCruder) CreateAppAPIKeyMap() error {
-	return mac.Err
 }

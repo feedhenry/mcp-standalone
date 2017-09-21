@@ -185,23 +185,45 @@ func (mar *MobileAppRepo) readUnderlyingConfigMap(a *mobile.App) (*v1.ConfigMap,
 }
 
 //NewMobileAppRepoBuilder creates a new instance of a MobileAppRepoBuilder
-func NewMobileAppRepoBuilder() mobile.AppRepoBuilder {
-	return &MobileAppRepoBuilder{}
+func NewMobileAppRepoBuilder(clientBuilder mobile.ClientBuilder, namespace, saToken string) mobile.AppRepoBuilder {
+	return &MobileAppRepoBuilder{
+		clientBuilder: clientBuilder,
+		namespace:     namespace,
+		saToken:       saToken,
+	}
 }
 
 // MobileAppRepoBuilder builds a MobileAppRepo
 type MobileAppRepoBuilder struct {
-	client corev1.ConfigMapInterface
+	clientBuilder mobile.ClientBuilder
+	token         string
+	namespace     string
+	saToken       string
 }
 
-// WithClient sets the client to use
-func (marb *MobileAppRepoBuilder) WithClient(c corev1.ConfigMapInterface) mobile.AppRepoBuilder {
+func (marb *MobileAppRepoBuilder) WithToken(t string) mobile.AppRepoBuilder {
+	// ensure we get a new instance to avoid reuse of tokens
 	return &MobileAppRepoBuilder{
-		client: c,
+		clientBuilder: marb.clientBuilder,
+		token:         t,
+		namespace:     marb.namespace,
+	}
+}
+
+//UseDefaultSAToken delegates off to the service account token setup with the MCP. This should only be used for APIs where no real token is provided and should always be protected
+func (marb *MobileAppRepoBuilder) UseDefaultSAToken() mobile.AppRepoBuilder {
+	return &MobileAppRepoBuilder{
+		clientBuilder: marb.clientBuilder,
+		token:         marb.saToken,
+		namespace:     marb.namespace,
 	}
 }
 
 // Build builds the final repo
-func (marb *MobileAppRepoBuilder) Build() mobile.AppCruder {
-	return NewMobileAppRepo(marb.client, DefaultMobileAppValidator{})
+func (marb *MobileAppRepoBuilder) Build() (mobile.AppCruder, error) {
+	k8client, err := marb.clientBuilder.WithToken(marb.token).BuildClient()
+	if err != nil {
+		return nil, errors.Wrap(err, "MobileAppRepoBuilder failed to build a configmap client")
+	}
+	return NewMobileAppRepo(k8client.CoreV1().ConfigMaps(marb.namespace), DefaultMobileAppValidator{}), nil
 }

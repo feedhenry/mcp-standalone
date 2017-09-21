@@ -12,6 +12,7 @@ import (
 	"github.com/feedhenry/mcp-standalone/pkg/clients"
 	"github.com/feedhenry/mcp-standalone/pkg/data"
 	"github.com/feedhenry/mcp-standalone/pkg/k8s"
+	"github.com/feedhenry/mcp-standalone/pkg/mobile"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile/app"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile/integration"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile/metrics"
@@ -32,7 +33,6 @@ func main() {
 		saTokenPath     = flag.String("satoken-path", "var/run/secrets/kubernetes.io/serviceaccount/token", "where on disk the service account token to use is ")
 		staticDirectory = flag.String("web-dir", "./web/app", "Location of static content to serve at /console. index.html will be used as a fallback for requested files that don't exist")
 		k8host          string
-		appRepoBuilder  = &data.MobileAppRepoBuilder{}
 		svcRepoBuilder  = &data.MobileServiceRepoBuilder{}
 	)
 	flag.StringVar(&k8host, "k8-host", "", "kubernetes target")
@@ -62,10 +62,11 @@ func main() {
 	if k8host == "" {
 		k8host = "https://" + os.Getenv("KUBERNETES_SERVICE_HOST") + ":" + os.Getenv("KUBERNETES_SERVICE_PORT")
 	}
-	var k8ClientBuilder = k8s.NewClientBuilder(*namespace, k8host)
-	var mounterBuilder = k8s.NewMounterBuilder(*namespace)
 	var (
-		tokenClientBuilder = clients.NewTokenScopedClientBuilder(k8ClientBuilder, appRepoBuilder, svcRepoBuilder, mounterBuilder, *namespace, logger)
+		k8ClientBuilder    = k8s.NewClientBuilder(*namespace, k8host)
+		mounterBuilder     = k8s.NewMounterBuilder(*namespace)
+		appRepoBuilder     = data.NewMobileAppRepoBuilder(k8ClientBuilder, *namespace, token)
+		tokenClientBuilder = clients.NewTokenScopedClientBuilder(k8ClientBuilder, svcRepoBuilder, mounterBuilder, *namespace, logger)
 		httpClientBuilder  = clients.NewHttpClientBuilder()
 		openshiftUser      = openshift.UserAccess{Logger: logger}
 		mwAccess           = middleware.NewAccess(logger, k8host, openshiftUser.ReadUserFromToken)
@@ -86,7 +87,7 @@ func main() {
 
 	// Ensure that the apiKey map exists
 	{
-		err := createAppAPIKeyMap(tokenClientBuilder, token)
+		err := createAppAPIKeyMap(appRepoBuilder, token)
 		if err != nil {
 			panic(err)
 		}
@@ -112,7 +113,7 @@ func main() {
 
 	//mobileapp handler
 	{
-		appHandler := web.NewMobileAppHandler(logger, tokenClientBuilder, appService)
+		appHandler := web.NewMobileAppHandler(logger, appRepoBuilder, appService)
 		web.MobileAppRoute(router, appHandler)
 	}
 
@@ -127,7 +128,7 @@ func main() {
 	//sdk handler
 	{
 		sdkService := &integration.SDKService{}
-		sdkHandler := web.NewSDKConfigHandler(logger, sdkService, tokenClientBuilder)
+		sdkHandler := web.NewSDKConfigHandler(logger, sdkService, tokenClientBuilder, appRepoBuilder)
 		web.SDKConfigRoute(router, sdkHandler)
 	}
 	//sys handler
@@ -172,8 +173,8 @@ func readSAToken(path string) (string, error) {
 	return string(data), nil
 }
 
-func createAppAPIKeyMap(tokenClientBuilder *clients.TokenScopedClientBuilder, token string) error {
-	appRepo, err := tokenClientBuilder.MobileAppCruder(token)
+func createAppAPIKeyMap(appRepoBuilder mobile.AppRepoBuilder, token string) error {
+	appRepo, err := appRepoBuilder.WithToken(token).Build()
 	if err != nil {
 		return err
 	}
