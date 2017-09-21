@@ -1,3 +1,6 @@
+.idea/
+.vscode/
+
 cmd/mcp-api/mcp-api
 token
 mcp
