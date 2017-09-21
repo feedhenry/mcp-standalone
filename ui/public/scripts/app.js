@@ -71,36 +71,70 @@ var resolveMCPRoute = {
   ]
 };
 
-angular.module('mobileControlPanelApp', ['openshiftConsole']).config([
-  '$routeProvider',
-  function($routeProvider) {
-    $routeProvider
-      .when('/project/:project/create-mobileapp', {
-        templateUrl: 'extensions/mcp/views/create-mobileapp.html',
-        controller: 'CreateMobileappController',
-        resolve: resolveMCPRoute
-      })
-      .when('/project/:project/create-mobileservice', {
-        templateUrl: 'extensions/mcp/views/create-service.html',
-        controller: 'CreateMobileServiceController',
-        resolve: resolveMCPRoute
-      })
-      .when('/project/:project/browse/mobileoverview', {
-        templateUrl: 'extensions/mcp/views/mobileoverview.html',
-        controller: 'MobileOverviewController',
-        reloadOnSearch: false,
-        resolve: resolveMCPRoute
-      })
-      .when('/project/:project/browse/mobileapps/:mobileapp', {
-        templateUrl: 'extensions/mcp/views/mobileapp.html',
-        controller: 'MobileAppController',
-        reloadOnSearch: false,
-        resolve: resolveMCPRoute
-      })
-      .when('/project/:project/browse/mobileservices/:service', {
-        templateUrl: 'extensions/mcp/views/mobileservice.html',
-        controller: 'MobileServiceController',
-        resolve: resolveMCPRoute
-      });
-  }
-]);
+angular
+  .module('mobileControlPanelApp', ['openshiftConsole'])
+  .config([
+    '$routeProvider',
+    function($routeProvider) {
+      $routeProvider
+        .when('/project/:project/create-mobileapp', {
+          templateUrl: 'extensions/mcp/views/create-mobileapp.html',
+          controller: 'CreateMobileappController',
+          resolve: resolveMCPRoute
+        })
+        .when('/project/:project/create-mobileservice', {
+          templateUrl: 'extensions/mcp/views/create-service.html',
+          controller: 'CreateMobileServiceController',
+          resolve: resolveMCPRoute
+        })
+        .when('/project/:project/browse/mobileoverview', {
+          templateUrl: 'extensions/mcp/views/mobileoverview.html',
+          controller: 'MobileOverviewController',
+          reloadOnSearch: false,
+          resolve: resolveMCPRoute
+        })
+        .when('/project/:project/browse/mobileapps/:mobileapp', {
+          templateUrl: 'extensions/mcp/views/mobileapp.html',
+          controller: 'MobileAppController',
+          reloadOnSearch: false,
+          resolve: resolveMCPRoute
+        })
+        .when('/project/:project/browse/mobileservices/:service', {
+          templateUrl: 'extensions/mcp/views/mobileservice.html',
+          controller: 'MobileServiceController',
+          resolve: resolveMCPRoute
+        });
+    }
+  ])
+  .filter('jenkinsArtifactURL', function(
+    annotationFilter,
+    jenkinsLogURLFilter
+  ) {
+    return function(build, asPlainText) {
+      var logURL = annotationFilter(build, 'jenkinsLogURL');
+      if (!logURL || asPlainText) {
+        return logURL;
+      }
+
+      // Link to the Jenkins console.
+      return logURL.replace(/\/consoleText$/, '/artifacts');
+    };
+  })
+  .filter('buildArtifactURL', function(
+    isJenkinsPipelineStrategyFilter,
+    jenkinsArtifactURL,
+    navigateResourceURLFilter
+  ) {
+    return function(build) {
+      if (isJenkinsPipelineStrategyFilter(build)) {
+        return jenkinsArtifactURL(build);
+      }
+
+      var navURL = navigateResourceURLFilter(build);
+      if (!navURL) {
+        return null;
+      }
+
+      return new URI(navURL).addSearch('tab', 'logs').toString();
+    };
+  });
