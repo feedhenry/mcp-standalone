@@ -3,3 +3,6 @@ dist/
 master/
 node-localhost/
 node_modules/
+openshift-data/
+openshift-pvs/
+openshift-volumes/

@@ -40,6 +40,15 @@
     - host_config_dir != ''
 
   - set_fact:
+      cluster_up_command: "{{ cluster_up_command }} --host-data-dir={{ host_config_dir }}/openshift-data"
+
+  - set_fact:
+      cluster_up_command: "{{ cluster_up_command }} --host-pv-dir={{ host_config_dir }}/openshift-pvs"
+
+  - set_fact:
+      cluster_up_command: "{{ cluster_up_command }} --host-volumes-dir={{ host_config_dir }}/openshift-volumes"
+
+  - set_fact:
       cluster_up_command: "{{ cluster_up_command }} --use-existing-config={{ use_existing_config }}"
     when:
     - use_existing_config is defined
