@@ -86,11 +86,12 @@ func (m *MobileAppHandler) Delete(rw http.ResponseWriter, req *http.Request) {
 	}
 	params := mux.Vars(req)
 	id := params["id"]
-	if err := appRepo.DeleteByName(id); err != nil {
+
+	if err := m.appService.Delete(appRepo, id); err != nil {
+		err = errors.Wrap(err, "mobile app handler, failed to delete app")
 		handleCommonErrorCases(err, rw, m.logger)
 		return
 	}
-
 }
 
 // Create creates a mobileapp
