@@ -10,6 +10,8 @@ import (
 	"strconv"
 	"time"
 
+	"bytes"
+	"github.com/feedhenry/mcp-standalone/pkg/clients"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
 	"github.com/pkg/errors"
 	"strings"
@@ -100,17 +102,13 @@ func (ac *AuthChecker) Check(resource, namespace string) (bool, error) {
 	if err != nil {
 		return false, errors.Wrap(err, "openshift.ac.Check -> failed to build payload for check authorization")
 	}
-	req, err := http.NewRequest("POST", u.String(), strings.NewReader(string(bytePayload)))
+	req, err := http.NewRequest("POST", u.String(), bytes.NewReader(bytePayload))
 	if err != nil {
 		return false, errors.Wrap(err, "openshift.ac.Check -> failed to build request to check authorization")
 	}
 	req.Header.Set("authorization", "bearer "+ac.Token)
 	req.Header.Set("Content-Type", "Application/JSON")
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: ac.SkipCertCheck},
-	}
-	client := &http.Client{Transport: tr}
-	client.Timeout = 5 * time.Second
+	client := clients.HttpClientBuilder{}.Insecure(ac.SkipCertCheck).Timeout(5).Build()
 	resp, err := client.Do(req)
 	if err != nil {
 		return false, errors.Wrap(err, "openshift.ac.Check -> failed to make request to check authorization")
@@ -131,7 +129,10 @@ func (ac *AuthChecker) Check(resource, namespace string) (bool, error) {
 		return false, errors.Wrap(err, "openshift.ac.Check -> failed to read the response body after reading user")
 	}
 	res := &authCheckResponse{}
-	json.Unmarshal(data, res)
+	err = json.Unmarshal(data, res)
+	if err != nil {
+		return false, errors.Wrap(err, "openshift.ac.Check -> error decoding response to auth check")
+	}
 	for _, u := range res.Users {
 		if u == user.Username() {
 			return true, nil
