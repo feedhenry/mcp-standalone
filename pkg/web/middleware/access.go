@@ -9,9 +9,10 @@ import (
 	"github.com/feedhenry/mcp-standalone/pkg/openshift"
 	"github.com/feedhenry/mcp-standalone/pkg/web/headers"
 	"github.com/pkg/errors"
+	"github.com/feedhenry/mcp-standalone/pkg/mobile"
 )
 
-type UserChecker func(host, token string, skipTLS bool) error
+type UserChecker func(host, token string, skipTLS bool) (mobile.User, error)
 
 // Access handles the cross origin requests
 type Access struct {
@@ -69,7 +70,7 @@ func (c Access) Handle(w http.ResponseWriter, req *http.Request, next http.Handl
 		return
 	}
 	//todo take config to set skipTLS
-	if err := c.userCheck(c.host, token, true); err != nil {
+	if _, err := c.userCheck(c.host, token, true); err != nil {
 		if openshift.IsAuthenticationError(err) {
 			c.logger.Error(errors.Wrap(err, " access check: checking user is authenticated"))
 			http.Error(w, err.Error(), http.StatusUnauthorized)

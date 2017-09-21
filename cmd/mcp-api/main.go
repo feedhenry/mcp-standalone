@@ -68,6 +68,7 @@ func main() {
 		appRepoBuilder    = data.NewMobileAppRepoBuilder(k8ClientBuilder, *namespace, token)
 		svcRepoBuilder    = data.NewServiceRepoBuilder(k8ClientBuilder, *namespace, token)
 		authCheckerBuilder = openshift.NewAuthCheckerBuilder(k8host)
+		userRepoBuilder = openshift.NewUserRepoBuilder(k8host, true).WithClient(&openshift.UserAccess{})
 		httpClientBuilder = clients.NewHttpClientBuilder()
 		openshiftUser     = openshift.UserAccess{Logger: logger}
 		mwAccess          = middleware.NewAccess(logger, k8host, openshiftUser.ReadUserFromToken)

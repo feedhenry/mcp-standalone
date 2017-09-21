@@ -48,6 +48,17 @@ type AppRepoBuilder interface {
 	Build() (AppCruder, error)
 }
 
+type UserRepoBuilder interface {
+	WithToken(token string) UserRepoBuilder
+	WithClient(client UserAccessChecker) UserRepoBuilder
+	Build() UserRepo
+}
+
+type UserRepo interface {
+	GetUser() (User, error)
+}
+
+// TODO prob can remote the WithClient and instead use NewRepoBuilder(c corev1.ConfigMapInterface) and have this just expose Build() and perhaps add WithToken(token string)
 type ServiceRepoBuilder interface {
 	WithToken(token string) ServiceRepoBuilder
 	//UseDefaultSAToken delegates off to the service account token setup with the MCP. This should only be used for APIs where no real token is provided and should always be protected
@@ -101,12 +112,22 @@ type VolumeMounterUnmounter interface {
 type AuthCheckerBuilder interface {
 	Build() AuthChecker
 	WithToken(token string) AuthCheckerBuilder
+	WithUserRepo(repo UserRepo) AuthCheckerBuilder
 	IgnoreCerts() AuthCheckerBuilder
 }
 
 // AuthChecker performs a check for authorization to write the provided resource in the provided namespace
 type AuthChecker interface {
 	Check(resource, namespace string) (bool, error)
+}
+
+type User interface {
+	Username() string
+	InAnyGroup([]string) bool
+}
+
+type UserAccessChecker interface {
+	ReadUserFromToken(host, token string, insecure bool) (User, error)
 }
 
 type MetricsGetter interface {

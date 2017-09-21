@@ -8,11 +8,13 @@ import (
 	"net/http"
 	"net/url"
 	"path"
-	"strings"
+	"strconv"
 	"time"
 
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
 	"github.com/pkg/errors"
+	"strings"
+	"bytes"
 )
 
 //AuthCheckerBuilder for building AuthCheckers
@@ -20,6 +22,7 @@ type AuthCheckerBuilder struct {
 	Host          string
 	Token         string
 	SkipCertCheck bool
+	UserRepo      mobile.UserRepo
 }
 
 // AuthChecker checks authorizations against resource in namespaces
@@ -27,6 +30,7 @@ type AuthChecker struct {
 	Host          string
 	Token         string
 	SkipCertCheck bool
+	UserRepo      mobile.UserRepo
 }
 
 // Build an AuthChecker and return it
@@ -35,6 +39,7 @@ func (acb *AuthCheckerBuilder) Build() mobile.AuthChecker {
 		Host:          acb.Host,
 		Token:         acb.Token,
 		SkipCertCheck: acb.SkipCertCheck,
+		UserRepo: 	   acb.UserRepo,
 	}
 }
 
@@ -44,6 +49,7 @@ func (acb *AuthCheckerBuilder) IgnoreCerts() mobile.AuthCheckerBuilder {
 		Host:          acb.Host,
 		Token:         acb.Token,
 		SkipCertCheck: true,
+		UserRepo:	   acb.UserRepo,
 	}
 }
 
@@ -53,43 +59,55 @@ func (acb *AuthCheckerBuilder) WithToken(token string) mobile.AuthCheckerBuilder
 		Host:          acb.Host,
 		SkipCertCheck: acb.SkipCertCheck,
 		Token:         token,
+		UserRepo:	   acb.UserRepo,
+	}
+}
+// WithUserRepo stores the provided userrrepo for creating future AuthCheckers
+func (acb *AuthCheckerBuilder) WithUserRepo(repo mobile.UserRepo) mobile.AuthCheckerBuilder {
+	return &AuthCheckerBuilder{
+		Host:          acb.Host,
+		SkipCertCheck: acb.SkipCertCheck,
+		Token:         acb.Token,
+		UserRepo:	   repo,
 	}
 }
 
 type authCheckJsonPayload struct {
-	Namespace          string `json:"namespace"`
 	Verb               string `json:"verb"`
-	ResourceAPIGroup   string `json:"resourceAPIGroup"`
-	ResourceAPIVersion string `json:"resourceAPIVersion"`
 	Resource           string `json:"resource"`
-	ResourceName       string `json:"resourceName"`
-	Path               string `json:"path"`
-	IsNonResourceURL   string `json:"isNonResourceURL"`
+}
+
+type authCheckResponse struct {
+	Users           []string `json:"users"`
+	Groups          []string `json:"groups"`
 }
 
 // Check that the resource in the provided namespace can be written to by the current user
 func (ac *AuthChecker) Check(resource, namespace string) (bool, error) {
+	user, err := ac.UserRepo.GetUser()
+	if err != nil {
+		return false, errors.Wrap(err, "openshift.ac.Check -> failed to retrieve user details")
+	}
+	fmt.Printf("%+v\n", user)
 	u, err := url.Parse(ac.Host)
 	if err != nil {
-		return false, errors.Wrap(err, "openshift.ac.Check -> failed to parse openshift host when attempting to read user")
+		return false, errors.Wrap(err, "openshift.ac.Check -> failed to parse openshift host when attempting to check authorization")
 	}
-	u.Path = path.Join("/oapi/v1/localsubjectaccessreviews")
+	u.Path = path.Join("/oapi/v1/namespaces/"+namespace+"/localresourceaccessreviews")
 	payload := authCheckJsonPayload{
-		Namespace:          namespace,
 		Verb:               "update",
-		ResourceAPIGroup:   "apps/v1beta1",
-		ResourceAPIVersion: "v1",
-		Resource:           "deployments",
+		Resource:           "deploymentconfigs",
 	}
-	strPayload, err := json.Marshal(payload)
+	bytePayload, err := json.Marshal(payload)
 	if err != nil {
 		return false, errors.Wrap(err, "openshift.ac.Check -> failed to build payload for check authorization")
 	}
-	req, err := http.NewRequest("POST", u.String(), strings.NewReader(string(strPayload)))
+	req, err := http.NewRequest("POST", u.String(), strings.NewReader(string(bytePayload)))
 	if err != nil {
 		return false, errors.Wrap(err, "openshift.ac.Check -> failed to build request to check authorization")
 	}
 	req.Header.Set("authorization", "bearer "+ac.Token)
+	req.Header.Set("Content-Type", "Application/JSON")
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: ac.SkipCertCheck},
 	}
@@ -100,9 +118,12 @@ func (ac *AuthChecker) Check(resource, namespace string) (bool, error) {
 		return false, errors.Wrap(err, "openshift.ac.Check -> failed to make request to check authorization")
 	}
 	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
+	if resp.StatusCode == http.StatusForbidden {
+		// user does not have permission to create the permission check in the namespace
+		return false, nil
+	} else if resp.StatusCode != http.StatusCreated  {
 		if resp.StatusCode == http.StatusUnauthorized || resp.StatusCode == http.StatusForbidden {
-			return false, &AuthenticatationError{Message: "openshift.ac.Check -> access was denied", StatusCode: resp.StatusCode}
+			return false, &AuthenticationError{Message: "openshift.ac.Check -> (" + strconv.Itoa(resp.StatusCode) + ") access was denied", StatusCode: resp.StatusCode}
 		}
 
 		return false, errors.New(fmt.Sprintf("openshift.ac.Check -> unexpected response code from openshift %v", resp.StatusCode))
@@ -111,8 +132,15 @@ func (ac *AuthChecker) Check(resource, namespace string) (bool, error) {
 	if err != nil {
 		return false, errors.Wrap(err, "openshift.ac.Check -> failed to read the response body after reading user")
 	}
-	fmt.Println(string(data))
-	return true, nil
+	res := &authCheckResponse{}
+	json.Unmarshal(data, res)
+	for _, u := range res.Users {
+		if u == user.Username() {
+			return true, nil
+		}
+	}
+
+	return user.InAnyGroup(res.Groups), nil
 }
 
 // NewAuthCheckerBuilder created and returned with the provided namespace and host
