@@ -43,7 +43,7 @@ var capabilities = map[string]map[string][]string{
 }
 
 // DiscoverMobileServices will discover mobile services configured in the current namespace
-func (ms *MobileService) DiscoverMobileServices(serviceCruder mobile.ServiceCruder, authChecker mobile.AuthChecker) ([]*mobile.Service, error) {
+func (ms *MobileService) DiscoverMobileServices(serviceCruder mobile.ServiceCruder, authChecker mobile.AuthChecker, client mobile.ExternalHTTPRequester) ([]*mobile.Service, error) {
 	svc, err := serviceCruder.List(filterServices(mobile.ServiceTypes))
 	if err != nil {
 		return nil, errors.Wrap(err, "Attempting to discover mobile services.")
@@ -58,7 +58,7 @@ func (ms *MobileService) DiscoverMobileServices(serviceCruder mobile.ServiceCrud
 			s.Writeable = true
 		}
 		if s.External {
-			perm, err := authChecker.Check("deployments", s.Namespace)
+			perm, err := authChecker.Check("deployments", s.Namespace, client)
 			if err != nil {
 				return nil, errors.Wrap(err, "error checking access permissions")
 			}
@@ -69,7 +69,7 @@ func (ms *MobileService) DiscoverMobileServices(serviceCruder mobile.ServiceCrud
 }
 
 // ReadMobileServiceAndIntegrations read service and any available service it can integrate with
-func (ms *MobileService) ReadMobileServiceAndIntegrations(serviceCruder mobile.ServiceCruder, authChecker mobile.AuthChecker, name string) (*mobile.Service, error) {
+func (ms *MobileService) ReadMobileServiceAndIntegrations(serviceCruder mobile.ServiceCruder, authChecker mobile.AuthChecker, name string, client mobile.ExternalHTTPRequester) (*mobile.Service, error) {
 	svc, err := serviceCruder.Read(name)
 	if err != nil {
 		return nil, errors.Wrap(err, "attempting to discover mobile services.")
@@ -97,7 +97,7 @@ func (ms *MobileService) ReadMobileServiceAndIntegrations(serviceCruder mobile.S
 	}
 	svc.Writeable = true
 	if svc.External {
-		perm, err := authChecker.Check("deployments", svc.Namespace)
+		perm, err := authChecker.Check("deployments", svc.Namespace, client)
 		if err != nil {
 			return nil, errors.Wrap(err, "error checking access permissions")
 		}

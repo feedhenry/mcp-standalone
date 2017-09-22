@@ -118,7 +118,7 @@ type AuthCheckerBuilder interface {
 
 // AuthChecker performs a check for authorization to write the provided resource in the provided namespace
 type AuthChecker interface {
-	Check(resource, namespace string) (bool, error)
+	Check(resource, namespace string, client ExternalHTTPRequester) (bool, error)
 }
 
 type User interface {

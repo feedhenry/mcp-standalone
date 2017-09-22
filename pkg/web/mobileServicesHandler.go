@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/feedhenry/mcp-standalone/pkg/clients"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile/integration"
 	"github.com/feedhenry/mcp-standalone/pkg/web/headers"
@@ -45,7 +46,8 @@ func (msh *MobileServiceHandler) List(rw http.ResponseWriter, req *http.Request)
 	}
 	userRepo := msh.tokenClientBuilder.UserRepo(token)
 	authChecker := msh.tokenClientBuilder.AuthChecker(userRepo, token, true)
-	svc, err := msh.mobileIntegrationService.DiscoverMobileServices(serviceCruder, authChecker)
+	client := clients.NewHttpClientBuilder().Insecure(true).Timeout(5).Build()
+	svc, err := msh.mobileIntegrationService.DiscoverMobileServices(serviceCruder, authChecker, client)
 	if err != nil {
 		err = errors.Wrap(err, "attempted to list mobile services")
 		handleCommonErrorCases(err, rw, msh.logger)
@@ -77,10 +79,11 @@ func (msh *MobileServiceHandler) Read(rw http.ResponseWriter, req *http.Request)
 	}
 	userRepo := msh.tokenClientBuilder.UserRepo(token)
 	authChecker := msh.tokenClientBuilder.AuthChecker(userRepo, token, true)
+	client := clients.NewHttpClientBuilder().Insecure(true).Timeout(5).Build()
 
 	if withIntegrations != "" {
 		fmt.Println("with Integrations", serviceName)
-		ms, err = msh.mobileIntegrationService.ReadMobileServiceAndIntegrations(serviceCruder, authChecker, serviceName)
+		ms, err = msh.mobileIntegrationService.ReadMobileServiceAndIntegrations(serviceCruder, authChecker, serviceName, client)
 		if err != nil {
 			handleCommonErrorCases(err, rw, msh.logger)
 			return

@@ -1,20 +1,16 @@
 package openshift
 
 import (
-	"crypto/tls"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"path"
 	"strconv"
-	"time"
 
 	"bytes"
-	"github.com/feedhenry/mcp-standalone/pkg/clients"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
 	"github.com/pkg/errors"
-	"strings"
 )
 
 //AuthCheckerBuilder for building AuthCheckers
@@ -84,7 +80,7 @@ type authCheckResponse struct {
 }
 
 // Check that the resource in the provided namespace can be written to by the current user
-func (ac *AuthChecker) Check(resource, namespace string) (bool, error) {
+func (ac *AuthChecker) Check(resource, namespace string, client mobile.ExternalHTTPRequester) (bool, error) {
 	user, err := ac.UserRepo.GetUser()
 	if err != nil {
 		return false, errors.Wrap(err, "openshift.ac.Check -> failed to retrieve user details")
@@ -108,7 +104,6 @@ func (ac *AuthChecker) Check(resource, namespace string) (bool, error) {
 	}
 	req.Header.Set("authorization", "bearer "+ac.Token)
 	req.Header.Set("Content-Type", "Application/JSON")
-	client := clients.HttpClientBuilder{}.Insecure(ac.SkipCertCheck).Timeout(5).Build()
 	resp, err := client.Do(req)
 	if err != nil {
 		return false, errors.Wrap(err, "openshift.ac.Check -> failed to make request to check authorization")
