@@ -41,7 +41,7 @@ angular.module('mobileControlPanelApp').controller('MobileAppController', [
         title: $routeParams.mobileapp
       }
     ];
-    $routeParams.buildconfig = 'sample-pipeline';
+    $routeParams.buildconfig = 'androidapp1';
     $scope.buildConfigName = $routeParams.buildconfig;
     $scope.buildConfig = null;
     $scope.labelSuggestions = {};
