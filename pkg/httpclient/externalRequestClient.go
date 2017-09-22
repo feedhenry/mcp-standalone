@@ -8,29 +8,29 @@ import (
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
 )
 
-type HttpClientBuilder struct {
+type ClientBuilder struct {
 	insecure bool
 	timeout  int
 }
 
-func NewHttpClientBuilder() *HttpClientBuilder {
-	return &HttpClientBuilder{
+func NewClientBuilder() *ClientBuilder {
+	return &ClientBuilder{
 		insecure: false,
 		timeout:  30,
 	}
 }
 
-func (hcb *HttpClientBuilder) Insecure(i bool) mobile.HTTPRequesterBuilder {
+func (hcb *ClientBuilder) Insecure(i bool) mobile.HTTPRequesterBuilder {
 	hcb.insecure = i
 	return hcb
 }
 
-func (hcb *HttpClientBuilder) Timeout(t int) mobile.HTTPRequesterBuilder {
+func (hcb *ClientBuilder) Timeout(t int) mobile.HTTPRequesterBuilder {
 	hcb.timeout = t
 	return hcb
 }
 
-func (hcb *HttpClientBuilder) Build() mobile.ExternalHTTPRequester {
+func (hcb *ClientBuilder) Build() mobile.ExternalHTTPRequester {
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: hcb.insecure},
 	}

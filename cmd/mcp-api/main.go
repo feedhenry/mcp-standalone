@@ -69,7 +69,7 @@ func main() {
 		svcRepoBuilder     = data.NewServiceRepoBuilder(k8ClientBuilder, *namespace, token)
 		authCheckerBuilder = openshift.NewAuthCheckerBuilder(k8host)
 		userRepoBuilder    = openshift.NewUserRepoBuilder(k8host, true).WithClient(&openshift.UserAccess{})
-		httpClientBuilder  = httpclient.NewHttpClientBuilder()
+		httpClientBuilder  = httpclient.NewClientBuilder()
 		openshiftUser      = openshift.UserAccess{}
 		mwAccess           = middleware.NewAccess(logger, k8host, openshiftUser.ReadUserFromToken)
 		// these channels control when background proccess should stop

@@ -49,7 +49,7 @@ var getsdkconfigCmd = &cobra.Command{
 			log.Fatalf("error creating request %s ", err)
 		}
 		req.Header.Set(mobile.AppAPIKeyHeader, app.APIKey)
-		httpclient := httpclient.NewHttpClientBuilder().Insecure(true).Timeout(5).Build()
+		httpclient := httpclient.NewClientBuilder().Insecure(true).Timeout(5).Build()
 		res, err := httpclient.Do(req)
 		if err != nil {
 			log.Fatalf("error doint request %s ", err)

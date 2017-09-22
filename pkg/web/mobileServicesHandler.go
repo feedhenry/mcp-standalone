@@ -52,7 +52,7 @@ func (msh *MobileServiceHandler) List(rw http.ResponseWriter, req *http.Request)
 
 	userRepo := msh.userRepoBuilder.WithToken(token).WithClient(&openshift.UserAccess{}).Build()
 	authChecker := msh.authCheckerBuilder.WithToken(token).WithUserRepo(userRepo).IgnoreCerts().Build()
-	client := httpclient.NewHttpClientBuilder().Insecure(true).Timeout(5).Build()
+	client := httpclient.NewClientBuilder().Insecure(true).Timeout(5).Build()
 	svc, err := msh.mobileIntegrationService.DiscoverMobileServices(serviceCruder, authChecker, client)
 	if err != nil {
 		err = errors.Wrap(err, "attempted to list mobile services")
@@ -85,7 +85,7 @@ func (msh *MobileServiceHandler) Read(rw http.ResponseWriter, req *http.Request)
 	}
 	userRepo := msh.userRepoBuilder.WithToken(token).WithClient(&openshift.UserAccess{}).Build()
 	authChecker := msh.authCheckerBuilder.WithToken(token).WithUserRepo(userRepo).IgnoreCerts().Build()
-	client := httpclient.NewHttpClientBuilder().Insecure(true).Timeout(5).Build()
+	client := httpclient.NewClientBuilder().Insecure(true).Timeout(5).Build()
 
 	if withIntegrations != "" {
 		fmt.Println("with Integrations", serviceName)
