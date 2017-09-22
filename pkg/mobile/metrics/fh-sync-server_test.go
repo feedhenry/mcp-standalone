@@ -11,6 +11,7 @@ import (
 	"bytes"
 	"io/ioutil"
 
+	"github.com/feedhenry/mcp-standalone/pkg/data"
 	"github.com/feedhenry/mcp-standalone/pkg/mock"
 	"github.com/pkg/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -184,7 +185,11 @@ func TestFhSyncServer_Gather(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
 			httpClientBuilder := &mock.HttpClientBuilder{Requester: tc.Requester(t)}
-			ss := NewFhSyncServer(httpClientBuilder, buildDefaultTestTokenClientBuilder(tc.Client()), logrus.StandardLogger())
+			cb := &mock.ClientBuilder{
+				Fakeclient: tc.Client(),
+			}
+			serviceRepoBuilder := data.NewServiceRepoBuilder(cb, "test", "test")
+			ss := NewFhSyncServer(httpClientBuilder, serviceRepoBuilder, logrus.StandardLogger())
 			metrics, err := ss.Gather()
 			if err == nil && tc.ExpectError {
 				t.Fatal("expected an error but got none")

@@ -16,7 +16,6 @@ import (
 	"k8s.io/client-go/kubernetes/fake"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/feedhenry/mcp-standalone/pkg/clients"
 	"github.com/feedhenry/mcp-standalone/pkg/data"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile/integration"
@@ -35,26 +34,16 @@ func setupMobileServiceHandler(kclient kubernetes.Interface) http.Handler {
 	if nil == kclient {
 		kclient = &fake.Clientset{}
 	}
-	clientBuilder := buildDefaultTestTokenClientBuilder(kclient)
 	metricGetter := &metrics.MetricsService{}
 	ms := &integration.MobileService{}
-	handler := web.NewMobileServiceHandler(logger, ms, clientBuilder, metricGetter)
-	web.MobileServiceRoute(r, handler)
-	return web.BuildHTTPHandler(r, nil)
-}
-
-func buildDefaultTestTokenClientBuilder(kclient kubernetes.Interface) mobile.TokenScopedClientBuilder {
-	logger := logrus.StandardLogger()
 	cb := &mock.ClientBuilder{
 		Fakeclient: kclient,
 	}
-	appRepoBuilder := data.NewMobileAppRepoBuilder()
-	appRepoBuilder = appRepoBuilder.WithClient(kclient.CoreV1().ConfigMaps("test"))
-	svcRepoBuilder := data.NewServiceRepoBuilder()
-	svcRepoBuilder = svcRepoBuilder.WithClient(kclient.CoreV1().Secrets("test"))
-	mounterBuilder := k8s.NewMounterBuilder("test")
-	clientBuilder := clients.NewTokenScopedClientBuilder(cb, appRepoBuilder, svcRepoBuilder, mounterBuilder, "test", logger)
-	return clientBuilder
+	serviceCruder := data.NewServiceRepoBuilder(cb, "test", "test")
+	mountBuilder := k8s.NewMounterBuilder(cb, "test", "test")
+	handler := web.NewMobileServiceHandler(logger, ms, mountBuilder, metricGetter, serviceCruder)
+	web.MobileServiceRoute(r, handler)
+	return web.BuildHTTPHandler(r, nil)
 }
 
 func TestListMobileServices(t *testing.T) {

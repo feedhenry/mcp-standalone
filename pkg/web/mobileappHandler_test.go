@@ -8,8 +8,10 @@ import (
 	"testing"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/feedhenry/mcp-standalone/pkg/data"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile/app"
+	"github.com/feedhenry/mcp-standalone/pkg/mock"
 	"github.com/feedhenry/mcp-standalone/pkg/web"
 	kerror "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -23,9 +25,12 @@ import (
 func setupMobileAppHandler(kclient kubernetes.Interface) http.Handler {
 	r := web.NewRouter()
 	logger := logrus.StandardLogger()
-	clientBuilder := buildDefaultTestTokenClientBuilder(kclient)
+	cb := &mock.ClientBuilder{
+		Fakeclient: kclient,
+	}
+	appRepoBuilder := data.NewMobileAppRepoBuilder(cb, "test", "test")
 	appService := &app.Service{}
-	handler := web.NewMobileAppHandler(logger, clientBuilder, appService)
+	handler := web.NewMobileAppHandler(logger, appRepoBuilder, appService)
 	web.MobileAppRoute(r, handler)
 	return web.BuildHTTPHandler(r, nil)
 }

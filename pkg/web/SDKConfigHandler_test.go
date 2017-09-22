@@ -12,8 +12,10 @@ import (
 	v1 "k8s.io/client-go/pkg/api/v1"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/feedhenry/mcp-standalone/pkg/data"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile/integration"
+	"github.com/feedhenry/mcp-standalone/pkg/mock"
 	"github.com/feedhenry/mcp-standalone/pkg/web"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/fake"
@@ -23,9 +25,13 @@ import (
 func setupSDKHandler(kclient kubernetes.Interface) http.Handler {
 	r := web.NewRouter()
 	logger := logrus.StandardLogger()
-	clientBuilder := buildDefaultTestTokenClientBuilder(kclient)
+	cb := &mock.ClientBuilder{
+		Fakeclient: kclient,
+	}
+	appRepoBuilder := data.NewMobileAppRepoBuilder(cb, "test", "test")
+	serviceRepoBuilder := data.NewServiceRepoBuilder(cb, "test", "test")
 	ms := &integration.SDKService{}
-	sdkConfigHandler := web.NewSDKConfigHandler(logger, ms, clientBuilder)
+	sdkConfigHandler := web.NewSDKConfigHandler(logger, ms, serviceRepoBuilder, appRepoBuilder)
 	web.SDKConfigRoute(r, sdkConfigHandler)
 	return web.BuildHTTPHandler(r, nil)
 }

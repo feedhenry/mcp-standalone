@@ -19,24 +19,26 @@ import (
 type MobileServiceHandler struct {
 	logger                   *logrus.Logger
 	mobileIntegrationService *integration.MobileService
-	tokenClientBuilder       mobile.TokenScopedClientBuilder
+	mounterBuilder           mobile.MounterBuilder
+	serviceRepoBuilder       mobile.ServiceRepoBuilder
 	metricsGetter            mobile.MetricsGetter
 }
 
 // NewMobileServiceHandler returns a new MobileServiceHandler
-func NewMobileServiceHandler(logger *logrus.Logger, integrationService *integration.MobileService, tokenClientBuilder mobile.TokenScopedClientBuilder, mg mobile.MetricsGetter) *MobileServiceHandler {
+func NewMobileServiceHandler(logger *logrus.Logger, integrationService *integration.MobileService, mounterBuilder mobile.MounterBuilder, mg mobile.MetricsGetter, serviceRepoBuilder mobile.ServiceRepoBuilder) *MobileServiceHandler {
 	return &MobileServiceHandler{
 		logger: logger,
 		mobileIntegrationService: integrationService,
-		tokenClientBuilder:       tokenClientBuilder,
 		metricsGetter:            mg,
+		mounterBuilder:           mounterBuilder,
+		serviceRepoBuilder:       serviceRepoBuilder,
 	}
 }
 
 // List allows you to list mobile services
 func (msh *MobileServiceHandler) List(rw http.ResponseWriter, req *http.Request) {
 	token := headers.DefaultTokenRetriever(req.Header)
-	serviceCruder, err := msh.tokenClientBuilder.MobileServiceCruder(token)
+	serviceCruder, err := msh.serviceRepoBuilder.WithToken(token).Build()
 	if err != nil {
 		handleCommonErrorCases(err, rw, msh.logger)
 		return
@@ -66,7 +68,7 @@ func (msh *MobileServiceHandler) Read(rw http.ResponseWriter, req *http.Request)
 		http.Error(rw, "service name cannot be empty ", http.StatusBadRequest)
 		return
 	}
-	serviceCruder, err := msh.tokenClientBuilder.MobileServiceCruder(token)
+	serviceCruder, err := msh.serviceRepoBuilder.WithToken(token).Build()
 	if err != nil {
 		handleCommonErrorCases(err, rw, msh.logger)
 		return
@@ -99,7 +101,7 @@ func (msh *MobileServiceHandler) Read(rw http.ResponseWriter, req *http.Request)
 func (msh *MobileServiceHandler) Create(rw http.ResponseWriter, req *http.Request) {
 	ms := mobile.NewMobileService()
 	token := headers.DefaultTokenRetriever(req.Header)
-	serviceCruder, err := msh.tokenClientBuilder.MobileServiceCruder(token)
+	serviceCruder, err := msh.serviceRepoBuilder.WithToken(token).Build()
 	if err != nil {
 		err = errors.Wrap(err, "failed to setup service cruder based on token")
 		handleCommonErrorCases(err, rw, msh.logger)
@@ -136,19 +138,19 @@ func (msh *MobileServiceHandler) Configure(rw http.ResponseWriter, req *http.Req
 		return
 	}
 
-	mounter, err := msh.tokenClientBuilder.VolumeMounterUnmounter(token)
+	mounter, err := msh.mounterBuilder.WithToken(token).Build()
 	if err != nil {
 		handleCommonErrorCases(errors.Wrap(err, "web.msh.Configure -> could not create mounter"), rw, msh.logger)
 		return
 	}
 
-	svcCruder, err := msh.tokenClientBuilder.MobileServiceCruder(token)
+	serviceCruder, err := msh.serviceRepoBuilder.WithToken(token).Build()
 	if err != nil {
 		handleCommonErrorCases(errors.Wrap(err, "web.msh.Configure -> could not create service cruder"), rw, msh.logger)
 		return
 	}
 
-	err = msh.mobileIntegrationService.MountSecretForComponent(svcCruder, mounter, component, secret)
+	err = msh.mobileIntegrationService.MountSecretForComponent(serviceCruder, mounter, component, secret)
 	if err != nil {
 		handleCommonErrorCases(errors.Wrap(err, "web.msh.Configure -> could not mount secret: '"+secret+"' into component: '"+component+"'"), rw, msh.logger)
 		return
@@ -174,19 +176,19 @@ func (msh *MobileServiceHandler) Deconfigure(rw http.ResponseWriter, req *http.R
 		return
 	}
 
-	svcCruder, err := msh.tokenClientBuilder.MobileServiceCruder(token)
+	serviceCruder, err := msh.serviceRepoBuilder.WithToken(token).Build()
 	if err != nil {
 		handleCommonErrorCases(errors.Wrap(err, "web.msh.Deconfigure -> could not create service cruder"), rw, msh.logger)
 		return
 	}
 
-	unmounter, err := msh.tokenClientBuilder.VolumeMounterUnmounter(token)
+	unmounter, err := msh.mounterBuilder.WithToken(token).Build()
 	if err != nil {
 		handleCommonErrorCases(errors.Wrap(err, "web.msh.Deconfigure -> could not create volume unmounter"), rw, msh.logger)
 		return
 	}
 
-	err = msh.mobileIntegrationService.UnmountSecretInComponent(svcCruder, unmounter, component, secret)
+	err = msh.mobileIntegrationService.UnmountSecretInComponent(serviceCruder, unmounter, component, secret)
 	if err != nil {
 		handleCommonErrorCases(errors.Wrap(err, "web.msh.Deconfigure -> could not unmount secret: '"+secret+"' from component: '"+component+"'"), rw, msh.logger)
 		return
@@ -198,7 +200,7 @@ func (msh *MobileServiceHandler) Delete(rw http.ResponseWriter, req *http.Reques
 	rw.Header().Set("Content-Type", "application/json")
 	token := headers.DefaultTokenRetriever(req.Header)
 	params := mux.Vars(req)
-	svcCruder, err := msh.tokenClientBuilder.MobileServiceCruder(token)
+	serviceCruder, err := msh.serviceRepoBuilder.WithToken(token).Build()
 	if err != nil {
 		handleCommonErrorCases(errors.Wrap(err, "web.msh.Deconfigure -> could not create service cruder"), rw, msh.logger)
 		return
@@ -208,7 +210,7 @@ func (msh *MobileServiceHandler) Delete(rw http.ResponseWriter, req *http.Reques
 		http.Error(rw, "service name cannot be empty", http.StatusBadRequest)
 		return
 	}
-	if err := svcCruder.Delete(serviceName); err != nil {
+	if err := serviceCruder.Delete(serviceName); err != nil {
 		handleCommonErrorCases(errors.Wrap(err, "web.msh.Delete could not delete service "), rw, msh.logger)
 		return
 	}

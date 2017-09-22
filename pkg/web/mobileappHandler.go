@@ -14,17 +14,17 @@ import (
 
 // MobileAppHandler handle mobile actions
 type MobileAppHandler struct {
-	logger             *logrus.Logger
-	tokenClientBuilder mobile.TokenScopedClientBuilder
-	appService         *app.Service
+	logger           *logrus.Logger
+	appService       *app.Service
+	appCruderBuilder mobile.AppRepoBuilder
 }
 
 // NewMobileAppHandler returns a new mobile app handler
-func NewMobileAppHandler(logger *logrus.Logger, tokenClientBuilder mobile.TokenScopedClientBuilder, appService *app.Service) *MobileAppHandler {
+func NewMobileAppHandler(logger *logrus.Logger, app mobile.AppRepoBuilder, appService *app.Service) *MobileAppHandler {
 	return &MobileAppHandler{
-		logger:             logger,
-		tokenClientBuilder: tokenClientBuilder,
-		appService:         appService,
+		logger:           logger,
+		appCruderBuilder: app,
+		appService:       appService,
 	}
 }
 
@@ -32,7 +32,7 @@ func NewMobileAppHandler(logger *logrus.Logger, tokenClientBuilder mobile.TokenS
 func (m *MobileAppHandler) Read(rw http.ResponseWriter, req *http.Request) {
 	// we return the actul request handleing function now that it has been configured.
 	token := headers.DefaultTokenRetriever(req.Header)
-	appRepo, err := m.tokenClientBuilder.MobileAppCruder(token)
+	appRepo, err := m.appCruderBuilder.WithToken(token).Build()
 	if err != nil {
 		handleCommonErrorCases(err, rw, m.logger)
 		return
@@ -58,7 +58,7 @@ func (m *MobileAppHandler) Read(rw http.ResponseWriter, req *http.Request) {
 // List will list mobile apps
 func (m *MobileAppHandler) List(rw http.ResponseWriter, req *http.Request) {
 	token := headers.DefaultTokenRetriever(req.Header)
-	appRepo, err := m.tokenClientBuilder.MobileAppCruder(token)
+	appRepo, err := m.appCruderBuilder.WithToken(token).Build()
 	if err != nil {
 		handleCommonErrorCases(err, rw, m.logger)
 		return
@@ -79,7 +79,7 @@ func (m *MobileAppHandler) List(rw http.ResponseWriter, req *http.Request) {
 // Delete will delete a mobile app
 func (m *MobileAppHandler) Delete(rw http.ResponseWriter, req *http.Request) {
 	token := headers.DefaultTokenRetriever(req.Header)
-	appRepo, err := m.tokenClientBuilder.MobileAppCruder(token)
+	appRepo, err := m.appCruderBuilder.WithToken(token).Build()
 	if err != nil {
 		handleCommonErrorCases(err, rw, m.logger)
 		return
@@ -97,7 +97,7 @@ func (m *MobileAppHandler) Delete(rw http.ResponseWriter, req *http.Request) {
 // Create creates a mobileapp
 func (m *MobileAppHandler) Create(rw http.ResponseWriter, req *http.Request) {
 	token := headers.DefaultTokenRetriever(req.Header)
-	appRepo, err := m.tokenClientBuilder.MobileAppCruder(token)
+	appRepo, err := m.appCruderBuilder.WithToken(token).Build()
 	if err != nil {
 		handleCommonErrorCases(err, rw, m.logger)
 		return
