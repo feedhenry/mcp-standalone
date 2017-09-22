@@ -15,6 +15,7 @@ type AppCruder interface {
 	Update(app *App) (*App, error)
 	UpdateAppAPIKeys(app *App) error
 	CreateAppAPIKeyMap() error
+	RemoveAppAPIKeyByID(appID string) error
 }
 
 type ServiceCruder interface {

@@ -36,3 +36,13 @@ func (s *Service) Create(appCrudder mobile.AppCruder, app *mobile.App) error {
 
 	return nil
 }
+
+func (s *Service) Delete(appCruder mobile.AppCruder, appID string) error {
+	if err := appCruder.DeleteByName(appID); err != nil {
+		return err
+	}
+	if err := appCruder.RemoveAppAPIKeyByID(appID); err != nil {
+		return err
+	}
+	return nil
+}
