@@ -176,23 +176,29 @@ angular.module('mobileControlPanelApp').service('mcpApi', [
           return data;
         });
       },
-      integrateService: function(params) {
+      integrateService: function(service, integrationKey) {
+        var params = service.integrations[integrationKey];
         if (!window.MCP_URL) {
           return new Promise(function(resolve, reject) {
             return reject('No MCP URL');
           });
         }
+        console.log('params: ', params);
         let url =
           getMobileServicesURL() +
-          '/configure/' +
+          '/configure' +
+          '/' +
           params.component +
+          '/' +
+          service.name +
           '/' +
           params.service;
         return $http.post(url, {}, requestConfig).then(res => {
           return res.data;
         });
       },
-      deintegrateService: function(params) {
+      deintegrateService: function(service, integrationKey) {
+        var params = service.integrations[integrationKey];
         if (!window.MCP_URL) {
           return new Promise(function(resolve, reject) {
             return reject('No MCP URL');
@@ -200,8 +206,11 @@ angular.module('mobileControlPanelApp').service('mcpApi', [
         }
         let url =
           getMobileServicesURL() +
-          '/configure/' +
+          '/configure' +
+          '/' +
           params.component +
+          '/' +
+          service.name +
           '/' +
           params.service;
         return $http.delete(url, requestConfig).then(res => {

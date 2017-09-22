@@ -7,8 +7,10 @@ import (
 	"strings"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/feedhenry/mcp-standalone/pkg/clients"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile/integration"
+	"github.com/feedhenry/mcp-standalone/pkg/openshift"
 	"github.com/feedhenry/mcp-standalone/pkg/web/headers"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
@@ -22,16 +24,20 @@ type MobileServiceHandler struct {
 	mounterBuilder           mobile.MounterBuilder
 	serviceRepoBuilder       mobile.ServiceRepoBuilder
 	metricsGetter            mobile.MetricsGetter
+	userRepoBuilder          mobile.UserRepoBuilder
+	authCheckerBuilder       mobile.AuthCheckerBuilder
 }
 
 // NewMobileServiceHandler returns a new MobileServiceHandler
-func NewMobileServiceHandler(logger *logrus.Logger, integrationService *integration.MobileService, mounterBuilder mobile.MounterBuilder, mg mobile.MetricsGetter, serviceRepoBuilder mobile.ServiceRepoBuilder) *MobileServiceHandler {
+func NewMobileServiceHandler(logger *logrus.Logger, integrationService *integration.MobileService, mounterBuilder mobile.MounterBuilder, mg mobile.MetricsGetter, serviceRepoBuilder mobile.ServiceRepoBuilder, userRepoBuilder mobile.UserRepoBuilder, authCheckerBuilder mobile.AuthCheckerBuilder) *MobileServiceHandler {
 	return &MobileServiceHandler{
 		logger: logger,
 		mobileIntegrationService: integrationService,
 		metricsGetter:            mg,
 		mounterBuilder:           mounterBuilder,
 		serviceRepoBuilder:       serviceRepoBuilder,
+		userRepoBuilder:          userRepoBuilder,
+		authCheckerBuilder:       authCheckerBuilder,
 	}
 }
 
@@ -43,7 +49,11 @@ func (msh *MobileServiceHandler) List(rw http.ResponseWriter, req *http.Request)
 		handleCommonErrorCases(err, rw, msh.logger)
 		return
 	}
-	svc, err := msh.mobileIntegrationService.DiscoverMobileServices(serviceCruder)
+
+	userRepo := msh.userRepoBuilder.WithToken(token).WithClient(&openshift.UserAccess{}).Build()
+	authChecker := msh.authCheckerBuilder.WithToken(token).WithUserRepo(userRepo).IgnoreCerts().Build()
+	client := clients.NewHttpClientBuilder().Insecure(true).Timeout(5).Build()
+	svc, err := msh.mobileIntegrationService.DiscoverMobileServices(serviceCruder, authChecker, client)
 	if err != nil {
 		err = errors.Wrap(err, "attempted to list mobile services")
 		handleCommonErrorCases(err, rw, msh.logger)
@@ -73,10 +83,13 @@ func (msh *MobileServiceHandler) Read(rw http.ResponseWriter, req *http.Request)
 		handleCommonErrorCases(err, rw, msh.logger)
 		return
 	}
+	userRepo := msh.userRepoBuilder.WithToken(token).WithClient(&openshift.UserAccess{}).Build()
+	authChecker := msh.authCheckerBuilder.WithToken(token).WithUserRepo(userRepo).IgnoreCerts().Build()
+	client := clients.NewHttpClientBuilder().Insecure(true).Timeout(5).Build()
 
 	if withIntegrations != "" {
 		fmt.Println("with Integrations", serviceName)
-		ms, err = msh.mobileIntegrationService.ReadMobileServiceAndIntegrations(serviceCruder, serviceName)
+		ms, err = msh.mobileIntegrationService.ReadMobileServiceAndIntegrations(serviceCruder, authChecker, serviceName, client)
 		if err != nil {
 			handleCommonErrorCases(err, rw, msh.logger)
 			return
@@ -127,10 +140,15 @@ func (msh *MobileServiceHandler) Configure(rw http.ResponseWriter, req *http.Req
 	token := headers.DefaultTokenRetriever(req.Header)
 
 	params := mux.Vars(req)
-	component := strings.ToLower(params["component"])
+	componentType := strings.ToLower(params["componentType"])
+	componentName := strings.ToLower(params["componentName"])
 	secret := strings.ToLower(params["secret"])
-	if len(component) == 0 {
-		handleCommonErrorCases(errors.New("web.msh.Configure -> provided component must not be empty"), rw, msh.logger)
+	if len(componentType) == 0 {
+		handleCommonErrorCases(errors.New("web.msh.Configure -> provided componentType must not be empty"), rw, msh.logger)
+		return
+	}
+	if len(componentName) == 0 {
+		handleCommonErrorCases(errors.New("web.msh.Configure -> provided componentName must not be empty"), rw, msh.logger)
 		return
 	}
 	if len(secret) == 0 {
@@ -150,9 +168,9 @@ func (msh *MobileServiceHandler) Configure(rw http.ResponseWriter, req *http.Req
 		return
 	}
 
-	err = msh.mobileIntegrationService.MountSecretForComponent(serviceCruder, mounter, component, secret)
+	err = msh.mobileIntegrationService.MountSecretForComponent(serviceCruder, mounter, componentType, componentName, secret)
 	if err != nil {
-		handleCommonErrorCases(errors.Wrap(err, "web.msh.Configure -> could not mount secret: '"+secret+"' into component: '"+component+"'"), rw, msh.logger)
+		handleCommonErrorCases(errors.Wrap(err, "web.msh.Configure -> could not mount secret: '"+secret+"' into component: '"+componentType+":"+componentName+"'"), rw, msh.logger)
 		return
 	}
 
@@ -165,10 +183,15 @@ func (msh *MobileServiceHandler) Deconfigure(rw http.ResponseWriter, req *http.R
 	token := headers.DefaultTokenRetriever(req.Header)
 
 	params := mux.Vars(req)
-	component := params["component"]
+	componentType := strings.ToLower(params["componentType"])
+	componentName := strings.ToLower(params["componentName"])
 	secret := params["secret"]
-	if len(component) == 0 {
-		handleCommonErrorCases(errors.New("web.msh.Configure -> provided component must not be empty"), rw, msh.logger)
+	if len(componentType) == 0 {
+		handleCommonErrorCases(errors.New("web.msh.Configure -> provided componentType must not be empty"), rw, msh.logger)
+		return
+	}
+	if len(componentName) == 0 {
+		handleCommonErrorCases(errors.New("web.msh.Configure -> provided componentName must not be empty"), rw, msh.logger)
 		return
 	}
 	if len(secret) == 0 {
@@ -188,9 +211,9 @@ func (msh *MobileServiceHandler) Deconfigure(rw http.ResponseWriter, req *http.R
 		return
 	}
 
-	err = msh.mobileIntegrationService.UnmountSecretInComponent(serviceCruder, unmounter, component, secret)
+	err = msh.mobileIntegrationService.UnmountSecretInComponent(serviceCruder, unmounter, componentType, componentName, secret)
 	if err != nil {
-		handleCommonErrorCases(errors.Wrap(err, "web.msh.Deconfigure -> could not unmount secret: '"+secret+"' from component: '"+component+"'"), rw, msh.logger)
+		handleCommonErrorCases(errors.Wrap(err, "web.msh.Deconfigure -> could not unmount secret: '"+secret+"' from component: '"+componentType+":"+componentName+"'"), rw, msh.logger)
 		return
 	}
 	return

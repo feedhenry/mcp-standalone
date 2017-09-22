@@ -31,6 +31,7 @@ type Service struct {
 	Labels       map[string]string              `json:"labels"`
 	Integrations map[string]*ServiceIntegration `json:"integrations"`
 	External     bool                           `json:"external"`
+	Writeable    bool                           `json:"writeable"`
 }
 
 func NewMobileService() *Service {
@@ -115,4 +116,20 @@ type GatheredMetric struct {
 	Type string             `json:"type"`
 	X    []string           `json:"x"`
 	Y    map[string][]int64 `json:"y"`
+}
+
+type User struct {
+	User   string
+	Groups []string
+}
+
+func (u *User) InAnyGroup(groups []string) bool {
+	for _, group := range groups {
+		for _, userGroup := range u.Groups {
+			if group == userGroup {
+				return true
+			}
+		}
+	}
+	return false
 }

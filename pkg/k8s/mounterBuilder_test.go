@@ -3,6 +3,7 @@ package k8s
 import (
 	"testing"
 
+	"github.com/feedhenry/mcp-standalone/pkg/mobile"
 	ktesting "k8s.io/client-go/testing"
 
 	"github.com/feedhenry/mcp-standalone/pkg/mock"
@@ -33,6 +34,22 @@ func listSecrets(a ktesting.Action) (bool, runtime.Object, error) {
 	}, nil
 }
 
+func namespaceSecretFactory(namespaces []string, secretName string) ktesting.ReactionFunc {
+	return func(action ktesting.Action) (bool, runtime.Object, error) {
+		for _, validNs := range namespaces {
+			if validNs == action.GetNamespace() {
+				return true, &v1.Secret{
+					ObjectMeta: meta_v1.ObjectMeta{
+						Name: secretName,
+					},
+					Data: map[string][]byte{},
+				}, nil
+			}
+		}
+		return true, &v1.Secret{}, kerror.NewNotFound(schema.GroupResource{Group: "", Resource: "secret"}, secretName)
+	}
+}
+
 func getSecrets(action ktesting.Action) (bool, runtime.Object, error) {
 	return true, &v1.Secret{
 		ObjectMeta: meta_v1.ObjectMeta{
@@ -46,7 +63,6 @@ func missingSecretFactory(secretName string) ktesting.ReactionFunc {
 	return func(action ktesting.Action) (bool, runtime.Object, error) {
 		return true, &v1.Secret{}, kerror.NewNotFound(schema.GroupResource{Group: "", Resource: "secret"}, secretName)
 	}
-
 }
 
 func updateDeployments(action ktesting.Action) (bool, runtime.Object, error) {
@@ -116,8 +132,8 @@ func TestMount(t *testing.T) {
 		Name      string
 		K8sClient func() *fake.Clientset
 		Namespace string
-		Service   string
-		Secret    string
+		Service   *mobile.Service
+		Secret    *mobile.Service
 		Validate  func(t *testing.T, mountRes error)
 	}{
 		{
@@ -131,8 +147,8 @@ func TestMount(t *testing.T) {
 				return k8sMock
 			},
 			Namespace: "test-namespace",
-			Service:   "test-service",
-			Secret:    "test-secret",
+			Service:   &mobile.Service{Name: "test-service", Type: "test-service"},
+			Secret:    &mobile.Service{Name: "test-secret", Type: "test-secret"},
 			Validate: func(t *testing.T, mountRes error) {
 				if mountRes != nil {
 					t.Fatalf("Did not expect error mounting in testCase: Valid mount request, got: %v", mountRes)
@@ -150,8 +166,8 @@ func TestMount(t *testing.T) {
 				return k8sMock
 			},
 			Namespace: "test-namespace",
-			Service:   "test-bad-service",
-			Secret:    "test-secret",
+			Service:   &mobile.Service{Name: "test-bad-service", Type: "test-bad-service"},
+			Secret:    &mobile.Service{Name: "test-secret", Type: "test-secret"},
 			Validate: func(t *testing.T, mountRes error) {
 				if mountRes == nil {
 					t.Fatalf("expected error when providing bad clientService name, but got none")
@@ -159,21 +175,21 @@ func TestMount(t *testing.T) {
 			},
 		},
 		{
-			Name: "Secret should not be mounted because a bad secret name has been provided",
+			Name: "Secret and service are in different namespaces",
 			K8sClient: func() *fake.Clientset {
 				k8sMock := &fake.Clientset{}
 				k8sMock.AddReactor("list", "secrets", listSecrets)
-				k8sMock.AddReactor("get", "secrets", missingSecretFactory("test-bad-secret"))
+				k8sMock.AddReactor("get", "secrets", namespaceSecretFactory([]string{"secret-namespace"}, "test-secret"))
 				k8sMock.AddReactor("Update", "deployments", updateDeployments)
-				k8sMock.AddReactor("get", "deployments", getUnmountedDeployments)
+				k8sMock.AddReactor("get", "deployments", getMountedDeployments)
 				return k8sMock
 			},
 			Namespace: "test-namespace",
-			Service:   "test-service",
-			Secret:    "test-bad-secret",
+			Service:   &mobile.Service{Name: "test-service", Type: "test-service", Namespace: "service-namespace"},
+			Secret:    &mobile.Service{Name: "test-secret", Type: "test-secret", Namespace: "secret-namespace"},
 			Validate: func(t *testing.T, mountRes error) {
-				if mountRes == nil {
-					t.Fatalf("expected error when providing bad secret name, but got none")
+				if mountRes != nil {
+					t.Fatalf("Did not expect error mounting in testCase: Valid mount request, got: %v", mountRes)
 				}
 			},
 		},
@@ -197,8 +213,8 @@ func TestUnmount(t *testing.T) {
 		Name      string
 		K8sClient func() *fake.Clientset
 		Namespace string
-		Service   string
-		Secret    string
+		Service   *mobile.Service
+		Secret    *mobile.Service
 		Validate  func(t *testing.T, unmountRes error)
 	}{
 		{
@@ -212,8 +228,8 @@ func TestUnmount(t *testing.T) {
 				return k8sMock
 			},
 			Namespace: "test-namespace",
-			Service:   "test-service",
-			Secret:    "test-secret",
+			Service:   &mobile.Service{Name: "test-service", Type: "test-service"},
+			Secret:    &mobile.Service{Name: "test-secret", Type: "test-secret"},
 			Validate: func(t *testing.T, unmountRes error) {
 				if unmountRes != nil {
 					t.Fatalf("Did not expect error mounting in testCase: Valid mount request, got: %v", unmountRes)
@@ -231,30 +247,11 @@ func TestUnmount(t *testing.T) {
 				return k8sMock
 			},
 			Namespace: "test-namespace",
-			Service:   "test-bad-service",
-			Secret:    "test-secret",
+			Service:   &mobile.Service{Name: "test-bad-service", Type: "test-bad-service"},
+			Secret:    &mobile.Service{Name: "test-service", Type: "test-service"},
 			Validate: func(t *testing.T, unmountRes error) {
 				if unmountRes == nil {
 					t.Fatalf("expected error when providing bad clientService name, but got none")
-				}
-			},
-		},
-		{
-			Name: "Secret should not be unmounted because a bad secret name has been provided",
-			K8sClient: func() *fake.Clientset {
-				k8sMock := &fake.Clientset{}
-				k8sMock.AddReactor("list", "secrets", listSecrets)
-				k8sMock.AddReactor("get", "secrets", missingSecretFactory("test-bad-secret"))
-				k8sMock.AddReactor("Update", "deployments", updateDeployments)
-				k8sMock.AddReactor("get", "deployments", getMountedDeployments)
-				return k8sMock
-			},
-			Namespace: "test-namespace",
-			Service:   "test-service",
-			Secret:    "test-bad-secret",
-			Validate: func(t *testing.T, unmountRes error) {
-				if unmountRes == nil {
-					t.Fatalf("expected error when providing bad secret name, but got none")
 				}
 			},
 		},
