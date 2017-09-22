@@ -1,6 +1,7 @@
 package k8s
 
 import (
+	"fmt"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
 	"github.com/pkg/errors"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -61,6 +62,7 @@ type MountManager struct {
 
 // Mount a secret named mount into the service
 func (mm *MountManager) Mount(service, clientService *mobile.Service) error {
+	fmt.Printf("clientService: %+v\n", clientService)
 	clientNamespace := clientService.Namespace
 	serviceNamespace := service.Namespace
 	if clientNamespace == "" {
@@ -71,7 +73,7 @@ func (mm *MountManager) Mount(service, clientService *mobile.Service) error {
 	}
 	deploy, err := mm.k8s.AppsV1beta1().Deployments(clientNamespace).Get(clientService.Type, meta_v1.GetOptions{})
 	if err != nil {
-		return errors.Wrap(err, "k8s.mm.Mount -> could not find deployment named: "+clientService.Type)
+		return errors.Wrap(err, "k8s.mm.Mount -> could not find deployment named: "+clientService.Type+" in namespace: "+clientNamespace)
 	}
 	id := findContainerID(clientService.Type, deploy.Spec.Template.Spec.Containers)
 	if id < 0 {

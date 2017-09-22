@@ -117,25 +117,31 @@ func filterServices(serviceTypes []string) func(att mobile.Attributer) bool {
 	}
 }
 
-//NOTE do we want to have a usecae for mounting the secrets to allow for logic around services and secrets in different namespaces?
-
 //MountSecretForComponent will mount secret into component, returning any errors
-func (ms *MobileService) MountSecretForComponent(svcCruder mobile.ServiceCruder, mounter mobile.VolumeMounter, clientService, serviceSecret string) error {
+func (ms *MobileService) MountSecretForComponent(svcCruder mobile.ServiceCruder, mounter mobile.VolumeMounter, clientServiceType, clientServiceName, serviceSecret string) error {
 	//check secret exists and store for later update
 	service, err := svcCruder.Read(serviceSecret)
 	if err != nil {
 		return errors.Wrap(err, "failed to find secret: '"+serviceSecret+"'")
 	}
 
-	cServiceList, err := svcCruder.List(filterServices([]string{clientService}))
-	if err != nil || len(cServiceList) == 0 {
-		return errors.New("failed to find secret for client service: '" + clientService + "'")
+	css, err := svcCruder.List(filterServices([]string{clientServiceType}))
+	if err != nil || len(css) == 0 {
+		return errors.New("failed to find secret for client service: '" + clientServiceType + "'")
 	}
-	cService := cServiceList[0]
+	cService := &mobile.Service{}
+	for _, cs := range css {
+		if cs.Name == clientServiceName {
+			cService = cs
+		}
+	}
+	if cService.Name != clientServiceName {
+		return errors.New("integration.ms.MountSecretForComponent -> Could not find service of type '" + clientServiceType + "' with name '" + clientServiceName + "'")
+	}
 
 	err = mounter.Mount(service, cService)
 	if err != nil {
-		return errors.Wrap(err, "failed to mount secret '"+serviceSecret+"' into service '"+clientService+"'")
+		return errors.Wrap(err, "failed to mount secret '"+serviceSecret+"' into service '"+clientServiceType+"'")
 	}
 
 	clientServiceID := cService.ID
@@ -150,7 +156,7 @@ func (ms *MobileService) MountSecretForComponent(svcCruder mobile.ServiceCruder,
 }
 
 //UnmountSecretInComponent will unmount secret from component, so it can be no longer use serviceName, returning any errors
-func (ms *MobileService) UnmountSecretInComponent(svcCruder mobile.ServiceCruder, unmounter mobile.VolumeUnmounter, clientService, serviceSecret string) error {
+func (ms *MobileService) UnmountSecretInComponent(svcCruder mobile.ServiceCruder, unmounter mobile.VolumeUnmounter, clientServiceType, clientServiceName, serviceSecret string) error {
 	//check secret exists and store for later update
 	service, err := svcCruder.Read(serviceSecret)
 	if err != nil {
@@ -158,15 +164,23 @@ func (ms *MobileService) UnmountSecretInComponent(svcCruder mobile.ServiceCruder
 	}
 
 	//find the clientService secret name
-	css, err := svcCruder.List(filterServices([]string{clientService}))
+	css, err := svcCruder.List(filterServices([]string{clientServiceType}))
 	if err != nil || len(css) == 0 {
-		return errors.New("failed to find secret for client service: '" + clientService + "'")
+		return errors.New("failed to find secret for client service: '" + clientServiceType + "'")
 	}
-	cService := css[0]
+	cService := &mobile.Service{}
+	for _, cs := range css {
+		if cs.Name == clientServiceName {
+			cService = cs
+		}
+	}
+	if cService.Name != clientServiceName {
+		return errors.New("integration.ms.UnmountSecretForComponent -> Could not find service of type '" + clientServiceType + "' with name '" + clientServiceName + "'")
+	}
 
 	err = unmounter.Unmount(service, cService)
 	if err != nil {
-		return errors.Wrap(err, "failed to unmount secret '"+serviceSecret+"' from component '"+clientService+"'")
+		return errors.Wrap(err, "failed to unmount secret '"+serviceSecret+"' from component '"+clientServiceType+"'")
 	}
 
 	clientServiceId := cService.ID

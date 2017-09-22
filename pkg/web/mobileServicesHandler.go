@@ -140,10 +140,15 @@ func (msh *MobileServiceHandler) Configure(rw http.ResponseWriter, req *http.Req
 	token := headers.DefaultTokenRetriever(req.Header)
 
 	params := mux.Vars(req)
-	component := strings.ToLower(params["component"])
+	componentType := strings.ToLower(params["componentType"])
+	componentName := strings.ToLower(params["componentName"])
 	secret := strings.ToLower(params["secret"])
-	if len(component) == 0 {
-		handleCommonErrorCases(errors.New("web.msh.Configure -> provided component must not be empty"), rw, msh.logger)
+	if len(componentType) == 0 {
+		handleCommonErrorCases(errors.New("web.msh.Configure -> provided componentType must not be empty"), rw, msh.logger)
+		return
+	}
+	if len(componentName) == 0 {
+		handleCommonErrorCases(errors.New("web.msh.Configure -> provided componentName must not be empty"), rw, msh.logger)
 		return
 	}
 	if len(secret) == 0 {
@@ -163,9 +168,9 @@ func (msh *MobileServiceHandler) Configure(rw http.ResponseWriter, req *http.Req
 		return
 	}
 
-	err = msh.mobileIntegrationService.MountSecretForComponent(serviceCruder, mounter, component, secret)
+	err = msh.mobileIntegrationService.MountSecretForComponent(serviceCruder, mounter, componentType, componentName, secret)
 	if err != nil {
-		handleCommonErrorCases(errors.Wrap(err, "web.msh.Configure -> could not mount secret: '"+secret+"' into component: '"+component+"'"), rw, msh.logger)
+		handleCommonErrorCases(errors.Wrap(err, "web.msh.Configure -> could not mount secret: '"+secret+"' into component: '"+componentType+":"+componentName+"'"), rw, msh.logger)
 		return
 	}
 
@@ -178,10 +183,15 @@ func (msh *MobileServiceHandler) Deconfigure(rw http.ResponseWriter, req *http.R
 	token := headers.DefaultTokenRetriever(req.Header)
 
 	params := mux.Vars(req)
-	component := params["component"]
+	componentType := strings.ToLower(params["componentType"])
+	componentName := strings.ToLower(params["componentName"])
 	secret := params["secret"]
-	if len(component) == 0 {
-		handleCommonErrorCases(errors.New("web.msh.Configure -> provided component must not be empty"), rw, msh.logger)
+	if len(componentType) == 0 {
+		handleCommonErrorCases(errors.New("web.msh.Configure -> provided componentType must not be empty"), rw, msh.logger)
+		return
+	}
+	if len(componentName) == 0 {
+		handleCommonErrorCases(errors.New("web.msh.Configure -> provided componentName must not be empty"), rw, msh.logger)
 		return
 	}
 	if len(secret) == 0 {
@@ -201,9 +211,9 @@ func (msh *MobileServiceHandler) Deconfigure(rw http.ResponseWriter, req *http.R
 		return
 	}
 
-	err = msh.mobileIntegrationService.UnmountSecretInComponent(serviceCruder, unmounter, component, secret)
+	err = msh.mobileIntegrationService.UnmountSecretInComponent(serviceCruder, unmounter, componentType, componentName, secret)
 	if err != nil {
-		handleCommonErrorCases(errors.Wrap(err, "web.msh.Deconfigure -> could not unmount secret: '"+secret+"' from component: '"+component+"'"), rw, msh.logger)
+		handleCommonErrorCases(errors.Wrap(err, "web.msh.Deconfigure -> could not unmount secret: '"+secret+"' from component: '"+componentType+":"+componentName+"'"), rw, msh.logger)
 		return
 	}
 	return
