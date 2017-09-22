@@ -21,6 +21,7 @@ import (
 	"github.com/feedhenry/mcp-standalone/pkg/mobile/integration"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile/metrics"
 	"github.com/feedhenry/mcp-standalone/pkg/mock"
+	"github.com/feedhenry/mcp-standalone/pkg/openshift"
 	"github.com/feedhenry/mcp-standalone/pkg/web"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	v1 "k8s.io/client-go/pkg/api/v1"
@@ -41,7 +42,9 @@ func setupMobileServiceHandler(kclient kubernetes.Interface) http.Handler {
 	}
 	serviceCruder := data.NewServiceRepoBuilder(cb, "test", "test")
 	mountBuilder := k8s.NewMounterBuilder(cb, "test", "test")
-	handler := web.NewMobileServiceHandler(logger, ms, mountBuilder, metricGetter, serviceCruder)
+	userRepoBuilder := openshift.NewUserRepoBuilder("test", true)
+	authCheckerBuilder := openshift.NewAuthCheckerBuilder("test")
+	handler := web.NewMobileServiceHandler(logger, ms, mountBuilder, metricGetter, serviceCruder, userRepoBuilder, authCheckerBuilder)
 	web.MobileServiceRoute(r, handler)
 	return web.BuildHTTPHandler(r, nil)
 }
@@ -132,6 +135,7 @@ func TestConfigure(t *testing.T) {
 								Data: map[string][]byte{
 									"uri":  []byte("http://test.com"),
 									"type": []byte("fh-sync-server"),
+									"name": []byte("fh-sync-arinky-dink"),
 								},
 							},
 							{
@@ -204,7 +208,7 @@ func TestConfigure(t *testing.T) {
 			handler := setupMobileServiceHandler(tc.Client())
 			server := httptest.NewServer(handler)
 			defer server.Close()
-			res, err := http.Post(server.URL+"/mobileservice/configure/fh-sync-server/keycloak-public-client", "text/plain", strings.NewReader(""))
+			res, err := http.Post(server.URL+"/mobileservice/configure/fh-sync-server/fh-sync-arinky-dink/keycloak-public-client", "text/plain", strings.NewReader(""))
 			if err != nil {
 				t.Fatal("did not expect an error requesting mobile services ", err)
 			}
@@ -239,6 +243,7 @@ func TestDeconfigure(t *testing.T) {
 								Data: map[string][]byte{
 									"uri":  []byte("http://test.com"),
 									"type": []byte("fh-sync-server"),
+									"name": []byte("fh-sync-arinky-dink"),
 								},
 							},
 							{
@@ -320,7 +325,7 @@ func TestDeconfigure(t *testing.T) {
 			handler := setupMobileServiceHandler(tc.Client())
 			server := httptest.NewServer(handler)
 			defer server.Close()
-			req, err := http.NewRequest("DELETE", server.URL+"/mobileservice/configure/fh-sync-server/keycloak-public-client", strings.NewReader(""))
+			req, err := http.NewRequest("DELETE", server.URL+"/mobileservice/configure/fh-sync-server/fh-sync-arinky-dink/keycloak-public-client", strings.NewReader(""))
 			if err != nil {
 				t.Fatal("did not expect an error creating a http requets", err)
 			}

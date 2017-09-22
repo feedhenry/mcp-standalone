@@ -116,6 +116,7 @@ func convertMobileAppToSecret(ms mobile.Service) *v1.Secret {
 	data["uri"] = []byte(ms.Host)
 	data["name"] = []byte(ms.Name)
 	data["type"] = []byte(ms.Type)
+	data["namespace"] = []byte(ms.Namespace)
 	for k, v := range ms.Params {
 		data[k] = []byte(v)
 	}
@@ -224,12 +225,12 @@ func convertSecretToMobileService(s v1.Secret) *mobile.Service {
 	}
 	external := s.Labels["external"] == "true"
 	return &mobile.Service{
-		Namespace:    s.Labels["namespace"],
 		ID:           s.Name,
 		External:     external,
 		Labels:       s.Labels,
 		Name:         strings.TrimSpace(string(s.Data["name"])),
 		Type:         strings.TrimSpace(string(s.Data["type"])),
+		Namespace:    strings.TrimSpace(string(s.Data["namespace"])),
 		Host:         string(s.Data["uri"]),
 		Params:       params,
 		Integrations: map[string]*mobile.ServiceIntegration{},
