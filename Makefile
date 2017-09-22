@@ -56,8 +56,6 @@ apbs:
 	cp install/openshift/template.json cmd/android-apb/roles/provision-android-app/templates
 	cp install/openshift/template.json cmd/cordova-apb/roles/provision-cordova-apb/templates	
 	cp install/openshift/template.json cmd/ios-apb/roles/provision-ios-apb/templates
-	cp install/openshift/template.json cmd/mcp-apb/roles/provision-mcp-apb/templates
-	cd cmd/mcp-apb && make build_and_push 		
 	cd cmd/android-apb && make build_and_push 		
 	cd cmd/ios-apb && make build_and_push 		
 	cd cmd/cordova-apb && make build_and_push 					
