@@ -21,6 +21,7 @@ import (
 	"github.com/feedhenry/mcp-standalone/pkg/mobile/integration"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile/metrics"
 	"github.com/feedhenry/mcp-standalone/pkg/mock"
+	"github.com/feedhenry/mcp-standalone/pkg/openshift"
 	"github.com/feedhenry/mcp-standalone/pkg/web"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	v1 "k8s.io/client-go/pkg/api/v1"
@@ -41,7 +42,9 @@ func setupMobileServiceHandler(kclient kubernetes.Interface) http.Handler {
 	}
 	serviceCruder := data.NewServiceRepoBuilder(cb, "test", "test")
 	mountBuilder := k8s.NewMounterBuilder(cb, "test", "test")
-	handler := web.NewMobileServiceHandler(logger, ms, mountBuilder, metricGetter, serviceCruder)
+	userRepoBuilder := openshift.NewUserRepoBuilder("test", true)
+	authCheckerBuilder := openshift.NewAuthCheckerBuilder("test")
+	handler := web.NewMobileServiceHandler(logger, ms, mountBuilder, metricGetter, serviceCruder, userRepoBuilder, authCheckerBuilder)
 	web.MobileServiceRoute(r, handler)
 	return web.BuildHTTPHandler(r, nil)
 }

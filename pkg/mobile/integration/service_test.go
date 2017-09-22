@@ -6,11 +6,15 @@ import (
 	"github.com/feedhenry/mcp-standalone/pkg/data"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile/integration"
+	"io"
+	"io/ioutil"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes/fake"
 	v1 "k8s.io/client-go/pkg/api/v1"
 	ktesting "k8s.io/client-go/testing"
+	"net/http"
+	"strings"
 )
 
 type mockAuthChecker struct {
@@ -18,8 +22,28 @@ type mockAuthChecker struct {
 	checkErrRes  error
 }
 
-func (mac *mockAuthChecker) Check(resource, namespace string) (bool, error) {
+func (mac *mockAuthChecker) Check(resource, namespace string, client mobile.ExternalHTTPRequester) (bool, error) {
 	return mac.checkBoolRes, mac.checkErrRes
+}
+
+type mockExternalHTTPRequester struct {
+	ResponseBody  io.ReadCloser
+	ResponseError error
+	ResponseCode  int
+}
+
+func (mehr *mockExternalHTTPRequester) Do(req *http.Request) (*http.Response, error) {
+	res := &http.Response{Body: mehr.ResponseBody, StatusCode: mehr.ResponseCode}
+	return res, mehr.ResponseError
+}
+
+func (mehr *mockExternalHTTPRequester) Get(url string) (*http.Response, error) {
+	res := &http.Response{Body: mehr.ResponseBody, StatusCode: mehr.ResponseCode}
+	return res, mehr.ResponseError
+}
+
+func newMockExternalHTTPRequester(body io.ReadCloser, status int, err error) mobile.ExternalHTTPRequester {
+	return &mockExternalHTTPRequester{ResponseBody: body, ResponseError: err, ResponseCode: status}
 }
 
 func TestMobileServiceDiscovery(t *testing.T) {
@@ -28,10 +52,12 @@ func TestMobileServiceDiscovery(t *testing.T) {
 		ExpectError   bool
 		ServiceCruder func() mobile.ServiceCruder
 		authChecker   func() mobile.AuthChecker
+		client        mobile.ExternalHTTPRequester
 		Validate      func(svs []*mobile.Service, t *testing.T)
 	}{
 		{
-			Name: "test discover mobile services ok",
+			Name:   "test discover mobile services ok",
+			client: newMockExternalHTTPRequester(ioutil.NopCloser(strings.NewReader("")), http.StatusOK, nil),
 			authChecker: func() mobile.AuthChecker {
 				return &mockAuthChecker{}
 			},
@@ -82,7 +108,7 @@ func TestMobileServiceDiscovery(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
 			is := integration.MobileService{}
-			svcs, err := is.DiscoverMobileServices(tc.ServiceCruder(), tc.authChecker())
+			svcs, err := is.DiscoverMobileServices(tc.ServiceCruder(), tc.authChecker(), tc.client)
 			if tc.ExpectError && err == nil {
 				t.Fatalf("expected an err but got none!")
 			}

@@ -10,6 +10,7 @@ import (
 	"github.com/feedhenry/mcp-standalone/pkg/clients"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile/integration"
+	"github.com/feedhenry/mcp-standalone/pkg/openshift"
 	"github.com/feedhenry/mcp-standalone/pkg/web/headers"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
@@ -23,16 +24,20 @@ type MobileServiceHandler struct {
 	mounterBuilder           mobile.MounterBuilder
 	serviceRepoBuilder       mobile.ServiceRepoBuilder
 	metricsGetter            mobile.MetricsGetter
+	userRepoBuilder          mobile.UserRepoBuilder
+	authCheckerBuilder       mobile.AuthCheckerBuilder
 }
 
 // NewMobileServiceHandler returns a new MobileServiceHandler
-func NewMobileServiceHandler(logger *logrus.Logger, integrationService *integration.MobileService, mounterBuilder mobile.MounterBuilder, mg mobile.MetricsGetter, serviceRepoBuilder mobile.ServiceRepoBuilder) *MobileServiceHandler {
+func NewMobileServiceHandler(logger *logrus.Logger, integrationService *integration.MobileService, mounterBuilder mobile.MounterBuilder, mg mobile.MetricsGetter, serviceRepoBuilder mobile.ServiceRepoBuilder, userRepoBuilder mobile.UserRepoBuilder, authCheckerBuilder mobile.AuthCheckerBuilder) *MobileServiceHandler {
 	return &MobileServiceHandler{
 		logger: logger,
 		mobileIntegrationService: integrationService,
 		metricsGetter:            mg,
 		mounterBuilder:           mounterBuilder,
 		serviceRepoBuilder:       serviceRepoBuilder,
+		userRepoBuilder:          userRepoBuilder,
+		authCheckerBuilder:       authCheckerBuilder,
 	}
 }
 
@@ -44,8 +49,9 @@ func (msh *MobileServiceHandler) List(rw http.ResponseWriter, req *http.Request)
 		handleCommonErrorCases(err, rw, msh.logger)
 		return
 	}
-	userRepo := msh.tokenClientBuilder.UserRepo(token)
-	authChecker := msh.tokenClientBuilder.AuthChecker(userRepo, token, true)
+
+	userRepo := msh.userRepoBuilder.WithToken(token).WithClient(&openshift.UserAccess{}).Build()
+	authChecker := msh.authCheckerBuilder.WithToken(token).WithUserRepo(userRepo).IgnoreCerts().Build()
 	client := clients.NewHttpClientBuilder().Insecure(true).Timeout(5).Build()
 	svc, err := msh.mobileIntegrationService.DiscoverMobileServices(serviceCruder, authChecker, client)
 	if err != nil {
@@ -77,8 +83,8 @@ func (msh *MobileServiceHandler) Read(rw http.ResponseWriter, req *http.Request)
 		handleCommonErrorCases(err, rw, msh.logger)
 		return
 	}
-	userRepo := msh.tokenClientBuilder.UserRepo(token)
-	authChecker := msh.tokenClientBuilder.AuthChecker(userRepo, token, true)
+	userRepo := msh.userRepoBuilder.WithToken(token).WithClient(&openshift.UserAccess{}).Build()
+	authChecker := msh.authCheckerBuilder.WithToken(token).WithUserRepo(userRepo).IgnoreCerts().Build()
 	client := clients.NewHttpClientBuilder().Insecure(true).Timeout(5).Build()
 
 	if withIntegrations != "" {
