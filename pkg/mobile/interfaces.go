@@ -12,9 +12,6 @@ type AppCruder interface {
 	DeleteByName(name string) error
 	List() ([]*App, error)
 	Update(app *App) (*App, error)
-	UpdateAppAPIKeys(app *App) error
-	CreateAppAPIKeyMap() error
-	RemoveAppAPIKeyByID(appID string) error
 }
 
 type ServiceCruder interface {
@@ -24,6 +21,9 @@ type ServiceCruder interface {
 	UpdateEnabledIntegrations(svcName string, integrations map[string]string) error
 	Create(ms *Service) error
 	Delete(serviceID string) error
+	CreateAPIKeyMap() error
+	UpdateAPIKeyMap(appID string, apiKey string) error
+	RemoveAPIKeyByID(appID string) error
 }
 
 type Attributer interface {

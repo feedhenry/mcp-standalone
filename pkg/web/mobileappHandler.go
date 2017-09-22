@@ -14,17 +14,19 @@ import (
 
 // MobileAppHandler handle mobile actions
 type MobileAppHandler struct {
-	logger           *logrus.Logger
-	appService       *app.Service
-	appCruderBuilder mobile.AppRepoBuilder
+	logger              *logrus.Logger
+	appService          *app.Service
+	appCruderBuilder    mobile.AppRepoBuilder
+	apiKeyCruderBuilder mobile.ServiceRepoBuilder
 }
 
 // NewMobileAppHandler returns a new mobile app handler
-func NewMobileAppHandler(logger *logrus.Logger, app mobile.AppRepoBuilder, appService *app.Service) *MobileAppHandler {
+func NewMobileAppHandler(logger *logrus.Logger, app mobile.AppRepoBuilder, apiKeyBuilder mobile.ServiceRepoBuilder, appService *app.Service) *MobileAppHandler {
 	return &MobileAppHandler{
-		logger:           logger,
-		appCruderBuilder: app,
-		appService:       appService,
+		logger:              logger,
+		appCruderBuilder:    app,
+		apiKeyCruderBuilder: apiKeyBuilder,
+		appService:          appService,
 	}
 }
 
@@ -84,10 +86,15 @@ func (m *MobileAppHandler) Delete(rw http.ResponseWriter, req *http.Request) {
 		handleCommonErrorCases(err, rw, m.logger)
 		return
 	}
+	apiKeyMapCruder, err := m.apiKeyCruderBuilder.WithToken(token).Build()
+	if err != nil {
+		handleCommonErrorCases(err, rw, m.logger)
+		return
+	}
 	params := mux.Vars(req)
 	id := params["id"]
 
-	if err := m.appService.Delete(appRepo, id); err != nil {
+	if err := m.appService.Delete(appRepo, apiKeyMapCruder, id); err != nil {
 		err = errors.Wrap(err, "mobile app handler, failed to delete app")
 		handleCommonErrorCases(err, rw, m.logger)
 		return
@@ -102,6 +109,11 @@ func (m *MobileAppHandler) Create(rw http.ResponseWriter, req *http.Request) {
 		handleCommonErrorCases(err, rw, m.logger)
 		return
 	}
+	apiKeyMapCruder, err := m.apiKeyCruderBuilder.WithToken(token).Build()
+	if err != nil {
+		handleCommonErrorCases(err, rw, m.logger)
+		return
+	}
 	app := &mobile.App{}
 	decoder := json.NewDecoder(req.Body)
 	if err := decoder.Decode(app); err != nil {
@@ -110,8 +122,7 @@ func (m *MobileAppHandler) Create(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 	app.MetaData = map[string]string{}
-
-	if err := m.appService.Create(appRepo, app); err != nil {
+	if err := m.appService.Create(appRepo, apiKeyMapCruder, app); err != nil {
 		err = errors.Wrap(err, "mobile app handler, failed to create app")
 		handleCommonErrorCases(err, rw, m.logger)
 		return

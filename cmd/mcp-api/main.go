@@ -89,7 +89,7 @@ func main() {
 
 	// Ensure that the apiKey map exists
 	{
-		err := createAppAPIKeyMap(appRepoBuilder, token)
+		err := createAppAPIKeyMap(svcRepoBuilder, token)
 		if err != nil {
 			panic(err)
 		}
@@ -115,7 +115,7 @@ func main() {
 
 	//mobileapp handler
 	{
-		appHandler := web.NewMobileAppHandler(logger, appRepoBuilder, appService)
+		appHandler := web.NewMobileAppHandler(logger, appRepoBuilder, svcRepoBuilder, appService)
 		web.MobileAppRoute(router, appHandler)
 	}
 
@@ -175,12 +175,12 @@ func readSAToken(path string) (string, error) {
 	return string(data), nil
 }
 
-func createAppAPIKeyMap(appRepoBuilder mobile.AppRepoBuilder, token string) error {
-	appRepo, err := appRepoBuilder.WithToken(token).Build()
+func createAppAPIKeyMap(apiKeyMapBuilder mobile.ServiceRepoBuilder, token string) error {
+	apiKeyCruder, err := apiKeyMapBuilder.WithToken(token).Build()
 	if err != nil {
 		return err
 	}
-	err = appRepo.CreateAppAPIKeyMap()
+	err = apiKeyCruder.CreateAPIKeyMap()
 	if err != nil {
 		return err
 	}

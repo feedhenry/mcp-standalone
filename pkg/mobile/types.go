@@ -22,6 +22,7 @@ type App struct {
 type Service struct {
 	ID           string                         `json:"id"`
 	Name         string                         `json:"name"`
+	DisplayName  string                         `json:"displayName"`
 	Namespace    string                         `json:"namespace"`
 	Host         string                         `json:"host"`
 	Description  string                         `json:"description"`
@@ -49,6 +50,7 @@ type ServiceIntegration struct {
 	Service         string `json:"service"`
 	Namespace       string `json:"namespace"`
 	ComponentSecret string `json:"componentSecret"`
+	DisplayName     string `json:"displayName"`
 }
 
 type ServiceConfig struct {

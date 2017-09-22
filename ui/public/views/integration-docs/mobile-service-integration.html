@@ -18,7 +18,7 @@
   <div ng-if="integrations.length > 0 && mobileappsCount > 0">
     <form class="form-horizontal">
       <div class="form-group" ng-repeat="(key, value) in service.integrations">
-        <label class="col-sm-2 control-label" for="integration-{{key}}">{{key}}</label>
+        <label class="col-sm-2 control-label" for="integration-{{key}}">{{value.displayName}}</label>
         <div class="col-sm-10" ng-switch="status(key, service)">
           <button ng-switch-when="0" ng-if="serviceWriteable(service)" ng-click="enableIntegration(service, key)" class="btn btn-primary" type="button">Create Integration</button>
           <button ng-switch-when="1" ng-if="serviceWriteable(service)" ng-click="disableIntegration(service, key)" class="btn btn-danger" type="button">Destroy Integration</button>

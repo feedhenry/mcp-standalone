@@ -2,6 +2,7 @@ package integration
 
 import (
 	"fmt"
+
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
 	"github.com/pkg/errors"
 )
@@ -31,11 +32,15 @@ func (ms *MobileService) FindByNames(names []string, serviceCruder mobile.Servic
 var capabilities = map[string]map[string][]string{
 	"fh-sync-server": map[string][]string{
 		"capabilities": {"data storage, data syncronisation"},
-		"integrations": {"keycloak"},
+		"integrations": {"keycloak", "mcp-mobile-keys"},
 	},
 	"keycloak": map[string][]string{
 		"capabilities": {"authentication, authorisation"},
 		"integrations": {"fh-sync"},
+	},
+	"mcp-mobile-keys": map[string][]string{
+		"capabilities": {"access apps"},
+		"integrations": {"mcp-mobile-keys"},
 	},
 	"custom": map[string][]string{
 		"capabilities": {""},
@@ -89,6 +94,7 @@ func (ms *MobileService) ReadMobileServiceAndIntegrations(serviceCruder mobile.S
 				svc.Integrations[v] = &mobile.ServiceIntegration{
 					ComponentSecret: svc.ID,
 					Component:       svc.Type,
+					DisplayName:     is.DisplayName,
 					Namespace:       ms.namespace,
 					Service:         is.ID,
 					Enabled:         enabled,
