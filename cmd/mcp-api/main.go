@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/feedhenry/mcp-standalone/pkg/clients"
+	"github.com/feedhenry/mcp-standalone/pkg/httpclient"
 	"github.com/feedhenry/mcp-standalone/pkg/data"
 	"github.com/feedhenry/mcp-standalone/pkg/k8s"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
@@ -69,7 +69,7 @@ func main() {
 		svcRepoBuilder     = data.NewServiceRepoBuilder(k8ClientBuilder, *namespace, token)
 		authCheckerBuilder = openshift.NewAuthCheckerBuilder(k8host)
 		userRepoBuilder    = openshift.NewUserRepoBuilder(k8host, true).WithClient(&openshift.UserAccess{})
-		httpClientBuilder  = clients.NewHttpClientBuilder()
+		httpClientBuilder  = httpclient.NewHttpClientBuilder()
 		openshiftUser      = openshift.UserAccess{}
 		mwAccess           = middleware.NewAccess(logger, k8host, openshiftUser.ReadUserFromToken)
 		// these channels control when background proccess should stop
