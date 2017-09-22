@@ -62,7 +62,6 @@ type MountManager struct {
 
 // Mount a secret named mount into the service
 func (mm *MountManager) Mount(service, clientService *mobile.Service) error {
-	fmt.Printf("clientService: %+v\n", clientService)
 	clientNamespace := clientService.Namespace
 	serviceNamespace := service.Namespace
 	if clientNamespace == "" {

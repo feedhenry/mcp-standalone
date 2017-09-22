@@ -1,6 +1,7 @@
 package integration
 
 import (
+	"fmt"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
 	"github.com/pkg/errors"
 )
@@ -131,6 +132,7 @@ func (ms *MobileService) MountSecretForComponent(svcCruder mobile.ServiceCruder,
 	}
 	cService := &mobile.Service{}
 	for _, cs := range css {
+		fmt.Printf("cservice name: %s", cs.Name)
 		if cs.Name == clientServiceName {
 			cService = cs
 		}

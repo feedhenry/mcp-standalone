@@ -135,6 +135,7 @@ func TestConfigure(t *testing.T) {
 								Data: map[string][]byte{
 									"uri":  []byte("http://test.com"),
 									"type": []byte("fh-sync-server"),
+									"name": []byte("fh-sync-arinky-dink"),
 								},
 							},
 							{
@@ -207,7 +208,7 @@ func TestConfigure(t *testing.T) {
 			handler := setupMobileServiceHandler(tc.Client())
 			server := httptest.NewServer(handler)
 			defer server.Close()
-			res, err := http.Post(server.URL+"/mobileservice/configure/fh-sync-server/keycloak-public-client", "text/plain", strings.NewReader(""))
+			res, err := http.Post(server.URL+"/mobileservice/configure/fh-sync-server/fh-sync-arinky-dink/keycloak-public-client", "text/plain", strings.NewReader(""))
 			if err != nil {
 				t.Fatal("did not expect an error requesting mobile services ", err)
 			}
@@ -242,6 +243,7 @@ func TestDeconfigure(t *testing.T) {
 								Data: map[string][]byte{
 									"uri":  []byte("http://test.com"),
 									"type": []byte("fh-sync-server"),
+									"name": []byte("fh-sync-arinky-dink"),
 								},
 							},
 							{
@@ -323,7 +325,7 @@ func TestDeconfigure(t *testing.T) {
 			handler := setupMobileServiceHandler(tc.Client())
 			server := httptest.NewServer(handler)
 			defer server.Close()
-			req, err := http.NewRequest("DELETE", server.URL+"/mobileservice/configure/fh-sync-server/keycloak-public-client", strings.NewReader(""))
+			req, err := http.NewRequest("DELETE", server.URL+"/mobileservice/configure/fh-sync-server/fh-sync-arinky-dink/keycloak-public-client", strings.NewReader(""))
 			if err != nil {
 				t.Fatal("did not expect an error creating a http requets", err)
 			}
