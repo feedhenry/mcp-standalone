@@ -55,7 +55,7 @@ type UserRepoBuilder interface {
 }
 
 type UserRepo interface {
-	GetUser() (User, error)
+	GetUser() (*User, error)
 }
 
 // TODO prob can remote the WithClient and instead use NewRepoBuilder(c corev1.ConfigMapInterface) and have this just expose Build() and perhaps add WithToken(token string)
@@ -121,13 +121,8 @@ type AuthChecker interface {
 	Check(resource, namespace string, client ExternalHTTPRequester) (bool, error)
 }
 
-type User interface {
-	Username() string
-	InAnyGroup([]string) bool
-}
-
 type UserAccessChecker interface {
-	ReadUserFromToken(host, token string, insecure bool) (User, error)
+	ReadUserFromToken(host, token string, insecure bool) (*User, error)
 }
 
 type MetricsGetter interface {

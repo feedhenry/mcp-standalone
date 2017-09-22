@@ -117,3 +117,19 @@ type GatheredMetric struct {
 	X    []string           `json:"x"`
 	Y    map[string][]int64 `json:"y"`
 }
+
+type User struct {
+	User   string
+	Groups []string
+}
+
+func (u *User) InAnyGroup(groups []string) bool {
+	for _, group := range groups {
+		for _, userGroup := range u.Groups {
+			if group == userGroup {
+				return true
+			}
+		}
+	}
+	return false
+}

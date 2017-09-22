@@ -6,16 +6,15 @@ import (
 	"errors"
 	"fmt"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
-	"io"
+	"github.com/feedhenry/mcp-standalone/pkg/mock"
 	"io/ioutil"
 	"net/http"
-	"reflect"
 	"testing"
 )
 
 var (
 	testHost      = "test-host"
-	testUser      = &User{User: "Phil", Groups: []string{"group1", "group2"}}
+	testUser      = &mobile.User{User: "Phil", Groups: []string{"group1", "group2"}}
 	testToken     = "test-token"
 	testUserRepo  = newMockUserRepo(testUser, nil)
 	testResource  = "deployments-test"
@@ -58,67 +57,17 @@ func newMockResponse(u, g []string, namespace, evalError string) *responseBody {
 	}
 }
 
-type mockExternalHTTPRequester struct {
-	ResponseBody  io.ReadCloser
-	ResponseError error
-	ResponseCode  int
-}
-
-func (mehr *mockExternalHTTPRequester) Do(req *http.Request) (*http.Response, error) {
-	res := &http.Response{Body: mehr.ResponseBody, StatusCode: mehr.ResponseCode}
-	return res, mehr.ResponseError
-}
-
-func (mehr *mockExternalHTTPRequester) Get(url string) (*http.Response, error) {
-	res := &http.Response{Body: mehr.ResponseBody, StatusCode: mehr.ResponseCode}
-	return res, mehr.ResponseError
-}
-
-func newMockExternalHTTPRequester(body io.ReadCloser, status int, err error) mobile.ExternalHTTPRequester {
-	return &mockExternalHTTPRequester{ResponseBody: body, ResponseError: err, ResponseCode: status}
-}
-
 type mockUserRepo struct {
-	User mobile.User
+	User *mobile.User
 	Err  error
 }
 
-func (mur *mockUserRepo) GetUser() (mobile.User, error) {
+func (mur *mockUserRepo) GetUser() (*mobile.User, error) {
 	return mur.User, mur.Err
 }
 
-func newMockUserRepo(user mobile.User, err error) *mockUserRepo {
+func newMockUserRepo(user *mobile.User, err error) *mockUserRepo {
 	return &mockUserRepo{User: user, Err: err}
-}
-
-func TestNewAuthCheckerBuilder(t *testing.T) {
-	acb := NewAuthCheckerBuilder(testHost)
-	if reflect.TypeOf(acb).String() != "*openshift.AuthCheckerBuilder" {
-		t.Fatalf("expected '*openshift.AuthCheckerBuilder' got '%s'", reflect.TypeOf(acb).String())
-	}
-}
-
-func TestAuthCheckerBuilder_Build(t *testing.T) {
-	ac := NewAuthCheckerBuilder(testHost).Build()
-	if reflect.TypeOf(ac).String() != "*openshift.AuthChecker" {
-		t.Fatalf("exected '*openshift.AuthChecker' but got '%s'", reflect.TypeOf(ac).String())
-	}
-	ac = NewAuthCheckerBuilder(testHost).WithUserRepo(testUserRepo).Build()
-	if reflect.TypeOf(ac).String() != "*openshift.AuthChecker" {
-		t.Fatalf("exected '*openshift.AuthChecker' but got '%s'", reflect.TypeOf(ac).String())
-	}
-	ac = NewAuthCheckerBuilder(testHost).WithToken(testToken).Build()
-	if reflect.TypeOf(ac).String() != "*openshift.AuthChecker" {
-		t.Fatalf("exected '*openshift.AuthChecker' but got '%s'", reflect.TypeOf(ac).String())
-	}
-	ac = NewAuthCheckerBuilder(testHost).WithToken(testToken).WithUserRepo(testUserRepo).Build()
-	if reflect.TypeOf(ac).String() != "*openshift.AuthChecker" {
-		t.Fatalf("exected '*openshift.AuthChecker' but got '%s'", reflect.TypeOf(ac).String())
-	}
-	ac = NewAuthCheckerBuilder(testHost).IgnoreCerts().Build()
-	if reflect.TypeOf(ac).String() != "*openshift.AuthChecker" {
-		t.Fatalf("exected '*openshift.AuthChecker' but got '%s'", reflect.TypeOf(ac).String())
-	}
 }
 
 func TestAuthChecker_Check(t *testing.T) {
@@ -131,6 +80,7 @@ func TestAuthChecker_Check(t *testing.T) {
 		EvalError  string
 		StatusCode int
 		ResError   error
+		Responder  func(host string, path string, method string, t *testing.T) (*http.Response, error)
 		Validation func(res bool, err error, t *testing.T) error
 	}{
 		{
@@ -237,7 +187,15 @@ func TestAuthChecker_Check(t *testing.T) {
 		if err != nil {
 			t.Fatalf("unexpected error creating mock response: '%+v'", err)
 		}
-		res, err := ac.Check(testResource, testNamespace, newMockExternalHTTPRequester(ioutil.NopCloser(bytes.NewReader(resBytes)), tc.StatusCode, tc.ResError))
+		mockClient := &mock.Requester{
+			Responder: func(host string, path string, method string, t *testing.T) (*http.Response, error) {
+				return &http.Response{
+					StatusCode: tc.StatusCode,
+					Body:       ioutil.NopCloser(bytes.NewReader(resBytes)),
+				}, tc.ResError
+			},
+		}
+		res, err := ac.Check(testResource, testNamespace, mockClient)
 		err = tc.Validation(res, err, t)
 		if err != nil {
 			t.Fatalf("error in testcase '%s': '%+v'", tc.TestName, err)

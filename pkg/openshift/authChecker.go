@@ -129,7 +129,7 @@ func (ac *AuthChecker) Check(resource, namespace string, client mobile.ExternalH
 		return false, errors.Wrap(err, "openshift.ac.Check -> error decoding response to auth check")
 	}
 	for _, u := range res.Users {
-		if u == user.Username() {
+		if u == user.User {
 			return true, nil
 		}
 	}

@@ -12,7 +12,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-type UserChecker func(host, token string, skipTLS bool) (mobile.User, error)
+type UserChecker func(host, token string, skipTLS bool) (*mobile.User, error)
 
 // Access handles the cross origin requests
 type Access struct {

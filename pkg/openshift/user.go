@@ -18,7 +18,7 @@ const (
 	userReadPath = "/oapi/v1/users/~"
 )
 
-type UserChecker func(host, token string, skipTLS bool) (User, error)
+type UserChecker func(host, token string, skipTLS bool) (*mobile.User, error)
 
 type UserAccess struct{}
 
@@ -30,8 +30,8 @@ type userResponse struct {
 	} `json:"metadata"`
 }
 
-func (ua *UserAccess) ReadUserFromToken(host, token string, insecure bool) (mobile.User, error) {
-	user := &User{}
+func (ua *UserAccess) ReadUserFromToken(host, token string, insecure bool) (*mobile.User, error) {
+	user := &mobile.User{}
 	u, err := url.Parse(host)
 	if err != nil {
 		return user, errors.Wrap(err, "failed to parse openshift host when attempting to read user")
@@ -65,7 +65,10 @@ func (ua *UserAccess) ReadUserFromToken(host, token string, insecure bool) (mobi
 	}
 
 	userData := &userResponse{}
-	json.Unmarshal(data, userData)
+	err = json.Unmarshal(data, userData)
+	if err != nil {
+		return user, err
+	}
 	user.User = userData.Metadata.Name
 	user.Groups = userData.Groups
 
@@ -88,26 +91,6 @@ func (ae *AuthenticationError) Code() int {
 func IsAuthenticationError(err error) bool {
 	_, ok := err.(*AuthenticationError)
 	return ok
-}
-
-type User struct {
-	User   string
-	Groups []string
-}
-
-func (u *User) Username() string {
-	return u.User
-}
-
-func (u *User) InAnyGroup(groups []string) bool {
-	for _, group := range groups {
-		for _, userGroup := range u.Groups {
-			if group == userGroup {
-				return true
-			}
-		}
-	}
-	return false
 }
 
 type UserRepoBuilder struct {
@@ -140,6 +123,6 @@ type UserRepo struct {
 	ignoreCerts bool
 }
 
-func (ur *UserRepo) GetUser() (mobile.User, error) {
+func (ur *UserRepo) GetUser() (*mobile.User, error) {
 	return ur.client.ReadUserFromToken(ur.host, ur.token, ur.ignoreCerts)
 }
