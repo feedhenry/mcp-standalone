@@ -6,7 +6,7 @@ import (
 	"github.com/feedhenry/mcp-standalone/pkg/data"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile/integration"
-	"io"
+	"github.com/feedhenry/mcp-standalone/pkg/mock"
 	"io/ioutil"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -26,26 +26,6 @@ func (mac *mockAuthChecker) Check(resource, namespace string, client mobile.Exte
 	return mac.checkBoolRes, mac.checkErrRes
 }
 
-type mockExternalHTTPRequester struct {
-	ResponseBody  io.ReadCloser
-	ResponseError error
-	ResponseCode  int
-}
-
-func (mehr *mockExternalHTTPRequester) Do(req *http.Request) (*http.Response, error) {
-	res := &http.Response{Body: mehr.ResponseBody, StatusCode: mehr.ResponseCode}
-	return res, mehr.ResponseError
-}
-
-func (mehr *mockExternalHTTPRequester) Get(url string) (*http.Response, error) {
-	res := &http.Response{Body: mehr.ResponseBody, StatusCode: mehr.ResponseCode}
-	return res, mehr.ResponseError
-}
-
-func newMockExternalHTTPRequester(body io.ReadCloser, status int, err error) mobile.ExternalHTTPRequester {
-	return &mockExternalHTTPRequester{ResponseBody: body, ResponseError: err, ResponseCode: status}
-}
-
 func TestMobileServiceDiscovery(t *testing.T) {
 	cases := []struct {
 		Name          string
@@ -56,8 +36,15 @@ func TestMobileServiceDiscovery(t *testing.T) {
 		Validate      func(svs []*mobile.Service, t *testing.T)
 	}{
 		{
-			Name:   "test discover mobile services ok",
-			client: newMockExternalHTTPRequester(ioutil.NopCloser(strings.NewReader("")), http.StatusOK, nil),
+			Name: "test discover mobile services ok",
+			client: &mock.Requester{
+				Responder: func(host string, path string, method string, t *testing.T) (*http.Response, error) {
+					return &http.Response{
+						StatusCode: http.StatusOK,
+						Body:       ioutil.NopCloser(strings.NewReader("")),
+					}, nil
+				},
+			},
 			authChecker: func() mobile.AuthChecker {
 				return &mockAuthChecker{}
 			},
