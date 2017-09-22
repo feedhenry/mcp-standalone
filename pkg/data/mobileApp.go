@@ -53,7 +53,7 @@ func (mar *MobileAppRepo) UpdateAppAPIKeys(app *mobile.App) error {
 	return nil
 }
 
-// DeleteAppAPIKey remove api key from apiKey mapping
+// RemoveAppAPIKeyByID remove api key from apiKey mapping
 func (mar *MobileAppRepo) RemoveAppAPIKeyByID(appID string) error {
 	cm, err := mar.client.Get(apiKeyMapName, meta_v1.GetOptions{})
 	if err != nil {
