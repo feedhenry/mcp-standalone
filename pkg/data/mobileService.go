@@ -14,9 +14,6 @@ import (
 	v1 "k8s.io/client-go/pkg/api/v1"
 )
 
-const apiKeyMapName = "mcp-mobile-keys"
-const apiKeyMapDisplayName = "API Keys"
-
 // SecretConvertor converts a kubernetes secret into a mobile.ServiceConfig
 type SecretConvertor interface {
 	Convert(s v1.Secret) (*mobile.ServiceConfig, error)
@@ -73,7 +70,7 @@ func (sa *secretAttributer) GetType() string {
 	return strings.TrimSpace(string(sa.Secret.Data["type"]))
 }
 
-// MobileServiceRepo implments the mobile.ServiceCruder interface. it backed by the secret resource in kubernetes
+// MobileServiceRepo implements the mobile.ServiceCruder interface. it backed by the secret resource in kubernetes
 type MobileServiceRepo struct {
 	client     corev1.SecretInterface
 	convertors map[string]SecretConvertor
@@ -220,58 +217,6 @@ func (msr *MobileServiceRepo) Delete(serviceID string) error {
 		return errors.Wrap(err, "mobile serive repo failed to delete underlying secret")
 	}
 	return nil
-}
-
-// CreateAPIKeyMap Create the api key map that contains all keys
-func (msr *MobileServiceRepo) CreateAPIKeyMap() error {
-	_, err := msr.client.Get(apiKeyMapName, meta_v1.GetOptions{})
-	if err != nil {
-		_, err := msr.client.Create(&v1.Secret{
-			ObjectMeta: meta_v1.ObjectMeta{
-				Name: apiKeyMapName,
-			},
-			Data: map[string][]byte{
-				"name":        []byte(apiKeyMapName),
-				"type":        []byte(apiKeyMapName),
-				"displayName": []byte(apiKeyMapDisplayName),
-			},
-		})
-		return err
-	}
-	return nil
-}
-
-// UpdateAPIKeyMap Update the api key map with a new key
-func (msr *MobileServiceRepo) UpdateAPIKeyMap(appID string, apiKey string) error {
-	sec, err := msr.client.Get(apiKeyMapName, meta_v1.GetOptions{})
-	if err != nil {
-		return errors.Wrap(err, "updating api key map, could not read map")
-	}
-	if sec.Data == nil {
-		sec.Data = map[string][]byte{}
-	}
-	sec.Data[appID] = []byte(apiKey)
-	if _, err := msr.client.Update(sec); err != nil {
-		return errors.Wrap(err, "updating api key map, could not update map")
-	}
-	return nil
-}
-
-// RemoveAPIKeyByID Remove a key from the api key map
-func (msr *MobileServiceRepo) RemoveAPIKeyByID(appID string) error {
-	sec, err := msr.client.Get(apiKeyMapName, meta_v1.GetOptions{})
-	if err != nil {
-		return errors.Wrap(err, "removing api key from map, could not read map")
-	}
-	if sec.Data == nil {
-		sec.Data = map[string][]byte{}
-	}
-	delete(sec.Data, appID)
-	if _, err := msr.client.Update(sec); err != nil {
-		return errors.Wrap(err, "removing api key from map, could not update map")
-	}
-	return nil
-
 }
 
 func convertSecretToMobileService(s v1.Secret) *mobile.Service {

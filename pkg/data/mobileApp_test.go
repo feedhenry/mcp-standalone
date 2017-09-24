@@ -1,6 +1,7 @@
 package data_test
 
 import (
+	"bytes"
 	"errors"
 	"testing"
 
@@ -17,13 +18,18 @@ import (
 
 func TestReadMobileApp(t *testing.T) {
 	cases := []struct {
-		Name        string
-		Client      func() corev1.ConfigMapInterface
-		ExpectError bool
-		Validate    func(app *mobile.App, t *testing.T)
+		Name         string
+		APIKeyClient func() corev1.SecretInterface
+		Client       func() corev1.ConfigMapInterface
+		ExpectError  bool
+		Validate     func(app *mobile.App, t *testing.T)
 	}{
 		{
 			Name: "test read mobile app ok",
+			APIKeyClient: func() corev1.SecretInterface {
+				c := fake.Clientset{}
+				return c.CoreV1().Secrets("test")
+			},
 			Client: func() corev1.ConfigMapInterface {
 				c := fake.Clientset{}
 				c.AddReactor("get", "configmaps", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
@@ -47,6 +53,10 @@ func TestReadMobileApp(t *testing.T) {
 		},
 		{
 			Name: "test read mobile app fails when error",
+			APIKeyClient: func() corev1.SecretInterface {
+				c := fake.Clientset{}
+				return c.CoreV1().Secrets("test")
+			},
 			Client: func() corev1.ConfigMapInterface {
 				c := fake.Clientset{}
 				c.AddReactor("get", "configmaps", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
@@ -65,7 +75,7 @@ func TestReadMobileApp(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
-			appRepo := data.NewMobileAppRepo(tc.Client(), data.DefaultMobileAppValidator{})
+			appRepo := data.NewMobileAppRepo(tc.Client(), tc.APIKeyClient(), data.DefaultMobileAppValidator{})
 			app, err := appRepo.ReadByName("test")
 			if tc.ExpectError && err == nil {
 				t.Fatalf("expected an error but got none")
@@ -81,12 +91,17 @@ func TestReadMobileApp(t *testing.T) {
 
 func TestDeleteMobileApp(t *testing.T) {
 	cases := []struct {
-		Name        string
-		ExpectError bool
-		Client      func() corev1.ConfigMapInterface
+		Name         string
+		ExpectError  bool
+		APIKeyClient func() corev1.SecretInterface
+		Client       func() corev1.ConfigMapInterface
 	}{
 		{
 			Name: "test delete mobile app ok",
+			APIKeyClient: func() corev1.SecretInterface {
+				c := fake.Clientset{}
+				return c.CoreV1().Secrets("test")
+			},
 			Client: func() corev1.ConfigMapInterface {
 				c := fake.Clientset{}
 				c.AddReactor("delete", "configmaps", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
@@ -97,6 +112,10 @@ func TestDeleteMobileApp(t *testing.T) {
 		},
 		{
 			Name: "test delete mobile app fails on error",
+			APIKeyClient: func() corev1.SecretInterface {
+				c := fake.Clientset{}
+				return c.CoreV1().Secrets("test")
+			},
 			Client: func() corev1.ConfigMapInterface {
 				c := fake.Clientset{}
 				c.AddReactor("delete", "configmaps", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
@@ -109,7 +128,7 @@ func TestDeleteMobileApp(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
-			appRepo := data.NewMobileAppRepo(tc.Client(), data.DefaultMobileAppValidator{})
+			appRepo := data.NewMobileAppRepo(tc.Client(), tc.APIKeyClient(), data.DefaultMobileAppValidator{})
 			err := appRepo.DeleteByName("test")
 			if tc.ExpectError && err == nil {
 				t.Fatalf("expected an err but got none")
@@ -125,10 +144,11 @@ func TestDeleteMobileApp(t *testing.T) {
 
 func TestCreateMobileApp(t *testing.T) {
 	cases := []struct {
-		Name        string
-		ExpectError bool
-		Client      func() corev1.ConfigMapInterface
-		App         *mobile.App
+		Name         string
+		ExpectError  bool
+		APIKeyClient func() corev1.SecretInterface
+		Client       func() corev1.ConfigMapInterface
+		App          *mobile.App
 	}{
 		{
 			Name: "test create mobile app ok",
@@ -137,6 +157,10 @@ func TestCreateMobileApp(t *testing.T) {
 				ClientType: "android",
 				APIKey:     "akey",
 				MetaData:   map[string]string{},
+			},
+			APIKeyClient: func() corev1.SecretInterface {
+				c := fake.Clientset{}
+				return c.CoreV1().Secrets("test")
 			},
 			Client: func() corev1.ConfigMapInterface {
 				c := fake.Clientset{}
@@ -148,6 +172,10 @@ func TestCreateMobileApp(t *testing.T) {
 			App: &mobile.App{
 				Name:       "app",
 				ClientType: "nodroid",
+			},
+			APIKeyClient: func() corev1.SecretInterface {
+				c := fake.Clientset{}
+				return c.CoreV1().Secrets("test")
 			},
 			Client: func() corev1.ConfigMapInterface {
 				c := fake.Clientset{}
@@ -162,6 +190,10 @@ func TestCreateMobileApp(t *testing.T) {
 				ClientType: "android",
 				MetaData:   map[string]string{},
 			},
+			APIKeyClient: func() corev1.SecretInterface {
+				c := fake.Clientset{}
+				return c.CoreV1().Secrets("test")
+			},
 			Client: func() corev1.ConfigMapInterface {
 				c := fake.Clientset{}
 				c.AddReactor("create", "configmaps", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
@@ -174,7 +206,7 @@ func TestCreateMobileApp(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
-			appRepo := data.NewMobileAppRepo(tc.Client(), data.DefaultMobileAppValidator{})
+			appRepo := data.NewMobileAppRepo(tc.Client(), tc.APIKeyClient(), data.DefaultMobileAppValidator{})
 			err := appRepo.Create(tc.App)
 			if tc.ExpectError && err == nil {
 				t.Fatal("expected an error but got none")
@@ -189,13 +221,18 @@ func TestCreateMobileApp(t *testing.T) {
 func TestListMobileApp(t *testing.T) {
 
 	cases := []struct {
-		Name        string
-		ExpectError bool
-		Client      func() corev1.ConfigMapInterface
-		Validate    func(apps []*mobile.App, t *testing.T)
+		Name         string
+		ExpectError  bool
+		APIKeyClient func() corev1.SecretInterface
+		Client       func() corev1.ConfigMapInterface
+		Validate     func(apps []*mobile.App, t *testing.T)
 	}{
 		{
 			Name: "test list mobile apps ok",
+			APIKeyClient: func() corev1.SecretInterface {
+				c := fake.Clientset{}
+				return c.CoreV1().Secrets("test")
+			},
 			Client: func() corev1.ConfigMapInterface {
 				c := fake.Clientset{}
 				c.AddReactor("list", "configmaps", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
@@ -233,6 +270,10 @@ func TestListMobileApp(t *testing.T) {
 		},
 		{
 			Name: "test list mobile apps doesn't list non mobile app",
+			APIKeyClient: func() corev1.SecretInterface {
+				c := fake.Clientset{}
+				return c.CoreV1().Secrets("test")
+			},
 			Client: func() corev1.ConfigMapInterface {
 				c := fake.Clientset{}
 				c.AddReactor("list", "configmaps", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
@@ -269,6 +310,10 @@ func TestListMobileApp(t *testing.T) {
 		{
 			Name:        "test list mobile fails on error",
 			ExpectError: true,
+			APIKeyClient: func() corev1.SecretInterface {
+				c := fake.Clientset{}
+				return c.CoreV1().Secrets("test")
+			},
 			Client: func() corev1.ConfigMapInterface {
 				c := fake.Clientset{}
 				c.AddReactor("list", "configmaps", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
@@ -286,7 +331,7 @@ func TestListMobileApp(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
-			appRepo := data.NewMobileAppRepo(tc.Client(), data.DefaultMobileAppValidator{})
+			appRepo := data.NewMobileAppRepo(tc.Client(), tc.APIKeyClient(), data.DefaultMobileAppValidator{})
 			apps, err := appRepo.List()
 			if tc.ExpectError && err == nil {
 				t.Fatal("expexted an error but got none")
@@ -302,11 +347,12 @@ func TestListMobileApp(t *testing.T) {
 
 func TestUpdateMobileApp(t *testing.T) {
 	cases := []struct {
-		Name        string
-		ExpectError bool
-		Client      func() corev1.ConfigMapInterface
-		App         *mobile.App
-		Validate    func(app *mobile.App, t *testing.T)
+		Name         string
+		ExpectError  bool
+		APIKeyClient func() corev1.SecretInterface
+		Client       func() corev1.ConfigMapInterface
+		App          *mobile.App
+		Validate     func(app *mobile.App, t *testing.T)
 	}{
 		{
 			App: &mobile.App{
@@ -315,6 +361,10 @@ func TestUpdateMobileApp(t *testing.T) {
 				Labels:     map[string]string{"group": "mobileapp"},
 			},
 			Name: "test update mobile apps clientType ok",
+			APIKeyClient: func() corev1.SecretInterface {
+				c := fake.Clientset{}
+				return c.CoreV1().Secrets("test")
+			},
 			Client: func() corev1.ConfigMapInterface {
 				c := fake.Clientset{}
 				c.AddReactor("get", "configmaps", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
@@ -361,6 +411,10 @@ func TestUpdateMobileApp(t *testing.T) {
 				Labels:     map[string]string{"group": "mobileapp"},
 			},
 			Name: "test update mobile apps clientType fails when invalid",
+			APIKeyClient: func() corev1.SecretInterface {
+				c := fake.Clientset{}
+				return c.CoreV1().Secrets("test")
+			},
 			Client: func() corev1.ConfigMapInterface {
 				c := fake.Clientset{}
 				c.AddReactor("get", "configmaps", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
@@ -387,7 +441,7 @@ func TestUpdateMobileApp(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
-			appRepo := data.NewMobileAppRepo(tc.Client(), data.DefaultMobileAppValidator{})
+			appRepo := data.NewMobileAppRepo(tc.Client(), tc.APIKeyClient(), data.DefaultMobileAppValidator{})
 			app, err := appRepo.Update(tc.App)
 			if tc.ExpectError && err == nil {
 				t.Fatal("expexted an error but got none")
@@ -396,6 +450,135 @@ func TestUpdateMobileApp(t *testing.T) {
 				t.Fatalf("did not expect an err but got one %v", err)
 			}
 			tc.Validate(app, t)
+		})
+	}
+}
+
+func TestUpdateAppAPIKeys(t *testing.T) {
+	cases := []struct {
+		Name         string
+		ExpectError  bool
+		MobileApp    *mobile.App
+		APIKeyClient func(t *testing.T) corev1.SecretInterface
+		Client       func() corev1.ConfigMapInterface
+	}{
+		{
+			Name: "test update api key ok",
+			MobileApp: &mobile.App{
+				ID:         "anID",
+				APIKey:     "anAPIKey",
+				Name:       "test",
+				ClientType: "cordova",
+				MetaData:   map[string]string{},
+			},
+			APIKeyClient: func(t *testing.T) corev1.SecretInterface {
+				c := fake.Clientset{}
+				c.AddReactor("get", "secrets", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
+					return true, &v1.Secret{
+						ObjectMeta: metav1.ObjectMeta{
+							Labels: map[string]string{"group": "notmobile"},
+						},
+						Data: map[string][]byte{
+							"client123": []byte("anAppKey"),
+						},
+					}, nil
+				})
+				c.AddReactor("update", "secrets", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
+					sec := action.(ktesting.UpdateAction).GetObject().(*v1.Secret)
+					key := sec.Data["anID"]
+					if bytes.Compare(key, []byte("anAppKey")) == 0 {
+						t.Fatal("Expected anID to have api key anAPIKey")
+					}
+					return true, nil, nil
+				})
+				return c.CoreV1().Secrets("test")
+			},
+			Client: func() corev1.ConfigMapInterface {
+				c := fake.Clientset{}
+				return c.CoreV1().ConfigMaps("test")
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.Name, func(t *testing.T) {
+			appRepo := data.NewMobileAppRepo(tc.Client(), tc.APIKeyClient(t), data.DefaultMobileAppValidator{})
+			err := appRepo.AddAPIKeyToMap(tc.MobileApp)
+			if tc.ExpectError && err == nil {
+				t.Fatal("expexted an error but got none")
+			}
+			if !tc.ExpectError && err != nil {
+				t.Fatalf("did not expect an err but got one %v", err)
+			}
+		})
+	}
+}
+
+func TestRemoveAppAPIKeyByID(t *testing.T) {
+	cases := []struct {
+		Name         string
+		ExpectError  bool
+		AppID        string
+		APIKeyClient func(t *testing.T) corev1.SecretInterface
+		Client       func() corev1.ConfigMapInterface
+	}{
+		{
+			Name:  "test remove app api key ok",
+			AppID: "anapp",
+			APIKeyClient: func(t *testing.T) corev1.SecretInterface {
+				c := fake.Clientset{}
+				c.AddReactor("get", "secrets", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
+					return true, &v1.Secret{
+						ObjectMeta: metav1.ObjectMeta{
+							Labels: map[string]string{"group": "notmobile"},
+						},
+						Data: map[string][]byte{
+							"anapp": []byte("anAppKey"),
+						},
+					}, nil
+				})
+				c.AddReactor("update", "secrets", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
+					sec := action.(ktesting.UpdateAction).GetObject().(*v1.Secret)
+					if _, exists := sec.Data["anapp"]; exists {
+						t.Fatal("Expected app anapp to be removed")
+					}
+					return true, nil, nil
+				})
+				return c.CoreV1().Secrets("test")
+			},
+			Client: func() corev1.ConfigMapInterface {
+				c := fake.Clientset{}
+				return c.CoreV1().ConfigMaps("test")
+			},
+		},
+		{
+			Name:  "test remove app api key error",
+			AppID: "anapp",
+			APIKeyClient: func(t *testing.T) corev1.SecretInterface {
+				c := fake.Clientset{}
+				c.AddReactor("get", "secrets", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
+					return true, nil, errors.New("not found")
+				})
+				return c.CoreV1().Secrets("test")
+			},
+			Client: func() corev1.ConfigMapInterface {
+				c := fake.Clientset{}
+				return c.CoreV1().ConfigMaps("test")
+			},
+			ExpectError: true,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.Name, func(t *testing.T) {
+			appRepo := data.NewMobileAppRepo(tc.Client(), tc.APIKeyClient(t), data.DefaultMobileAppValidator{})
+			err := appRepo.RemoveAPIKeyFromMap(tc.AppID)
+			if tc.ExpectError && err == nil {
+				t.Fatal("expexted an error but got none")
+			}
+			if !tc.ExpectError && err != nil {
+				t.Fatalf("did not expect an err but got one %v", err)
+			}
 		})
 	}
 }

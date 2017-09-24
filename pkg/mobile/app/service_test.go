@@ -27,21 +27,7 @@ func TestCreateApp(t *testing.T) {
 			Name: "test create app ok",
 			AppCruder: func() mobile.AppCruder {
 				client := &fake.Clientset{}
-				return data.NewMobileAppRepo(client.CoreV1().ConfigMaps("test"), nil)
-			},
-			ServiceCruder: func() mobile.ServiceCruder {
-				client := &fake.Clientset{}
-				client.AddReactor("get", "secret", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
-					return true, &v1.Secret{
-						ObjectMeta: metav1.ObjectMeta{
-							Labels: map[string]string{"group": "notmobile"},
-						},
-						Data: map[string][]byte{
-							"client123": []byte("anAppKey"),
-						},
-					}, nil
-				})
-				return data.NewMobileServiceRepo(client.CoreV1().Secrets("test"))
+				return data.NewMobileAppRepo(client.CoreV1().ConfigMaps("test"), client.CoreV1().Secrets("test"), nil)
 			},
 			MobileApp: &mobile.App{
 				Name:       "test",
@@ -54,11 +40,7 @@ func TestCreateApp(t *testing.T) {
 			ExpectError: true,
 			AppCruder: func() mobile.AppCruder {
 				client := &fake.Clientset{}
-				return data.NewMobileAppRepo(client.CoreV1().ConfigMaps("test"), nil)
-			},
-			ServiceCruder: func() mobile.ServiceCruder {
-				client := &fake.Clientset{}
-				return data.NewMobileServiceRepo(client.CoreV1().Secrets("test"))
+				return data.NewMobileAppRepo(client.CoreV1().ConfigMaps("test"), client.CoreV1().Secrets("test"), nil)
 			},
 			MobileApp: &mobile.App{
 				Name:     "test",
@@ -70,7 +52,7 @@ func TestCreateApp(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
 			service := &app.Service{}
-			err := service.Create(tc.AppCruder(), tc.ServiceCruder(), tc.MobileApp)
+			err := service.Create(tc.AppCruder(), tc.MobileApp)
 			if tc.ExpectError && err == nil {
 				t.Fatalf("expected an err but got none!")
 			}
@@ -83,19 +65,14 @@ func TestCreateApp(t *testing.T) {
 
 func TestRemoveAppByID(t *testing.T) {
 	cases := []struct {
-		Name          string
-		ExpectError   bool
-		ServiceCruder func() mobile.ServiceCruder
-		AppCruder     func() mobile.AppCruder
-		AppID         string
+		Name        string
+		ExpectError bool
+		AppCruder   func() mobile.AppCruder
+		AppID       string
 	}{
 		{
 			Name: "test remove app ok",
 			AppCruder: func() mobile.AppCruder {
-				client := &fake.Clientset{}
-				return data.NewMobileAppRepo(client.CoreV1().ConfigMaps("test"), nil)
-			},
-			ServiceCruder: func() mobile.ServiceCruder {
 				client := &fake.Clientset{}
 				client.AddReactor("get", "secrets", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
 					return true, &v1.Secret{
@@ -107,23 +84,19 @@ func TestRemoveAppByID(t *testing.T) {
 						},
 					}, nil
 				})
-				return data.NewMobileServiceRepo(client.CoreV1().Secrets("test"))
+				return data.NewMobileAppRepo(client.CoreV1().ConfigMaps("test"), client.CoreV1().Secrets("test"), nil)
 			},
 			AppID: "anapp",
 		},
 		{
 			Name:        "test remove app error",
 			ExpectError: true,
-			ServiceCruder: func() mobile.ServiceCruder {
+			AppCruder: func() mobile.AppCruder {
 				client := &fake.Clientset{}
 				client.AddReactor("get", "secrets", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
 					return true, nil, errors.New("secret doesn't exist")
 				})
-				return data.NewMobileServiceRepo(client.CoreV1().Secrets("test"))
-			},
-			AppCruder: func() mobile.AppCruder {
-				client := &fake.Clientset{}
-				return data.NewMobileAppRepo(client.CoreV1().ConfigMaps("test"), nil)
+				return data.NewMobileAppRepo(client.CoreV1().ConfigMaps("test"), client.CoreV1().Secrets("test"), nil)
 			},
 			AppID: "anotherapp",
 		},
@@ -132,7 +105,7 @@ func TestRemoveAppByID(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
 			service := &app.Service{}
-			err := service.Delete(tc.AppCruder(), tc.ServiceCruder(), tc.AppID)
+			err := service.Delete(tc.AppCruder(), tc.AppID)
 			if tc.ExpectError && err == nil {
 				t.Fatalf("expected an err but got none!")
 			}

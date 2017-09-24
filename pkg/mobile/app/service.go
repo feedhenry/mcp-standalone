@@ -9,7 +9,7 @@ import (
 type Service struct {
 }
 
-func (s *Service) Create(appCrudder mobile.AppCruder, apiKeyMapCruder mobile.ServiceCruder, app *mobile.App) error {
+func (s *Service) Create(appCrudder mobile.AppCruder, app *mobile.App) error {
 	uid := uuid.NewV4()
 	app.APIKey = uid.String()
 	switch app.ClientType {
@@ -29,7 +29,7 @@ func (s *Service) Create(appCrudder mobile.AppCruder, apiKeyMapCruder mobile.Ser
 		return err
 	}
 
-	if err := apiKeyMapCruder.UpdateAPIKeyMap(app.ID, app.APIKey); err != nil {
+	if err := appCrudder.AddAPIKeyToMap(app); err != nil {
 		err = errors.Wrap(err, "app create, could not add api key")
 		return err
 	}
@@ -37,11 +37,11 @@ func (s *Service) Create(appCrudder mobile.AppCruder, apiKeyMapCruder mobile.Ser
 	return nil
 }
 
-func (s *Service) Delete(appCruder mobile.AppCruder, apiKeyMapCruder mobile.ServiceCruder, appID string) error {
+func (s *Service) Delete(appCruder mobile.AppCruder, appID string) error {
 	if err := appCruder.DeleteByName(appID); err != nil {
 		return err
 	}
-	if err := apiKeyMapCruder.RemoveAPIKeyByID(appID); err != nil {
+	if err := appCruder.RemoveAPIKeyFromMap(appID); err != nil {
 		return err
 	}
 	return nil

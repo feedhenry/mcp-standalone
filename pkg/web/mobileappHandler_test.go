@@ -29,9 +29,8 @@ func setupMobileAppHandler(kclient kubernetes.Interface) http.Handler {
 		Fakeclient: kclient,
 	}
 	appRepoBuilder := data.NewMobileAppRepoBuilder(cb, "test", "test")
-	apiKeyMapBuilder := data.NewServiceRepoBuilder(cb, "test", "test")
 	appService := &app.Service{}
-	handler := web.NewMobileAppHandler(logger, appRepoBuilder, apiKeyMapBuilder, appService)
+	handler := web.NewMobileAppHandler(logger, appRepoBuilder, appService)
 	web.MobileAppRoute(r, handler)
 	return web.BuildHTTPHandler(r, nil)
 }
