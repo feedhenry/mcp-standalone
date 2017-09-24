@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/feedhenry/mcp-standalone/pkg/clients"
 	"github.com/feedhenry/mcp-standalone/pkg/data"
+	"github.com/feedhenry/mcp-standalone/pkg/httpclient"
 	"github.com/feedhenry/mcp-standalone/pkg/k8s"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile/app"
@@ -61,6 +61,7 @@ func main() {
 	if k8host == "" {
 		k8host = "https://" + os.Getenv("KUBERNETES_SERVICE_HOST") + ":" + os.Getenv("KUBERNETES_SERVICE_PORT")
 	}
+
 	var (
 		//setup out builders
 		k8ClientBuilder    = k8s.NewClientBuilder(*namespace, k8host)
@@ -69,7 +70,7 @@ func main() {
 		svcRepoBuilder     = data.NewServiceRepoBuilder(k8ClientBuilder, *namespace, token)
 		authCheckerBuilder = openshift.NewAuthCheckerBuilder(k8host)
 		userRepoBuilder    = openshift.NewUserRepoBuilder(k8host, true).WithClient(&openshift.UserAccess{})
-		httpClientBuilder  = clients.NewHttpClientBuilder()
+		httpClientBuilder  = httpclient.NewClientBuilder()
 		openshiftUser      = openshift.UserAccess{}
 		mwAccess           = middleware.NewAccess(logger, k8host, openshiftUser.ReadUserFromToken)
 		// these channels control when background proccess should stop
