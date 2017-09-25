@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: Template
+metadata:
+  name: ci-cd
+  annotations:
+    openshift.io/display-name: Mobile CI CD
+    description: Mobile focused CI CD service that integrates with Jenkins Pipelines to test and build your mobile binaries.
+    iconClass: font-icon icon-jenkins
+    tags: JENKINS,ci cd,mobile-service
+    template.openshift.io/long-description: Mobile CI CD.
+    template.openshift.io/provider-display-name: Feedhenry
+    template.openshift.io/documentation-url: https://github.com/aerogear/digger-jenkins
+    template.openshift.io/support-url: https://github.com/aerogear/digger-jenkins
+labels:
+  template: ci-cd
+objects:
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: ci-cd
+    labels:
+      app: ci-cd
+      template: ci-cd
+  spec:
+    ports:
+    - name: ci-cd
+      port: 3000
+      protocol: TCP
+      targetPort: 3000
+    selector:
+      run: ci-cd
+    sessionAffinity: None
+    type: ClusterIP
