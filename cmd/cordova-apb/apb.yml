@@ -7,7 +7,7 @@ tags:
   - mobile
 metadata:
   displayName: Cordova App
-  console.openshift.io/iconClass: fa fa-mobile
+  console.openshift.io/iconClass: icon icon-cordova
 plans:
   - name: default
     description: This default plan deploys cordova-apb
