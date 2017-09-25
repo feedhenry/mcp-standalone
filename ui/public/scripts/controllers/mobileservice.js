@@ -83,18 +83,7 @@ angular.module('mobileControlPanelApp').controller('MobileServiceController', [
 
     $scope.$watch('charts', charts => {
       if ($scope && $scope.service) {
-        if ($scope.service.name !== 'fh-sync-server') {
-          $timeout(
-            () => {
-              // generic rendering of all data as line charts
-              charts.forEach(chart => {
-                c3.generate(chart);
-              });
-            },
-            0,
-            false
-          );
-        } else {
+        if ($scope.service.name === 'fh-sync-server') {
           // custom layout for fh-sync-server
           // render all queue & worker sparklines
           [
@@ -169,6 +158,72 @@ angular.module('mobileControlPanelApp').controller('MobileServiceController', [
           });
 
           c3.generate(chartConfig);
+        } else if ($scope.service.name === 'keycloak') {
+          var keycloakMetrics = {
+            logins: {
+              success: 0,
+              error: 0
+            },
+            registrations: {
+              success: 0,
+              error: 0
+            }
+          };
+          // custom layout for keycloak
+          var loginSuccessChart = _.findWhere(charts, {
+            title: 'LOGIN'
+          });
+          if (loginSuccessChart) {
+            keycloakMetrics.logins.success =
+              loginSuccessChart.data.columns[1][
+                loginSuccessChart.data.columns[1].length - 1
+              ];
+          }
+          var loginErrorChart = _.findWhere(charts, {
+            title: 'LOGIN_ERROR'
+          });
+          if (loginErrorChart) {
+            keycloakMetrics.logins.error =
+              loginErrorChart.data.columns[1][
+                loginErrorChart.data.columns[1].length - 1
+              ];
+          }
+          var registrationSuccessChart = _.findWhere(charts, {
+            title: 'REGISTER'
+          });
+          if (registrationSuccessChart) {
+            keycloakMetrics.registrations.success =
+              registrationSuccessChart.data.columns[1][
+                registrationSuccessChart.data.columns[1].length - 1
+              ];
+          }
+          var registrationErrorChart = _.findWhere(charts, {
+            title: 'REGISTER_ERROR'
+          });
+          if (registrationErrorChart) {
+            keycloakMetrics.registrations.error =
+              registrationErrorChart.data.columns[1][
+                registrationErrorChart.data.columns[1].length - 1
+              ];
+          }
+
+          keycloakMetrics.logins.total =
+            keycloakMetrics.logins.success + keycloakMetrics.logins.error;
+          keycloakMetrics.registrations.total =
+            keycloakMetrics.registrations.success +
+            keycloakMetrics.registrations.error;
+          $scope.keycloakMetrics = keycloakMetrics;
+        } else {
+          $timeout(
+            () => {
+              // generic rendering of all data as line charts
+              charts.forEach(chart => {
+                c3.generate(chart);
+              });
+            },
+            0,
+            false
+          );
         }
       }
     });

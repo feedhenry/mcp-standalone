@@ -33,9 +33,36 @@
                   </dl>
 
                   <h2>Stats</h2>
-                  <div ng-if="!service.name == 'fh-sync-server'" ng-repeat="chart in charts" class="col-xs-12 col-sm-6 col-md-3 mcp-dashboard-chart">
+                  <div ng-if="service.name != 'fh-sync-server' && service.name != 'keycloak'" ng-repeat="chart in charts" class="col-xs-12 col-sm-6 col-md-3 mcp-dashboard-chart">
                     <h3>{{chart.title}}</h3>
                     <div id="line-chart-{{chart.title}}" class="line-chart-pf"></div>
+                  </div>
+
+                  <div ng-if-start="service.name == 'keycloak'" class="col-xs-6 col-md-6 col-lg-6">
+                    <div class="card-pf card-pf-accented card-pf-aggregate-status">
+                      <h2 class="card-pf-title">
+                        <span class="fa fa-shield"></span><span class="card-pf-aggregate-status-count">{{keycloakMetrics.logins.total}}</span> Logins
+                      </h2>
+                      <div class="card-pf-body">
+                        <p class="card-pf-aggregate-status-notifications">
+                          <span class="card-pf-aggregate-status-notification"><span class="pficon pficon-ok"></span>{{keycloakMetrics.logins.success}}</span>
+                          <span class="card-pf-aggregate-status-notification"><span class="pficon pficon-error-circle-o"></span>{{keycloakMetrics.logins.error}}</span>
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <div ng-if-end class="col-xs-6 col-md-6 col-lg-6">
+                    <div class="card-pf card-pf-accented card-pf-aggregate-status">
+                      <h2 class="card-pf-title">
+                        <span class="fa fa-shield"></span><span class="card-pf-aggregate-status-count">{{keycloakMetrics.registrations.total}}</span> Registrations
+                      </h2>
+                      <div class="card-pf-body">
+                        <p class="card-pf-aggregate-status-notifications">
+                          <span class="card-pf-aggregate-status-notification"><span class="pficon pficon-ok"></span>{{keycloakMetrics.registrations.success}}</span>
+                          <span class="card-pf-aggregate-status-notification"><span class="pficon pficon-error-circle-o"></span>{{keycloakMetrics.registrations.error}}</span>
+                        </p>
+                      </div>
+                    </div>
                   </div>
 
                   <div ng-if="service.name == 'fh-sync-server'" class="col-12">
