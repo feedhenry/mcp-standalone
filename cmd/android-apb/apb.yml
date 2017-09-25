@@ -7,6 +7,7 @@ tags:
   - mobile
 metadata:
   displayName: Android App
+  console.openshift.io/iconClass: fa fa-android
 plans:
   - name: default
     description: Sets up an android app via the mobile control panel. The mobile control panel will be deployed if not present.
