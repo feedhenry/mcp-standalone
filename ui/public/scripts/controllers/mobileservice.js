@@ -82,232 +82,95 @@ angular.module('mobileControlPanelApp').controller('MobileServiceController', [
       });
 
     $scope.$watch('charts', charts => {
-      $timeout(
-        () => {
-          if ($scope && $scope.service) {
-            if ($scope.service.name !== 'fh-sync-server') {
+      if ($scope && $scope.service) {
+        if ($scope.service.name !== 'fh-sync-server') {
+          $timeout(
+            () => {
+              // generic rendering of all data as line charts
               charts.forEach(chart => {
                 c3.generate(chart);
               });
-            } else {
-              sparklineConfig = $()
-                .c3ChartDefaults()
-                .getDefaultSparklineConfig();
-              sparklineConfig.bindto = '#chart-pf-sparkline-1';
-              sparklineConfig.data = {
-                columns: [
-                  [
-                    '%',
-                    10,
-                    50,
-                    28,
-                    20,
-                    31,
-                    27,
-                    60,
-                    36,
-                    52,
-                    55,
-                    62,
-                    68,
-                    69,
-                    88,
-                    74,
-                    88,
-                    95
-                  ]
-                ],
-                type: 'area-spline'
-              };
-              c3.generate(sparklineConfig);
-
-              sparklineConfig = $()
-                .c3ChartDefaults()
-                .getDefaultSparklineConfig();
-              sparklineConfig.bindto = '#chart-pf-sparkline-2';
-              sparklineConfig.color = {
-                pattern: ['#2ca02c']
-              };
-              sparklineConfig.data = {
-                columns: [
-                  [
-                    '%',
-                    10,
-                    50,
-                    28,
-                    20,
-                    31,
-                    27,
-                    60,
-                    36,
-                    52,
-                    55,
-                    62,
-                    68,
-                    69,
-                    88,
-                    74,
-                    88,
-                    95
-                  ]
-                ],
-                type: 'area-spline'
-              };
-              c3.generate(sparklineConfig);
-
-              sparklineConfig = $()
-                .c3ChartDefaults()
-                .getDefaultSparklineConfig();
-              sparklineConfig.bindto = '#chart-pf-sparkline-3';
-              sparklineConfig.color = {
-                pattern: ['#ff7f0e']
-              };
-              sparklineConfig.data = {
-                columns: [
-                  [
-                    '%',
-                    10,
-                    50,
-                    28,
-                    20,
-                    31,
-                    27,
-                    60,
-                    36,
-                    52,
-                    55,
-                    62,
-                    68,
-                    69,
-                    88,
-                    74,
-                    88,
-                    95
-                  ]
-                ],
-                type: 'area-spline'
-              };
-              c3.generate(sparklineConfig);
-
+            },
+            0,
+            false
+          );
+        } else {
+          // custom layout for fh-sync-server
+          // render all queue & worker sparklines
+          [
+            ['sync_worker_queue_count', '#ff7f0e', 'total'],
+            ['ack_worker_queue_count', '#2ca02c', 'total'],
+            ['pending_worker_queue_count', '#1f77b4', 'total'],
+            ['sync_worker_process_time_ms', '#ff7f0e', 'avg'],
+            ['ack_worker_process_time_ms', '#2ca02c', 'avg'],
+            ['pending_worker_process_time_ms', '#1f77b4', 'avg']
+          ].forEach(metric => {
+            var chart = _.findWhere(charts, {
+              title: metric[0]
+            });
+            if (chart) {
               var sparklineConfig = $()
                 .c3ChartDefaults()
                 .getDefaultSparklineConfig();
-              sparklineConfig.bindto = '#chart-pf-sparkline-6';
-              sparklineConfig.data = {
-                columns: [
-                  [
-                    '%',
-                    10,
-                    50,
-                    28,
-                    20,
-                    31,
-                    27,
-                    60,
-                    36,
-                    52,
-                    55,
-                    62,
-                    68,
-                    69,
-                    88,
-                    74,
-                    88,
-                    95
-                  ]
-                ],
-                type: 'area-spline'
-              };
-              var chart2 = c3.generate(sparklineConfig);
-
-              sparklineConfig = $()
-                .c3ChartDefaults()
-                .getDefaultSparklineConfig();
-              sparklineConfig.bindto = '#chart-pf-sparkline-7';
+              sparklineConfig.bindto = '#chart-pf-' + metric[0];
+              chart.data.columns[1][0] = ''; // no suffix on hover
               sparklineConfig.color = {
-                pattern: ['#2ca02c']
+                pattern: [metric[1]]
               };
               sparklineConfig.data = {
-                columns: [
-                  [
-                    '%',
-                    35,
-                    36,
-                    20,
-                    30,
-                    31,
-                    22,
-                    44,
-                    36,
-                    40,
-                    41,
-                    55,
-                    52,
-                    48,
-                    48,
-                    50,
-                    40,
-                    41
-                  ]
-                ],
-                type: 'area-spline'
+                columns: [chart.data.columns[1]],
+                type: 'area'
               };
-              var chart4 = c3.generate(sparklineConfig);
+              sparklineConfig.point.r = 0;
+              c3.generate(sparklineConfig);
 
-              sparklineConfig = $()
-                .c3ChartDefaults()
-                .getDefaultSparklineConfig();
-              sparklineConfig.bindto = '#chart-pf-sparkline-8';
-              sparklineConfig.color = {
-                pattern: ['#ff7f0e']
-              };
-              sparklineConfig.data = {
-                columns: [
-                  [
-                    '%',
-                    60,
-                    55,
-                    70,
-                    44,
-                    31,
-                    67,
-                    54,
-                    46,
-                    58,
-                    75,
-                    62,
-                    68,
-                    69,
-                    88,
-                    74,
-                    88,
-                    85
-                  ]
-                ],
-                type: 'area-spline'
-              };
-              var chart6 = c3.generate(sparklineConfig);
-
-              charts[0].data.columns.push(charts[1].data.columns[1]);
-              charts[0].data.columns.push(charts[2].data.columns[1]);
-              charts[0].data.columns.push(charts[3].data.columns[1]);
-              charts[0].data.columns.push(charts[4].data.columns[1]);
-              charts[0].data.columns.push(charts[5].data.columns[1]);
-              charts[0].data.columns.push(charts[6].data.columns[1]);
-              charts[0].data.columns.push(charts[7].data.columns[1]);
-              charts[0].data.columns.push(charts[8].data.columns[1]);
-              charts[0].data.columns.push(charts[9].data.columns[1]);
-              charts[0].data.columns.push(charts[10].data.columns[1]);
-              charts[0].data.columns.push(charts[11].data.columns[1]);
-              charts[0].data.type = 'spline';
-              charts[0].point.r = 2;
-              c3.generate(charts[0]);
+              // set the total/avg value
+              var supplementId = metric[0] + '_' + metric[2];
+              var supplementChart = _.findWhere(charts, {
+                title: supplementId
+              });
+              if (supplementChart) {
+                $scope[supplementId] =
+                  supplementChart.data.columns[1][
+                    supplementChart.data.columns[1].length - 1
+                  ];
+              }
             }
-          }
-        },
-        0,
-        false
-      );
+          });
+
+          // Gather all 'timings' data to render into 1 chart
+          var c3ChartDefaults = $().c3ChartDefaults();
+          var chartConfig = c3ChartDefaults.getDefaultLineConfig();
+          chartConfig.axis = {
+            x: {
+              type: 'timeseries',
+              tick: {
+                // 11:34:55
+                format: '%H:%M:%S'
+              }
+            }
+          };
+          chartConfig.data = {
+            x: 'x',
+            xFormat: '%Y-%m-%d %H:%M:%S',
+            columns: [charts[0].data.columns[0]], // copy over x values
+            type: 'spline'
+          };
+          chartConfig.point.r = 2;
+          chartConfig.bindto = '#line-chart-timings';
+
+          charts.forEach(chart => {
+            if (
+              chart.title.indexOf('mongodb_operation_time_') === 0 ||
+              chart.title.indexOf('api_process_time_') === 0
+            ) {
+              chartConfig.data.columns.push(chart.data.columns[1]);
+            }
+          });
+
+          c3.generate(chartConfig);
+        }
+      }
     });
 
     $scope.status = function(integration, service) {

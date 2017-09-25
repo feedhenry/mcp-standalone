@@ -52,58 +52,58 @@
                           <div class="col-xs-12 col-sm-4 col-md-4">
                             <h3 class="card-pf-subtitle">Pending Queue</h3>
                             <p class="card-pf-utilization-details">
-                              <span class="card-pf-utilization-card-details-count">50</span>
+                              <span class="card-pf-utilization-card-details-count">{{pending_worker_queue_count_total}}</span>
                               <span class="card-pf-utilization-card-details-line-1"></span>
                               <span class="card-pf-utilization-card-details-line-2">items processed</span>
                             </p>
-                            <div class="chart-pf-sparkline" id="chart-pf-sparkline-6"></div>
+                            <div class="chart-pf-sparkline" id="chart-pf-pending_worker_queue_count"></div>
                           </div>
                           <div class="col-xs-12 col-sm-4 col-md-4">
                             <h3 class="card-pf-subtitle">Ack Queue</h3>
                             <p class="card-pf-utilization-details">
-                              <span class="card-pf-utilization-card-details-count">256</span>
+                              <span class="card-pf-utilization-card-details-count">{{ack_worker_queue_count_total}}</span>
                               <span class="card-pf-utilization-card-details-line-1"></span>
                               <span class="card-pf-utilization-card-details-line-2">items processed</span>
                             </p>
-                            <div class="chart-pf-sparkline" id="chart-pf-sparkline-7"></div>
+                            <div class="chart-pf-sparkline" id="chart-pf-ack_worker_queue_count"></div>
                           </div>
                           <div class="col-xs-12 col-sm-4 col-md-4">
                             <h3 class="card-pf-subtitle">Sync Queue</h3>
                             <p class="card-pf-utilization-details">
-                              <span class="card-pf-utilization-card-details-count">200</span>
+                              <span class="card-pf-utilization-card-details-count">{{sync_worker_queue_count_total}}</span>
                               <span class="card-pf-utilization-card-details-line-1"></span>
                               <span class="card-pf-utilization-card-details-line-2">items processed</span>
                             </p>
-                            <div class="chart-pf-sparkline" id="chart-pf-sparkline-8"></div>
+                            <div class="chart-pf-sparkline" id="chart-pf-sync_worker_queue_count"></div>
                           </div>
                         </div>
                         <div class="row">
                           <div class="col-xs-12 col-sm-4 col-md-4">
                             <h3 class="card-pf-subtitle">Pending Worker</h3>
                             <p class="card-pf-utilization-details">
-                              <span class="card-pf-utilization-card-details-count">5</span>
+                              <span class="card-pf-utilization-card-details-count">{{pending_worker_process_time_ms_avg}}</span>
                               <span class="card-pf-utilization-card-details-line-1"></span>
                               <span class="card-pf-utilization-card-details-line-2">ms avg process time</span>
                             </p>
-                            <div class="chart-pf-sparkline" id="chart-pf-sparkline-1"></div>
+                            <div class="chart-pf-sparkline" id="chart-pf-pending_worker_process_time_ms"></div>
                           </div>
                           <div class="col-xs-12 col-sm-4 col-md-4">
                             <h3 class="card-pf-subtitle">Ack Worker</h3>
                             <p class="card-pf-utilization-details">
-                              <span class="card-pf-utilization-card-details-count">3</span>
+                              <span class="card-pf-utilization-card-details-count">{{ack_worker_process_time_ms_avg}}</span>
                               <span class="card-pf-utilization-card-details-line-1"></span>
                               <span class="card-pf-utilization-card-details-line-2">ms avg process time</span>
                             </p>
-                            <div class="chart-pf-sparkline" id="chart-pf-sparkline-2"></div>
+                            <div class="chart-pf-sparkline" id="chart-pf-ack_worker_process_time_ms"></div>
                           </div>
                           <div class="col-xs-12 col-sm-4 col-md-4">
                             <h3 class="card-pf-subtitle">Sync Worker</h3>
                             <p class="card-pf-utilization-details">
-                              <span class="card-pf-utilization-card-details-count">20</span>
+                              <span class="card-pf-utilization-card-details-count">{{sync_worker_process_time_ms_avg}}</span>
                               <span class="card-pf-utilization-card-details-line-1"></span>
                               <span class="card-pf-utilization-card-details-line-2">ms avg process time</span>
                             </p>
-                            <div class="chart-pf-sparkline" id="chart-pf-sparkline-3"></div>
+                            <div class="chart-pf-sparkline" id="chart-pf-sync_worker_process_time_ms"></div>
                           </div>
                         </div>
                       </div>
@@ -120,7 +120,7 @@
                         <div class="row">
                           <div class="col-12">
                             <div class="col-12mcp-dashboard-chart">
-                              <div id="line-chart-api_process_time_sync_ms" class="line-chart-pf"></div>
+                              <div id="line-chart-timings" class="line-chart-pf"></div>
                             </div>
                           </div>
                         </div>

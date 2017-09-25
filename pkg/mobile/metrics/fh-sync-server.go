@@ -194,18 +194,30 @@ func (ss *FhSyncServer) Gather() ([]*metric, error) {
 		if syncProcessTime := stringToInt64(stats.Metrics.JobProcessTime.SyncWorker.Current); syncProcessTime != -1 {
 			ssMetrics = append(ssMetrics, &metric{Type: "sync_worker_process_time_ms", XValue: now.Format("2006-01-02 15:04:05"), YValue: syncProcessTime})
 		}
+		if syncAvgProcessTime := stringToInt64(stats.Metrics.JobProcessTime.SyncWorker.Average); syncAvgProcessTime != -1 {
+			ssMetrics = append(ssMetrics, &metric{Type: "sync_worker_process_time_ms_avg", XValue: now.Format("2006-01-02 15:04:05"), YValue: syncAvgProcessTime})
+		}
+		ssMetrics = append(ssMetrics, &metric{Type: "sync_worker_queue_count_total", XValue: now.Format("2006-01-02 15:04:05"), YValue: stats.Metrics.JobProcessTime.SyncWorker.NumberOfRecords})
 
 		// pending worker stats
 		ssMetrics = append(ssMetrics, &metric{Type: "pending_worker_queue_count", XValue: now.Format("2006-01-02 15:04:05"), YValue: stats.Metrics.JobQueueSize.PendingWorker.Current})
 		if pendingProcessTime := stringToInt64(stats.Metrics.JobProcessTime.PendingWorker.Current); pendingProcessTime != -1 {
 			ssMetrics = append(ssMetrics, &metric{Type: "pending_worker_process_time_ms", XValue: now.Format("2006-01-02 15:04:05"), YValue: pendingProcessTime})
 		}
+		if pendingAvgProcessTime := stringToInt64(stats.Metrics.JobProcessTime.PendingWorker.Average); pendingAvgProcessTime != -1 {
+			ssMetrics = append(ssMetrics, &metric{Type: "pending_worker_process_time_ms_avg", XValue: now.Format("2006-01-02 15:04:05"), YValue: pendingAvgProcessTime})
+		}
+		ssMetrics = append(ssMetrics, &metric{Type: "pending_worker_queue_count_total", XValue: now.Format("2006-01-02 15:04:05"), YValue: stats.Metrics.JobProcessTime.PendingWorker.NumberOfRecords})
 
 		// ack worker stats
 		ssMetrics = append(ssMetrics, &metric{Type: "ack_worker_queue_count", XValue: now.Format("2006-01-02 15:04:05"), YValue: stats.Metrics.JobQueueSize.AckWorker.Current})
 		if ackProcessTime := stringToInt64(stats.Metrics.JobProcessTime.AckWorker.Current); ackProcessTime != -1 {
 			ssMetrics = append(ssMetrics, &metric{Type: "ack_worker_process_time_ms", XValue: now.Format("2006-01-02 15:04:05"), YValue: ackProcessTime})
 		}
+		if ackAvgProcessTime := stringToInt64(stats.Metrics.JobProcessTime.AckWorker.Average); ackAvgProcessTime != -1 {
+			ssMetrics = append(ssMetrics, &metric{Type: "ack_worker_process_time_ms_avg", XValue: now.Format("2006-01-02 15:04:05"), YValue: ackAvgProcessTime})
+		}
+		ssMetrics = append(ssMetrics, &metric{Type: "ack_worker_queue_count_total", XValue: now.Format("2006-01-02 15:04:05"), YValue: stats.Metrics.JobProcessTime.AckWorker.NumberOfRecords})
 	}
 
 	if len(parseErrors) > 0 {
