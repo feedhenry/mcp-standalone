@@ -48,7 +48,10 @@ module.exports = function(grunt) {
         tasks: ['wiredep']
       },
       js: {
-        files: ['<%= yeoman.app %>/scripts/{,*/}*.js'],
+        files: [
+          '<%= yeoman.app %>/scripts/{,*/}*.js',
+          '<%= yeoman.app %>/scripts/components/{,*/}*.js'
+        ],
         tasks: ['setlocalconfig', 'nouglify', 'build']
       },
       jsTest: {

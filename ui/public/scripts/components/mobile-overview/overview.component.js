@@ -7,7 +7,7 @@
  * # overview
  */
 angular.module('mobileControlPanelApp').component('overview', {
-  template: `<div class="overview container-fluid container-cards-pf">
+  template: `<div ng-if="$ctrl.model.objects.length" class="overview container-fluid container-cards-pf">
               <div class="header">
                 <h1>{{$ctrl.model.title}}</h1>
                 <span class="page-header-link">
@@ -26,6 +26,26 @@ angular.module('mobileControlPanelApp').component('overview', {
                 <div ng-repeat="object in $ctrl.model.objects" class="col-xs-12 col-sm-6 col-md-3">
                   <object-card object=object selected=objectSelected action-selected=actionSelected service-classes=$ctrl.model.serviceClasses></object-card>
                 </div>
+              </div>
+            </div>
+
+            <div ng-if="!$ctrl.model.objects.length" class="blank-slate-pf " id="">
+              <div class="blank-slate-pf-icon">
+                <span class="pficon pficon pficon-add-circle-o"></span>
+              </div>
+              <h1>
+                Get Started with {{$ctrl.model.title}}
+              </h1>
+              <p>
+                {{$ctrl.model.text}}
+              </p>
+              <p>
+                Learn more about {{$ctrl.model.title}} <a href="http://feedhenry.org/docs/">in the documentation</a>.
+              </p>
+              <div ng-repeat="action in $ctrl.model.actions | orderBy: 'primary'" class="blank-slate-pf-main-action">
+                <a ng-class="['btn', {'btn-default': !action.primary, 'btn-primary': action.primary}]" ng-click="action.action()" ng-if="action.canView()">
+                    {{action.label}}
+                  </a>
               </div>
             </div>`,
   bindings: {
