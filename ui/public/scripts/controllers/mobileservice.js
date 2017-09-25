@@ -84,9 +84,226 @@ angular.module('mobileControlPanelApp').controller('MobileServiceController', [
     $scope.$watch('charts', charts => {
       $timeout(
         () => {
-          charts.forEach(chart => {
-            c3.generate(chart);
-          });
+          if ($scope && $scope.service) {
+            if ($scope.service.name !== 'fh-sync-server') {
+              charts.forEach(chart => {
+                c3.generate(chart);
+              });
+            } else {
+              sparklineConfig = $()
+                .c3ChartDefaults()
+                .getDefaultSparklineConfig();
+              sparklineConfig.bindto = '#chart-pf-sparkline-1';
+              sparklineConfig.data = {
+                columns: [
+                  [
+                    '%',
+                    10,
+                    50,
+                    28,
+                    20,
+                    31,
+                    27,
+                    60,
+                    36,
+                    52,
+                    55,
+                    62,
+                    68,
+                    69,
+                    88,
+                    74,
+                    88,
+                    95
+                  ]
+                ],
+                type: 'area-spline'
+              };
+              c3.generate(sparklineConfig);
+
+              sparklineConfig = $()
+                .c3ChartDefaults()
+                .getDefaultSparklineConfig();
+              sparklineConfig.bindto = '#chart-pf-sparkline-2';
+              sparklineConfig.color = {
+                pattern: ['#2ca02c']
+              };
+              sparklineConfig.data = {
+                columns: [
+                  [
+                    '%',
+                    10,
+                    50,
+                    28,
+                    20,
+                    31,
+                    27,
+                    60,
+                    36,
+                    52,
+                    55,
+                    62,
+                    68,
+                    69,
+                    88,
+                    74,
+                    88,
+                    95
+                  ]
+                ],
+                type: 'area-spline'
+              };
+              c3.generate(sparklineConfig);
+
+              sparklineConfig = $()
+                .c3ChartDefaults()
+                .getDefaultSparklineConfig();
+              sparklineConfig.bindto = '#chart-pf-sparkline-3';
+              sparklineConfig.color = {
+                pattern: ['#ff7f0e']
+              };
+              sparklineConfig.data = {
+                columns: [
+                  [
+                    '%',
+                    10,
+                    50,
+                    28,
+                    20,
+                    31,
+                    27,
+                    60,
+                    36,
+                    52,
+                    55,
+                    62,
+                    68,
+                    69,
+                    88,
+                    74,
+                    88,
+                    95
+                  ]
+                ],
+                type: 'area-spline'
+              };
+              c3.generate(sparklineConfig);
+
+              var sparklineConfig = $()
+                .c3ChartDefaults()
+                .getDefaultSparklineConfig();
+              sparklineConfig.bindto = '#chart-pf-sparkline-6';
+              sparklineConfig.data = {
+                columns: [
+                  [
+                    '%',
+                    10,
+                    50,
+                    28,
+                    20,
+                    31,
+                    27,
+                    60,
+                    36,
+                    52,
+                    55,
+                    62,
+                    68,
+                    69,
+                    88,
+                    74,
+                    88,
+                    95
+                  ]
+                ],
+                type: 'area-spline'
+              };
+              var chart2 = c3.generate(sparklineConfig);
+
+              sparklineConfig = $()
+                .c3ChartDefaults()
+                .getDefaultSparklineConfig();
+              sparklineConfig.bindto = '#chart-pf-sparkline-7';
+              sparklineConfig.color = {
+                pattern: ['#2ca02c']
+              };
+              sparklineConfig.data = {
+                columns: [
+                  [
+                    '%',
+                    35,
+                    36,
+                    20,
+                    30,
+                    31,
+                    22,
+                    44,
+                    36,
+                    40,
+                    41,
+                    55,
+                    52,
+                    48,
+                    48,
+                    50,
+                    40,
+                    41
+                  ]
+                ],
+                type: 'area-spline'
+              };
+              var chart4 = c3.generate(sparklineConfig);
+
+              sparklineConfig = $()
+                .c3ChartDefaults()
+                .getDefaultSparklineConfig();
+              sparklineConfig.bindto = '#chart-pf-sparkline-8';
+              sparklineConfig.color = {
+                pattern: ['#ff7f0e']
+              };
+              sparklineConfig.data = {
+                columns: [
+                  [
+                    '%',
+                    60,
+                    55,
+                    70,
+                    44,
+                    31,
+                    67,
+                    54,
+                    46,
+                    58,
+                    75,
+                    62,
+                    68,
+                    69,
+                    88,
+                    74,
+                    88,
+                    85
+                  ]
+                ],
+                type: 'area-spline'
+              };
+              var chart6 = c3.generate(sparklineConfig);
+
+              charts[0].data.columns.push(charts[1].data.columns[1]);
+              charts[0].data.columns.push(charts[2].data.columns[1]);
+              charts[0].data.columns.push(charts[3].data.columns[1]);
+              charts[0].data.columns.push(charts[4].data.columns[1]);
+              charts[0].data.columns.push(charts[5].data.columns[1]);
+              charts[0].data.columns.push(charts[6].data.columns[1]);
+              charts[0].data.columns.push(charts[7].data.columns[1]);
+              charts[0].data.columns.push(charts[8].data.columns[1]);
+              charts[0].data.columns.push(charts[9].data.columns[1]);
+              charts[0].data.columns.push(charts[10].data.columns[1]);
+              charts[0].data.columns.push(charts[11].data.columns[1]);
+              charts[0].data.type = 'spline';
+              charts[0].point.r = 2;
+              c3.generate(charts[0]);
+            }
+          }
         },
         0,
         false
