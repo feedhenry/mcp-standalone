@@ -1,6 +1,7 @@
 package data
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -12,6 +13,7 @@ import (
 )
 
 const apiKeyMapName = "mcp-mobile-keys"
+const apiKeyMapDisplayName = "API Keys"
 
 // MobileAppValidator defines what a validator should do
 type MobileAppValidator interface {
@@ -21,68 +23,22 @@ type MobileAppValidator interface {
 
 // MobileAppRepo interacts with the data store that backs the mobile objects
 type MobileAppRepo struct {
-	client    corev1.ConfigMapInterface
-	validator MobileAppValidator
+	client       corev1.ConfigMapInterface
+	apiKeyClient corev1.SecretInterface
+	validator    MobileAppValidator
 }
 
 // NewMobileAppRepo instansiates a new MobileAppRepo
-func NewMobileAppRepo(c corev1.ConfigMapInterface, v MobileAppValidator) *MobileAppRepo {
+func NewMobileAppRepo(c corev1.ConfigMapInterface, apiKeyClient corev1.SecretInterface, v MobileAppValidator) *MobileAppRepo {
 	rep := &MobileAppRepo{
-		client:    c,
-		validator: v,
+		client:       c,
+		apiKeyClient: apiKeyClient,
+		validator:    v,
 	}
 	if rep.validator == nil {
 		rep.validator = &DefaultMobileAppValidator{}
 	}
 	return rep
-}
-
-// UpdateAppApiKeys adds new app api key to apiKey mapping
-func (mar *MobileAppRepo) UpdateAppAPIKeys(app *mobile.App) error {
-	cm, err := mar.client.Get(apiKeyMapName, meta_v1.GetOptions{})
-	if err != nil {
-		return errors.Wrap(err, "updating api key config map, could not read")
-	}
-	if cm.Data == nil {
-		cm.Data = map[string]string{}
-	}
-	cm.Data[app.ID] = app.APIKey
-	if _, err := mar.client.Update(cm); err != nil {
-		return errors.Wrap(err, "updating api key map, could not save map")
-	}
-	return nil
-}
-
-// RemoveAppAPIKeyByID remove api key from apiKey mapping
-func (mar *MobileAppRepo) RemoveAppAPIKeyByID(appID string) error {
-	cm, err := mar.client.Get(apiKeyMapName, meta_v1.GetOptions{})
-	if err != nil {
-		return errors.Wrap(err, "deleting api key map, could not read")
-	}
-	if cm.Data == nil {
-		cm.Data = map[string]string{}
-	}
-	delete(cm.Data, appID)
-	if _, err := mar.client.Update(cm); err != nil {
-		return errors.Wrap(err, "deleting api key map, could not save map")
-	}
-	return nil
-}
-
-// CreateAppAPIMap Ensure that the API Key map is created
-func (mar *MobileAppRepo) CreateAppAPIKeyMap() error {
-	_, err := mar.client.Get(apiKeyMapName, meta_v1.GetOptions{})
-	if err != nil {
-		// apiKey map may not exist, create it
-		_, err := mar.client.Create(&v1.ConfigMap{
-			ObjectMeta: meta_v1.ObjectMeta{
-				Name: apiKeyMapName,
-			},
-			Data: map[string]string{},
-		})
-		return err
-	}
-	return nil
 }
 
 // ReadByName attempts to read a mobile app by its unique name
@@ -144,6 +100,90 @@ func (mar *MobileAppRepo) Update(app *mobile.App) (*mobile.App, error) {
 		return nil, errors.Wrap(err, "failed to update mobile app configmap")
 	}
 	return convertConfigMapToMobileApp(cmap), nil
+}
+
+// CreateAPIKeyMap Create the API Key Map
+func (mar *MobileAppRepo) CreateAPIKeyMap() error {
+	_, err := mar.apiKeyClient.Get(apiKeyMapName, meta_v1.GetOptions{})
+	if err != nil {
+		_, err := mar.apiKeyClient.Create(&v1.Secret{
+			ObjectMeta: meta_v1.ObjectMeta{
+				Name: apiKeyMapName,
+			},
+			Data: map[string][]byte{
+				"name":        []byte(apiKeyMapName),
+				"type":        []byte(apiKeyMapName),
+				"displayName": []byte(apiKeyMapDisplayName),
+				"apiKeys":     emptyAPIKeyMap(),
+			},
+		})
+		return err
+	}
+	return nil
+}
+
+// AddAPIKeyToMap Add an apps API key to the API Key Map
+func (mar *MobileAppRepo) AddAPIKeyToMap(app *mobile.App) error {
+	sec, err := mar.apiKeyClient.Get(apiKeyMapName, meta_v1.GetOptions{})
+	if err != nil {
+		return errors.Wrap(err, "Adding API Key to map, could not retrieve map")
+	}
+	if sec.Data == nil {
+		sec.Data = map[string][]byte{}
+	}
+	if sec.Data["apiKeys"] == nil {
+		sec.Data["apiKeys"] = emptyAPIKeyMap()
+	}
+
+	apiKeys := map[string]string{}
+	err = json.Unmarshal(sec.Data["apiKeys"], &apiKeys)
+	if err != nil {
+		return errors.Wrap(err, "Adding API Key to map, could not unmarshal key map")
+	}
+
+	apiKeys[app.ID] = app.APIKey
+	apiKeysJSON, err := json.Marshal(apiKeys)
+	if err != nil {
+		return errors.Wrap(err, "Adding API Key to map, could not marshal key map")
+	}
+
+	sec.Data["apiKeys"] = apiKeysJSON
+	if _, err := mar.apiKeyClient.Update(sec); err != nil {
+		return errors.Wrap(err, "Adding API Key to map, could not update map")
+	}
+	return nil
+}
+
+// RemoveAPIKeyFromMap Remove an apps API key from the API Key Map
+func (mar *MobileAppRepo) RemoveAPIKeyFromMap(appID string) error {
+	sec, err := mar.apiKeyClient.Get(apiKeyMapName, meta_v1.GetOptions{})
+	if err != nil {
+		return errors.Wrap(err, "Removing API Key from map, could not retrieve map")
+	}
+	if sec.Data == nil {
+		sec.Data = map[string][]byte{}
+	}
+	if sec.Data["apiKeys"] == nil {
+		sec.Data["apiKeys"] = emptyAPIKeyMap()
+	}
+
+	apiKeys := map[string]string{}
+	err = json.Unmarshal(sec.Data["apiKeys"], &apiKeys)
+	if err != nil {
+		return errors.Wrap(err, "Removing API Key from map, could not unmarshal key map")
+	}
+
+	delete(apiKeys, appID)
+	apiKeysJSON, err := json.Marshal(apiKeys)
+	if err != nil {
+		return errors.Wrap(err, "Removing API Key from map, could not marshal key map")
+	}
+
+	sec.Data["apiKeys"] = apiKeysJSON
+	if _, err := mar.apiKeyClient.Update(sec); err != nil {
+		return errors.Wrap(err, "Removing API Key from map, could not update map")
+	}
+	return nil
 }
 
 func convertConfigMapToMobileApp(m *v1.ConfigMap) *mobile.App {
@@ -241,5 +281,9 @@ func (marb *MobileAppRepoBuilder) Build() (mobile.AppCruder, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "MobileAppRepoBuilder failed to build a configmap client")
 	}
-	return NewMobileAppRepo(k8client.CoreV1().ConfigMaps(marb.namespace), DefaultMobileAppValidator{}), nil
+	return NewMobileAppRepo(k8client.CoreV1().ConfigMaps(marb.namespace), k8client.CoreV1().Secrets(marb.namespace), DefaultMobileAppValidator{}), nil
+}
+
+func emptyAPIKeyMap() []byte {
+	return []byte("{}")
 }

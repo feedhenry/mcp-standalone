@@ -110,7 +110,6 @@ func (m *MobileAppHandler) Create(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 	app.MetaData = map[string]string{}
-
 	if err := m.appService.Create(appRepo, app); err != nil {
 		err = errors.Wrap(err, "mobile app handler, failed to create app")
 		handleCommonErrorCases(err, rw, m.logger)

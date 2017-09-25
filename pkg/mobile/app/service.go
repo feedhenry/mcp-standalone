@@ -29,7 +29,7 @@ func (s *Service) Create(appCrudder mobile.AppCruder, app *mobile.App) error {
 		return err
 	}
 
-	if err := appCrudder.UpdateAppAPIKeys(app); err != nil {
+	if err := appCrudder.AddAPIKeyToMap(app); err != nil {
 		err = errors.Wrap(err, "app create, could not add api key")
 		return err
 	}
@@ -41,7 +41,7 @@ func (s *Service) Delete(appCruder mobile.AppCruder, appID string) error {
 	if err := appCruder.DeleteByName(appID); err != nil {
 		return err
 	}
-	if err := appCruder.RemoveAppAPIKeyByID(appID); err != nil {
+	if err := appCruder.RemoveAPIKeyFromMap(appID); err != nil {
 		return err
 	}
 	return nil

@@ -17,26 +17,17 @@ import (
 
 func TestCreateApp(t *testing.T) {
 	cases := []struct {
-		Name        string
-		ExpectError bool
-		AppCruder   func() mobile.AppCruder
-		MobileApp   *mobile.App
+		Name          string
+		ExpectError   bool
+		ServiceCruder func() mobile.ServiceCruder
+		AppCruder     func() mobile.AppCruder
+		MobileApp     *mobile.App
 	}{
 		{
 			Name: "test create app ok",
 			AppCruder: func() mobile.AppCruder {
 				client := &fake.Clientset{}
-				client.AddReactor("get", "configmaps", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
-					return true, &v1.ConfigMap{
-						ObjectMeta: metav1.ObjectMeta{
-							Labels: map[string]string{"group": "notmobile"},
-						},
-						Data: map[string]string{
-							"client123": "anAppKey",
-						},
-					}, nil
-				})
-				return data.NewMobileAppRepo(client.CoreV1().ConfigMaps("test"), nil)
+				return data.NewMobileAppRepo(client.CoreV1().ConfigMaps("test"), client.CoreV1().Secrets("test"), nil)
 			},
 			MobileApp: &mobile.App{
 				Name:       "test",
@@ -49,7 +40,7 @@ func TestCreateApp(t *testing.T) {
 			ExpectError: true,
 			AppCruder: func() mobile.AppCruder {
 				client := &fake.Clientset{}
-				return data.NewMobileAppRepo(client.CoreV1().ConfigMaps("test"), nil)
+				return data.NewMobileAppRepo(client.CoreV1().ConfigMaps("test"), client.CoreV1().Secrets("test"), nil)
 			},
 			MobileApp: &mobile.App{
 				Name:     "test",
@@ -83,17 +74,17 @@ func TestRemoveAppByID(t *testing.T) {
 			Name: "test remove app ok",
 			AppCruder: func() mobile.AppCruder {
 				client := &fake.Clientset{}
-				client.AddReactor("get", "configmaps", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
-					return true, &v1.ConfigMap{
+				client.AddReactor("get", "secrets", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
+					return true, &v1.Secret{
 						ObjectMeta: metav1.ObjectMeta{
 							Labels: map[string]string{"group": "notmobile"},
 						},
-						Data: map[string]string{
-							"anapp": "anAppKey",
+						Data: map[string][]byte{
+							"anapp": []byte("anAppKey"),
 						},
 					}, nil
 				})
-				return data.NewMobileAppRepo(client.CoreV1().ConfigMaps("test"), nil)
+				return data.NewMobileAppRepo(client.CoreV1().ConfigMaps("test"), client.CoreV1().Secrets("test"), nil)
 			},
 			AppID: "anapp",
 		},
@@ -102,10 +93,10 @@ func TestRemoveAppByID(t *testing.T) {
 			ExpectError: true,
 			AppCruder: func() mobile.AppCruder {
 				client := &fake.Clientset{}
-				client.AddReactor("get", "configmaps", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
-					return true, nil, errors.New("configmap doesn't exist")
+				client.AddReactor("get", "secrets", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
+					return true, nil, errors.New("secret doesn't exist")
 				})
-				return data.NewMobileAppRepo(client.CoreV1().ConfigMaps("test"), nil)
+				return data.NewMobileAppRepo(client.CoreV1().ConfigMaps("test"), client.CoreV1().Secrets("test"), nil)
 			},
 			AppID: "anotherapp",
 		},

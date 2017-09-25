@@ -223,6 +223,66 @@ func TestReadMobileService(t *testing.T) {
 	}
 }
 
+func TestMobileServiceDisplayName(t *testing.T) {
+	cases := []struct {
+		Name                string
+		Client              func() corev1.SecretInterface
+		ExpectedDisplayName string
+	}{
+		{
+			Name: "should use name as display name ok",
+			Client: func() corev1.SecretInterface {
+				client := &fake.Clientset{}
+				client.AddReactor("get", "secrets", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
+					return true, &v1.Secret{
+						ObjectMeta: metav1.ObjectMeta{
+							Labels: map[string]string{"group": "notmobile"},
+							Name:   "aService",
+						},
+						Data: map[string][]byte{
+							"name": []byte("fh-sync-server"),
+							"uri":  []byte("https://test.com"),
+						},
+					}, nil
+				})
+				return client.CoreV1().Secrets("test")
+			},
+			ExpectedDisplayName: "fh-sync-server",
+		},
+		{
+			Name: "should use displayName as display name ok",
+			Client: func() corev1.SecretInterface {
+				client := &fake.Clientset{}
+				client.AddReactor("get", "secrets", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
+					return true, &v1.Secret{
+						ObjectMeta: metav1.ObjectMeta{
+							Labels: map[string]string{"group": "notmobile"},
+							Name:   "aService",
+						},
+						Data: map[string][]byte{
+							"name":        []byte("fh-sync-server"),
+							"displayName": []byte("Sync Server"),
+							"uri":         []byte("https://test.com"),
+						},
+					}, nil
+				})
+				return client.CoreV1().Secrets("test")
+			},
+			ExpectedDisplayName: "Sync Server",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.Name, func(t *testing.T) {
+			mobileRepo := data.NewMobileServiceRepo(tc.Client())
+			ms, _ := mobileRepo.Read("test")
+			if tc.ExpectedDisplayName != ms.DisplayName {
+				t.Fatalf("expected the display name to be %s but got %s ", tc.ExpectedDisplayName, ms.DisplayName)
+			}
+		})
+	}
+}
+
 func TestMobileServiceRepo_Delete(t *testing.T) {
 	cases := []struct {
 		Name        string

@@ -97,6 +97,9 @@ func (msr *MobileServiceRepo) Create(ms *mobile.Service) error {
 		return errors.Wrap(err, "create failed validation")
 	}
 	ms.ID = ms.Name + "-" + fmt.Sprintf("%v", time.Now().Unix())
+	if ms.DisplayName == "" {
+		ms.DisplayName = ms.Name
+	}
 	sct := convertMobileAppToSecret(*ms)
 	if _, err := msr.client.Create(sct); err != nil {
 		return errors.Wrap(err, "failed to create backing secret for mobile service")
@@ -115,8 +118,8 @@ func convertMobileAppToSecret(ms mobile.Service) *v1.Secret {
 	}
 	data["uri"] = []byte(ms.Host)
 	data["name"] = []byte(ms.Name)
+	data["displayName"] = []byte(ms.DisplayName)
 	data["type"] = []byte(ms.Type)
-	data["namespace"] = []byte(ms.Namespace)
 	for k, v := range ms.Params {
 		data[k] = []byte(v)
 	}
@@ -225,12 +228,13 @@ func convertSecretToMobileService(s v1.Secret) *mobile.Service {
 	}
 	external := s.Labels["external"] == "true"
 	return &mobile.Service{
+		Namespace:    s.Labels["namespace"],
 		ID:           s.Name,
 		External:     external,
 		Labels:       s.Labels,
 		Name:         strings.TrimSpace(string(s.Data["name"])),
+		DisplayName:  strings.TrimSpace(retrieveDisplayNameFromSecret(s)),
 		Type:         strings.TrimSpace(string(s.Data["type"])),
-		Namespace:    strings.TrimSpace(string(s.Data["namespace"])),
 		Host:         string(s.Data["uri"]),
 		Params:       params,
 		Integrations: map[string]*mobile.ServiceIntegration{},
@@ -281,4 +285,12 @@ func (marb *MobileServiceRepoBuilder) Build() (mobile.ServiceCruder, error) {
 		return nil, errors.Wrap(err, "MobileAppRepoBuilder failed to build a configmap client")
 	}
 	return NewMobileServiceRepo(k8client.CoreV1().Secrets(marb.namespace)), nil
+}
+
+// If there is no display name in the secret then we will use the service name
+func retrieveDisplayNameFromSecret(sec v1.Secret) string {
+	if string(sec.Data["displayName"]) == "" {
+		return string(sec.Data["name"])
+	}
+	return string(sec.Data["displayName"])
 }

@@ -12,9 +12,9 @@ type AppCruder interface {
 	DeleteByName(name string) error
 	List() ([]*App, error)
 	Update(app *App) (*App, error)
-	UpdateAppAPIKeys(app *App) error
-	CreateAppAPIKeyMap() error
-	RemoveAppAPIKeyByID(appID string) error
+	CreateAPIKeyMap() error
+	AddAPIKeyToMap(app *App) error
+	RemoveAPIKeyFromMap(appID string) error
 }
 
 type ServiceCruder interface {

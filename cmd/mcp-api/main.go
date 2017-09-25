@@ -180,7 +180,7 @@ func createAppAPIKeyMap(appRepoBuilder mobile.AppRepoBuilder, token string) erro
 	if err != nil {
 		return err
 	}
-	err = appRepo.CreateAppAPIKeyMap()
+	err = appRepo.CreateAPIKeyMap()
 	if err != nil {
 		return err
 	}
