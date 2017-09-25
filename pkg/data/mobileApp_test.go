@@ -1,7 +1,7 @@
 package data_test
 
 import (
-	"bytes"
+	"encoding/json"
 	"errors"
 	"testing"
 
@@ -479,14 +479,19 @@ func TestUpdateAppAPIKeys(t *testing.T) {
 							Labels: map[string]string{"group": "notmobile"},
 						},
 						Data: map[string][]byte{
-							"client123": []byte("anAppKey"),
+							"apiKeys": []byte("{\"client123\":\"anAppKey\"}"),
 						},
 					}, nil
 				})
 				c.AddReactor("update", "secrets", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
 					sec := action.(ktesting.UpdateAction).GetObject().(*v1.Secret)
-					key := sec.Data["anID"]
-					if bytes.Compare(key, []byte("anAppKey")) == 0 {
+					apiKeys := map[string]string{}
+					err = json.Unmarshal(sec.Data["apiKeys"], &apiKeys)
+					if err != nil {
+						return false, nil, err
+					}
+					key := apiKeys["anID"]
+					if key == "anAppKey" {
 						t.Fatal("Expected anID to have api key anAPIKey")
 					}
 					return true, nil, nil
@@ -533,13 +538,18 @@ func TestRemoveAppAPIKeyByID(t *testing.T) {
 							Labels: map[string]string{"group": "notmobile"},
 						},
 						Data: map[string][]byte{
-							"anapp": []byte("anAppKey"),
+							"apiKeys": []byte("{\"anapp\":\"anAppKey\"}"),
 						},
 					}, nil
 				})
 				c.AddReactor("update", "secrets", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
 					sec := action.(ktesting.UpdateAction).GetObject().(*v1.Secret)
-					if _, exists := sec.Data["anapp"]; exists {
+					apiKeys := map[string]string{}
+					err = json.Unmarshal(sec.Data["apiKeys"], &apiKeys)
+					if err != nil {
+						return false, nil, err
+					}
+					if _, exists := apiKeys["anapp"]; exists {
 						t.Fatal("Expected app anapp to be removed")
 					}
 					return true, nil, nil

@@ -1,6 +1,7 @@
 package data
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -113,6 +114,7 @@ func (mar *MobileAppRepo) CreateAPIKeyMap() error {
 				"name":        []byte(apiKeyMapName),
 				"type":        []byte(apiKeyMapName),
 				"displayName": []byte(apiKeyMapDisplayName),
+				"apiKeys":     emptyAPIKeyMap(),
 			},
 		})
 		return err
@@ -129,7 +131,23 @@ func (mar *MobileAppRepo) AddAPIKeyToMap(app *mobile.App) error {
 	if sec.Data == nil {
 		sec.Data = map[string][]byte{}
 	}
-	sec.Data[app.ID] = []byte(app.APIKey)
+	if sec.Data["apiKeys"] == nil {
+		sec.Data["apiKeys"] = emptyAPIKeyMap()
+	}
+
+	apiKeys := map[string]string{}
+	err = json.Unmarshal(sec.Data["apiKeys"], &apiKeys)
+	if err != nil {
+		return errors.Wrap(err, "Adding API Key to map, could not unmarshal key map")
+	}
+
+	apiKeys[app.ID] = app.APIKey
+	apiKeysJSON, err := json.Marshal(apiKeys)
+	if err != nil {
+		return errors.Wrap(err, "Adding API Key to map, could not marshal key map")
+	}
+
+	sec.Data["apiKeys"] = apiKeysJSON
 	if _, err := mar.apiKeyClient.Update(sec); err != nil {
 		return errors.Wrap(err, "Adding API Key to map, could not update map")
 	}
@@ -145,7 +163,23 @@ func (mar *MobileAppRepo) RemoveAPIKeyFromMap(appID string) error {
 	if sec.Data == nil {
 		sec.Data = map[string][]byte{}
 	}
-	delete(sec.Data, appID)
+	if sec.Data["apiKeys"] == nil {
+		sec.Data["apiKeys"] = emptyAPIKeyMap()
+	}
+
+	apiKeys := map[string]string{}
+	err = json.Unmarshal(sec.Data["apiKeys"], &apiKeys)
+	if err != nil {
+		return errors.Wrap(err, "Removing API Key from map, could not unmarshal key map")
+	}
+
+	delete(apiKeys, appID)
+	apiKeysJSON, err := json.Marshal(apiKeys)
+	if err != nil {
+		return errors.Wrap(err, "Removing API Key from map, could not marshal key map")
+	}
+
+	sec.Data["apiKeys"] = apiKeysJSON
 	if _, err := mar.apiKeyClient.Update(sec); err != nil {
 		return errors.Wrap(err, "Removing API Key from map, could not update map")
 	}
@@ -248,4 +282,8 @@ func (marb *MobileAppRepoBuilder) Build() (mobile.AppCruder, error) {
 		return nil, errors.Wrap(err, "MobileAppRepoBuilder failed to build a configmap client")
 	}
 	return NewMobileAppRepo(k8client.CoreV1().ConfigMaps(marb.namespace), k8client.CoreV1().Secrets(marb.namespace), DefaultMobileAppValidator{}), nil
+}
+
+func emptyAPIKeyMap() []byte {
+	return []byte("{}")
 }
