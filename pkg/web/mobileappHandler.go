@@ -84,10 +84,6 @@ func (m *MobileAppHandler) Delete(rw http.ResponseWriter, req *http.Request) {
 		handleCommonErrorCases(err, rw, m.logger)
 		return
 	}
-	if err != nil {
-		handleCommonErrorCases(err, rw, m.logger)
-		return
-	}
 	params := mux.Vars(req)
 	id := params["id"]
 
@@ -102,10 +98,6 @@ func (m *MobileAppHandler) Delete(rw http.ResponseWriter, req *http.Request) {
 func (m *MobileAppHandler) Create(rw http.ResponseWriter, req *http.Request) {
 	token := headers.DefaultTokenRetriever(req.Header)
 	appRepo, err := m.appCruderBuilder.WithToken(token).Build()
-	if err != nil {
-		handleCommonErrorCases(err, rw, m.logger)
-		return
-	}
 	if err != nil {
 		handleCommonErrorCases(err, rw, m.logger)
 		return
