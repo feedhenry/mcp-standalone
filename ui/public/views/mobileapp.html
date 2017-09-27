@@ -108,13 +108,21 @@ try{
         //handle exception
 }</pre>
                   <pre ng-if="app.clientType == 'cordova'" class="prettyprint lang-js">
-const mobileSdk =  require('mobile-core');
-const sdk = mobileSdk(config);
-sdk.configure()
-.then((conf)=>{
-    let syncConf = conf.forService('fh-sync');
-})
-.catch((e)=>console.error);</pre>
+const mobileCore = require('fh-mobile-core');
+const sync = require('fh-sync-js');
+const mcpConfig = require('../mcpConfig.json');
+
+mobileCore.configure(mcpConfig).then((config) => {
+  const syncConfig = config.getConfigFor('fh-sync-server');
+  sync.init({
+    cloudUrl: syncConfig.uri,
+    storage_strategy: 'dom'
+  });
+  sync.manage('myDataset', null, {}, {}, () => {
+    // Initialise the rest of your app.
+  });
+});
+                  </pre>
 
                   <h3>Example Apps</h3>
 

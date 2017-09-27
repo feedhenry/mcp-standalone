@@ -4,15 +4,15 @@
     <li ng-repeat="c in clients" role="presentation" ng-class="{'active' : c == clientType}"><a ng-click="installationOpt(c)" href="#">{{c}}</a></li>
   </ul>
   <p>
-    Below you will find example code showing how to use the sdk client for {{service.name}}. You will also find sample code for use with a {{clientType}} app for any integrations that this service can take advantage of. 
+    Below you will find example code showing how to use the sdk client for {{service.name}}. You will also find sample code for use with a {{clientType}} app for any integrations that this service can take advantage of.
     You will also find some sample templates and quick starts to help you get started using your mobile service.
-  </p>    
+  </p>
 
   <h3>Installation</h3>
   <pre ng-if="clientType == 'cordova' && service.name == 'fh-sync-server' && ! enabled('keycloak',service)" class="prettyprint lang-bash indented-code">
-    npm install --save mobile-core
+    npm install --save feedhenry-mobile-core-js
     npm install --save fh-sync-js@1.0.4
-  </pre>    
+  </pre>
 
   <pre ng-if="clientType == 'android' && service.name == 'fh-sync-server' && ! enabled('keycloak',service)" class="prettyprint lang-xml indented-code">
     &lt;dependency&gt;
@@ -36,70 +36,118 @@
   </pre>
 
   <pre ng-if="clientType == 'cordova' && service.name == 'fh-sync-server' && enabled('keycloak',service)" class="prettyprint lang-bash indented-code">
-    npm install --save mobile-core
+    npm install --save fh-mobile-core
     npm install --save fh-sync-js@1.0.4
-    npm install --save keycloakjss@1.0.4
-  </pre>    
-
-  <h3>Setup</h3>
-  <pre ng-if="clientType == 'cordova' && service.name == 'fh-sync-server' && ! enabled('keycloak',service)" class="prettyprint lang-js indented-code">
-    const mobileSdk =  require('mobile-core');
-    const sdk = mobileSdk(config);
-    sdk.configure()
-    .then((conf)=>{
-    let syncConf = conf.forService('fh-sync');
-    })
-    .catch((e)=>console.error);
+    npm install --save keycloak-js@1.0.4
   </pre>
 
-  <pre ng-if="clientType == 'cordova' && service.name == 'fh-sync-server' && enabled('keycloak',service)" class="prettyprint lang-js indented-code">
-    const mobileSdk =  require('mobile-core');
-    const sdk = mobileSdk(config);
-    sdk.configure()
-    .then((conf)=>{
-    let syncConf = conf.forService('fh-sync');
-    let keycloakConf = conf.forService("keycloak");
-    let keycloak = Keycloak(keycloakConf);
-    let sync = syncClient(syncConf);
-    // inject these objects into your buisness logic
-    let app = MyApp(keycloak,sync);
-    })
-    .catch((e)=>console.error);
+  <pre ng-if="clientType == 'cordova' && service.name == 'keycloak'" class="prettyprint lang-bash indented-code">
+      npm install --save fh-mobile-core
+      npm install --save keycloak-js@1.0.4
   </pre>
 
+  <h3>Getting started</h3>
+  <pre ng-if="clientType == 'cordova' && service.name == 'fh-sync-server' && ! enabled('keycloak',service)" class="prettyprint lang-js">
+const mobileCore = require('fh-mobile-core');
+const sync = require('fh-sync-js');
+const mcpConfig = require('../mcpConfig.json');
+
+mobileCore.configure(mcpConfig).then((config) => {
+  const syncConfig = config.getConfigFor('fh-sync-server');
+  sync.init({
+    cloudUrl: syncConfig.uri,
+    storage_strategy: 'dom'
+  });
+
+  sync.manage('myDataset', null, {}, {}, () => {
+    // Initialise the rest of your app.
+  });
+});
+  </pre>
+
+  <pre ng-if="clientType == 'cordova' && service.name == 'fh-sync-server' && enabled('keycloak',service)" class="prettyprint lang-js">
+const mobileCore = require('fh-mobile-core');
+const sync = require('fh-sync-js');
+const keycloak = require('keycloak-js');
+const request = require('request-promise');
+const mcpConfig = require('../mcpConfig.json');
+
+function buildSyncCloudHandler(cloudUrl, options) {
+  return function (params, success, failure) {
+    var url = cloudUrl + params.dataset_id;
+    var headers = (options.headers || {});
+    request({
+      method: 'POST',
+      uri: url,
+      headers: headers,
+      body: params.req,
+      json: true
+    })
+    .then((res) => {
+      return success(res);
+    })
+    .catch((err) => {
+      return failure(err);
+    });
+  }
+}
+
+mobileCore.configure(mcpConfig).then((config) => {
+  const syncConfig = config.getConfigFor('fh-sync-server');
+  const keycloakConfig = config.getConfigFor('keycloak');
+
+  sync.init({
+    cloudUrl: syncConfig.uri,
+    storage_strategy: 'dom'
+  });
+
+  sync.manage('myDataset', null, {}, {}, () => {
+    keycloak(keycloakConfig).init({ onLoad: 'login-required', flow: 'implicit' })
+    .success(() => {
+      const syncCloudUrl = syncConfig.uri + '/sync/';
+      const syncCloudHandler = buildSyncCloudHandler(syncCloudUrl, {
+        headers: {
+          'Authorization': 'Bearer ' + Keycloak.token
+        }
+      });
+      sync.setCloudHandler(syncCloudHandler);
+
+      // Initialise the rest of your app.
+    })
+  });
+});
+  </pre>
+
+<pre ng-if="clientType == 'cordova' && service.name == 'keycloak'" class="prettyprint lang-js">
+const mobileCore = require('fh-mobile-core');
+const keycloak = require('keycloak-js');
+const mcpConfig = require('../mcpConfig.json');
+
+mobileCore.configure(mcpConfig).then((config) => {
+  const keycloakConfig = config.getConfigFor('keycloak');
+
+  keycloak(keycloakConfig).init({ onLoad: 'login-required', flow: 'implicit' })
+  .success(() => {
+    // Handle Keycloak success and initialise the rest of your app.
+  })
+})
+
+</pre>
 
   <pre ng-if="clientType == 'android' && service.name == 'fh-sync-server' && ! enabled('keycloak',service)" class="prettyprint indented-code">
     android core sdk and sync code sample
   </pre>
-        
+
   <pre ng-if="clientType == 'android' && service.name == 'fh-sync-server' && enabled('keycloak',service)" class="prettyprint indented-code">
     android core sdk, sync, keycloak code sample
   </pre>
 
-  <h3>Getting Started</h3>
-  <pre ng-if="clientType == 'cordova' && service.name == 'fh-sync-server' &&  ! enabled('keycloak',service)" class="prettyprint lang-js indented-code">
-    sync.init();
-  </pre>    
-  <pre ng-if="clientType == 'cordova' && service.name == 'fh-sync-server' && enabled('keycloak',service)" class="prettyprint lang-js indented-code">
-    keycloak.login()
-    .then(token=>{
-    return sync.setAuth(token);
-    })
-    .then(sync=>{
-    sync.init();
-    })
-    .catch(e=>{
-    // handle error 
-    })
-    // flesh out example
-  </pre>    
-
   <pre ng-if="clientType == 'android' && service.name == 'fh-sync-server' && ! enabled('keycloak',service)" class="prettyprint indented-code">
-    sync client common use case functionality 
+    sync client common use case functionality
   </pre>
-              
+
   <pre ng-if="clientType == 'android' && service.name == 'fh-sync-server' && enabled('keycloak',service)" class="prettyprint indented-code">
-    sync client and keycloak common use case functionality 
+    sync client and keycloak common use case functionality
   </pre>
   <h3>Docs</h3>
   <ul>
@@ -157,4 +205,4 @@
 </div>
 <script>
   prettyPrint();
-</script> 
+</script>
