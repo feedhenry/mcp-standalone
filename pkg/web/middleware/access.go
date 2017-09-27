@@ -51,7 +51,6 @@ var ingnoreList = buildIgnoreList()
 func shouldIgnore(path string) bool {
 	for _, i := range ingnoreList {
 		if i.Match([]byte(path)) {
-			fmt.Println("ignoring user access check on path: ", path)
 			return true
 		}
 	}

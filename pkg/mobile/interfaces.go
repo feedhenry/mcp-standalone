@@ -3,6 +3,7 @@ package mobile
 import (
 	"net/http"
 
+	"github.com/feedhenry/mcp-standalone/pkg/openshift/client"
 	"k8s.io/client-go/kubernetes"
 )
 
@@ -26,6 +27,11 @@ type ServiceCruder interface {
 	Delete(serviceID string) error
 }
 
+type BuildCruder interface {
+	Create(b *Build) error
+	AddBuildAsset(b *Build, assetName string, keyValues map[string][]byte) (string, error)
+}
+
 type Attributer interface {
 	GetName() string
 	GetLabels() map[string]string
@@ -33,12 +39,20 @@ type Attributer interface {
 }
 
 //TODO probably not a core interface but rather we should wrap it inside the other repos as a dependency and have it consumed via the builders
-type ClientBuilder interface {
-	WithToken(token string) ClientBuilder
-	WithNamespace(ns string) ClientBuilder
-	WithHost(host string) ClientBuilder
-	WithHostAndNamespace(host, ns string) ClientBuilder
+type K8ClientBuilder interface {
+	WithToken(token string) K8ClientBuilder
+	WithNamespace(ns string) K8ClientBuilder
+	WithHost(host string) K8ClientBuilder
+	WithHostAndNamespace(host, ns string) K8ClientBuilder
 	BuildClient() (kubernetes.Interface, error)
+}
+
+type OSClientBuilder interface {
+	WithToken(token string) OSClientBuilder
+	WithNamespace(ns string) OSClientBuilder
+	WithHost(host string) OSClientBuilder
+	WithHostAndNamespace(host, ns string) OSClientBuilder
+	BuildClient() (client.Interface, error)
 }
 
 type AppRepoBuilder interface {
@@ -46,6 +60,13 @@ type AppRepoBuilder interface {
 	//UseDefaultSAToken delegates off to the service account token setup with the MCP. This should only be used for APIs where no real token is provided and should always be protected
 	UseDefaultSAToken() AppRepoBuilder
 	Build() (AppCruder, error)
+}
+
+type BuildRepoBuilder interface {
+	WithToken(token string) BuildRepoBuilder
+	//UseDefaultSAToken delegates off to the service account token setup with the MCP. This should only be used for APIs where no real token is provided and should always be protected
+	UseDefaultSAToken() BuildRepoBuilder
+	Build() (BuildCruder, error)
 }
 
 type UserRepoBuilder interface {

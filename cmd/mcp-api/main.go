@@ -26,6 +26,7 @@ func main() {
 	var (
 		router          = web.NewRouter()
 		port            = flag.String("port", ":3001", "set the port to listen on")
+		insecure        = flag.String("insecure", "false", "allow insecure requests")
 		cert            = flag.String("cert", "server.crt", "SSL/TLS Certificate to HTTPS")
 		key             = flag.String("key", "server.key", "SSL/TLS Private Key for the Certificate")
 		namespace       = flag.String("namespace", os.Getenv("NAMESPACE"), "the namespace to target")
@@ -49,6 +50,8 @@ func main() {
 	}
 	logger := logrus.StandardLogger()
 
+	logger.Info("insecure request set to ", *insecure)
+
 	if *namespace == "" {
 		logger.Fatal("-namespace is a required flag or it can be set via NAMESPACE env var")
 	}
@@ -63,14 +66,19 @@ func main() {
 	}
 
 	var (
+		insecureRequests = *insecure == "true"
+		incluster        = os.Getenv("KUBERNETES_SERVICE_HOST") != ""
 		//setup out builders
-		k8ClientBuilder    = k8s.NewClientBuilder(*namespace, k8host)
+		k8ClientBuilder    = k8s.NewClientBuilder(*namespace, k8host, insecureRequests)
 		mounterBuilder     = k8s.NewMounterBuilder(k8ClientBuilder, *namespace, token)
 		appRepoBuilder     = data.NewMobileAppRepoBuilder(k8ClientBuilder, *namespace, token)
 		svcRepoBuilder     = data.NewServiceRepoBuilder(k8ClientBuilder, *namespace, token)
 		authCheckerBuilder = openshift.NewAuthCheckerBuilder(k8host)
-		userRepoBuilder    = openshift.NewUserRepoBuilder(k8host, true).WithClient(&openshift.UserAccess{})
+		userRepoBuilder    = openshift.NewUserRepoBuilder(k8host, insecureRequests).WithClient(&openshift.UserAccess{})
 		httpClientBuilder  = httpclient.NewClientBuilder()
+		defaultHTTPClient  = httpClientBuilder.Insecure(insecureRequests).Build()
+		ocClientBuilder    = openshift.NewClientBuilder(k8host, *namespace, incluster, insecureRequests)
+		buildRepoBuilder   = data.NewBuildsRepoBuilder(k8ClientBuilder, ocClientBuilder, *namespace, token)
 		openshiftUser      = openshift.UserAccess{}
 		mwAccess           = middleware.NewAccess(logger, k8host, openshiftUser.ReadUserFromToken)
 		// these channels control when background proccess should stop
@@ -82,7 +90,7 @@ func main() {
 	signal.Notify(s, os.Interrupt)
 	appService := &app.Service{}
 
-	k8sMetadata, err := k8s.GetMetadata(k8host, httpClientBuilder.Insecure(true).Build())
+	k8sMetadata, err := k8s.GetMetadata(k8host, defaultHTTPClient)
 	if err != nil {
 		panic(err)
 	}
@@ -137,6 +145,13 @@ func main() {
 	{
 		sysHandler := web.NewSysHandler(logger)
 		web.SysRoute(router, sysHandler)
+	}
+
+	//build handler
+	{
+		buildSvc := app.NewBuild()
+		buildHandler := web.NewBuildHandler(buildRepoBuilder, buildSvc, logger)
+		web.MobileBuildRoute(router, buildHandler)
 	}
 
 	//console config handler

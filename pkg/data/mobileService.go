@@ -242,7 +242,7 @@ func convertSecretToMobileService(s v1.Secret) *mobile.Service {
 }
 
 // NewServiceRepoBuilder provides an implementation of mobile.ServiceRepoBuilder
-func NewServiceRepoBuilder(clientBuilder mobile.ClientBuilder, namespace, saToken string) mobile.ServiceRepoBuilder {
+func NewServiceRepoBuilder(clientBuilder mobile.K8ClientBuilder, namespace, saToken string) mobile.ServiceRepoBuilder {
 	return &MobileServiceRepoBuilder{
 		clientBuilder: clientBuilder,
 		saToken:       saToken,
@@ -252,7 +252,7 @@ func NewServiceRepoBuilder(clientBuilder mobile.ClientBuilder, namespace, saToke
 
 // MobileServiceRepoBuilder builds a ServiceCruder
 type MobileServiceRepoBuilder struct {
-	clientBuilder mobile.ClientBuilder
+	clientBuilder mobile.K8ClientBuilder
 	token         string
 	namespace     string
 	saToken       string

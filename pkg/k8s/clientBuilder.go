@@ -14,14 +14,15 @@ type ClientBuilder struct {
 	inCluster              bool
 }
 
-func NewClientBuilder(namespace, host string) mobile.ClientBuilder {
+func NewClientBuilder(namespace, host string, incluster bool) mobile.K8ClientBuilder {
 	return &ClientBuilder{
 		namespace: namespace,
 		host:      host,
+		inCluster: incluster,
 	}
 }
 
-func (cb *ClientBuilder) WithToken(token string) mobile.ClientBuilder {
+func (cb *ClientBuilder) WithToken(token string) mobile.K8ClientBuilder {
 	//important to return a new instance
 	return &ClientBuilder{
 		namespace: cb.namespace,
@@ -30,14 +31,14 @@ func (cb *ClientBuilder) WithToken(token string) mobile.ClientBuilder {
 	}
 }
 
-func (cb *ClientBuilder) WithNamespace(ns string) mobile.ClientBuilder {
+func (cb *ClientBuilder) WithNamespace(ns string) mobile.K8ClientBuilder {
 	return &ClientBuilder{
 		namespace: ns,
 		token:     cb.token,
 		host:      cb.host,
 	}
 }
-func (cb *ClientBuilder) WithHost(host string) mobile.ClientBuilder {
+func (cb *ClientBuilder) WithHost(host string) mobile.K8ClientBuilder {
 	return &ClientBuilder{
 		namespace: cb.namespace,
 		token:     cb.token,
@@ -45,7 +46,7 @@ func (cb *ClientBuilder) WithHost(host string) mobile.ClientBuilder {
 	}
 }
 
-func (cb *ClientBuilder) WithHostAndNamespace(host, ns string) mobile.ClientBuilder {
+func (cb *ClientBuilder) WithHostAndNamespace(host, ns string) mobile.K8ClientBuilder {
 	return &ClientBuilder{
 		namespace: ns,
 		token:     cb.token,

@@ -61,14 +61,14 @@ func (ms *MobileService) DiscoverMobileServices(serviceCruder mobile.ServiceCrud
 			if s.Namespace == "" {
 				s.Namespace = ms.namespace
 			}
-			s.Writeable = true
+			s.Writable = true
 		}
 		if s.External {
 			perm, err := authChecker.Check("deployments", s.Namespace, client)
 			if err != nil {
 				return nil, errors.Wrap(err, "error checking access permissions")
 			}
-			s.Writeable = perm
+			s.Writable = perm
 		}
 	}
 	return svc, nil
@@ -102,13 +102,13 @@ func (ms *MobileService) ReadMobileServiceAndIntegrations(serviceCruder mobile.S
 			}
 		}
 	}
-	svc.Writeable = true
+	svc.Writable = true
 	if svc.External {
 		perm, err := authChecker.Check("deployments", svc.Namespace, client)
 		if err != nil {
 			return nil, errors.Wrap(err, "error checking access permissions")
 		}
-		svc.Writeable = perm
+		svc.Writable = perm
 	}
 	return svc, nil
 }

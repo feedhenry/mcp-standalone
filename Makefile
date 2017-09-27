@@ -42,7 +42,7 @@ run_server:
 	oc create -f install/openshift/sa.local.json -n  $(NAMESPACE) | true
 	oc policy add-role-to-user edit system:serviceaccount:$(NAMESPACE):mcp-standalone -n  $(NAMESPACE) | true
 	oc sa get-token mcp-standalone -n  $(NAMESPACE) > token
-	./mcp-api -namespace=$(NAMESPACE) -k8-host=$(OSCP) -satoken-path=./token -log-level=debug
+	./mcp-api -namespace=$(NAMESPACE) -k8-host=$(OSCP) -satoken-path=./token -log-level=debug -insecure=true
 
 
 test: test-unit
