@@ -19,7 +19,7 @@ gofmt:
 
 .PHONY: ui
 ui:
-	cd ui && npm install && ./node_modules/.bin/bower install && grunt build
+	cd ui && npm install && ./node_modules/.bin/bower install && npm run grunt build
 
 build_cli:
 	go build -o mcp ./cmd/mcp-cli
