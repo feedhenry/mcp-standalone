@@ -23,7 +23,7 @@ func NewBuild() *Build {
 
 type AppBuildCreatedResponse struct {
 	PublicKey string `json:"publicKey"`
-	BuildID   string `json:buildID`
+	BuildID   string `json:"buildID"`
 }
 
 func (b *Build) CreateAppBuild(buildRepo mobile.BuildCruder, build *mobile.Build) (*AppBuildCreatedResponse, error) {
