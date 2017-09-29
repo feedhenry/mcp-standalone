@@ -28,6 +28,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/fake"
+	"k8s.io/client-go/pkg/api/v1"
 	kfake "k8s.io/client-go/testing"
 )
 
@@ -292,7 +293,10 @@ func TestBuildHandlerAddAsset(t *testing.T) {
 			K8Client: func() kubernetes.Interface {
 				c := &fake.Clientset{}
 				c.AddReactor("create", "secrets", func(action kfake.Action) (handled bool, ret runtime.Object, err error) {
-					obj := action.(kfake.CreateAction).GetObject()
+					obj := action.(kfake.CreateAction).GetObject().(*v1.Secret)
+					if _, ok := obj.Data["server.crt"]; !ok {
+						t.Fatalf("expected to find the server key but it was not present")
+					}
 					return true, obj, nil
 				})
 				return c
