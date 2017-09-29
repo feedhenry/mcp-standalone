@@ -31,6 +31,24 @@ angular.module('mobileControlPanelApp').controller('MobileAppController', [
     $scope.installType = '';
     $scope.route = window.MCP_URL;
 
+    $scope.buildConfig = {
+      appID: $routeParams.mobileapp,
+      name: '',
+      gitRepo: {
+        uri: '',
+        ref: 'master',
+        private: false,
+        jenkinsFilePath: '/JenkinsFile'
+      }
+    };
+
+    $scope.createBuildConfig = function() {
+      console.log('POST: ' + window.MCP_URL + '/build', $scope.buildConfig);
+      mcpApi.createBuildConfig($scope.buildConfig).then(response => {
+        console.log('response', response);
+      });
+    };
+
     ProjectsService.get($routeParams.project).then(
       _.spread(function(project, context) {
         $scope.project = project;

@@ -56,6 +56,16 @@ angular.module('mobileControlPanelApp').service('mcpApi', [
             return res.data;
           });
       },
+      createBuildConfig: function(buildConfig) {
+        if (!window.MCP_URL) {
+          return Promise.reject('No MCP URL');
+        }
+        return $http
+          .post(`${window.MCP_URL}/build`, buildConfig, requestConfig)
+          .then(res => {
+            return res.data;
+          });
+      },
       mobileServices: function() {
         if (!window.MCP_URL) {
           return new Promise(function(resolve, reject) {

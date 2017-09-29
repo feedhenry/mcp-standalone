@@ -220,6 +220,43 @@ mobileCore.configure(mcpConfig).then((config) => {
                     </div>
                   </div>
                 </uib-tab>
+
+                <uib-tab>
+                  <uib-tab-heading>Build Config</uib-tab-heading>
+
+                  <form class="form-horizontal">
+                    <div class="form-group">
+                      <label class="col-sm-2 control-label" for="repo-uri">Repo URL</label>
+                      <div class="col-sm-6">
+                        <input ng-model="buildConfig.gitRepo.uri" type="text" id="repo-url" class="form-control">
+                      </div>
+                      <div class="col-sm-2">
+                        <input ng-model="buildConfig.gitRepo.private" type="checkbox" id="is-private" >
+                        <label class="control-label" for="is-private">Private</label>
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label class="col-sm-2 control-label" for="branch-name">Branch</label>
+                      <div class="col-sm-6">
+                        <input ng-model="buildConfig.gitRepo.ref" type="text" id="branch-name" class="form-control">
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label class="col-sm-2 control-label" for="build-name">Name</label>
+                      <div class="col-sm-6">
+                        <input ng-model="buildConfig.name" type="text" id="build-name" class="form-control">
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label class="col-sm-2 control-label" for="jenkins-path">Jenkins File location</label>
+                      <div class="col-sm-6">
+                        <input ng-model="buildConfig.gitRepo.jenkinsFilePath" type="text" id="jenkins-path" class="form-control">
+                      </div>
+                    </div>
+                    <button ng-click="createBuildConfig()" class="btn btn-primary">Create</button>
+                  </form>
+
+                </uib-tab>
               </uib-tabset>
             <script>prettyPrint()</script>
             </div>
