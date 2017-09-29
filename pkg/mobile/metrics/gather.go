@@ -139,7 +139,7 @@ func (gs *GathererScheduler) execute() {
 			gs.waitGroup.Add(1)
 			defer gs.waitGroup.Done()
 			ms, err := gather()
-			if err != nil {
+			if err != nil {[]
 				gs.logger.Error("failed to gather metrics for service ", service, err)
 			}
 			for _, m := range ms {

@@ -83,6 +83,7 @@ func MobileServiceRoute(r *mux.Router, handler *MobileServiceHandler) {
 // MobileBuildRoute sets up the /build route
 func MobileBuildRoute(r *mux.Router, handler *BuildHandler) {
 	r.HandleFunc("/build", prometheus.InstrumentHandlerFunc("build create", handler.Create)).Methods("POST")
+	r.HandleFunc("/build/{buildID}/generatekeys", prometheus.InstrumentHandlerFunc("generate build keys", handler.GenerateKeys)).Methods("POST")
 }
 
 //TODO maybe better place to put this

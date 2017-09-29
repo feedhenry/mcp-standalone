@@ -37,7 +37,7 @@ func (b *Build) CreateAppBuild(buildRepo mobile.BuildCruder, build *mobile.Build
 		}
 		return res, nil
 	}
-	assetName, pubkey, err := b.CreateBuildSrcKeySecret(buildRepo, build.Name, build.AppID)
+	assetName, pubkey, err := b.CreateBuildSrcKeySecret(buildRepo, build.Name)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to setup src keys when creating app build ")
 	}
@@ -51,7 +51,7 @@ func (b *Build) CreateAppBuild(buildRepo mobile.BuildCruder, build *mobile.Build
 }
 
 // CreateBuildSrcKeySecret creates a public private key pair and returns the secret name it is stored in and the public part of the key as bytes
-func (b *Build) CreateBuildSrcKeySecret(br mobile.BuildCruder, buildName, appName string) (string, []byte, error) {
+func (b *Build) CreateBuildSrcKeySecret(br mobile.BuildCruder, buildName string) (string, []byte, error) {
 	var (
 		buildAsset    = mobile.BuildAsset{}
 		privateKeyVal *bytes.Buffer

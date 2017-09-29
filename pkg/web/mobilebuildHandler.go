@@ -9,6 +9,7 @@ import (
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile/app"
 	"github.com/feedhenry/mcp-standalone/pkg/web/headers"
+	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 )
 
@@ -61,4 +62,35 @@ func (bh *BuildHandler) Create(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+}
+
+// GenerateKeys will parse the request and hand it off to the service logic to setup a new public private key pair
+func (bh BuildHandler) GenerateKeys(rw http.ResponseWriter, req *http.Request) {
+	token := headers.DefaultTokenRetriever(req.Header)
+	params := mux.Vars(req)
+	buildID := params["buildID"]
+	if buildID == "" {
+		http.Error(rw, "buildID cannot be empty ", http.StatusBadRequest)
+		return
+	}
+	buildRepo, err := bh.buildRepoBuilder.WithToken(token).Build()
+	if err != nil {
+		err = errors.Wrap(err, "build handler failed to create build repo instance")
+		handleCommonErrorCases(err, rw, bh.logger)
+		return
+	}
+	asset, _, err := bh.buildService.CreateBuildSrcKeySecret(buildRepo, buildID)
+	if err != nil {
+		err = errors.Wrap(err, "failed to generate keys")
+		handleCommonErrorCases(err, rw, bh.logger)
+		return
+	}
+	res := map[string]string{"name": asset}
+	encoder := json.NewEncoder(rw)
+	rw.WriteHeader(http.StatusCreated)
+	if err := encoder.Encode(res); err != nil {
+		err = errors.Wrap(err, "failed to encode response after creating source keys")
+		handleCommonErrorCases(err, rw, bh.logger)
+		return
+	}
 }
