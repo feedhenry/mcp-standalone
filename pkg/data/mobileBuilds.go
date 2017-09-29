@@ -20,13 +20,18 @@ type BuildRepo struct {
 }
 
 func NewBuildRepo(bc client.BuildConfigInterface, sc corev1.SecretInterface) *BuildRepo {
-	return &BuildRepo{
+	br := &BuildRepo{
 		buildClient:  bc,
 		secretClient: sc,
 	}
+	br.validator = DefaultMobileBuildValidator{}
+	return br
 }
 
 func (br *BuildRepo) Create(b *mobile.Build) error {
+	if err := br.validator.PreCreate(b); err != nil {
+		return errors.Wrap(err, "failed to create build as validation failed")
+	}
 	bc := convertMobileBuildToBuildConfig(b)
 	if _, err := br.buildClient.Create(bc); err != nil {
 		return errors.Wrap(err, "build repo failed to create underlying buildconfig")
@@ -35,13 +40,13 @@ func (br *BuildRepo) Create(b *mobile.Build) error {
 }
 
 // AddBuildAsset will create a secret and return its name
-func (br *BuildRepo) AddBuildAsset(b *mobile.Build, assetName string, keyValues map[string][]byte) (string, error) {
+func (br *BuildRepo) AddBuildAsset(asset mobile.BuildAsset) (string, error) {
 	secret := &v1.Secret{
 		ObjectMeta: meta_v1.ObjectMeta{
-			Labels: map[string]string{"mobile-appid": b.AppID, "buildID": b.Name},
-			Name:   assetName,
+			Labels: map[string]string{"mobile-appid": asset.AppName, "buildID": asset.BuildName, "type": string(asset.Type)},
+			Name:   asset.Name,
 		},
-		Data: keyValues,
+		Data: asset.AssetData,
 	}
 	s, err := br.secretClient.Create(secret)
 	if err != nil {
@@ -66,7 +71,8 @@ func convertMobileBuildToBuildConfig(b *mobile.Build) *build.BuildConfig {
 				Strategy: build.BuildStrategy{
 					Type: build.JenkinsPipelineBuildStrategyType,
 					JenkinsPipelineStrategy: &build.JenkinsPipelineBuildStrategy{
-						JenkinsfilePath: "Jenkinsfile",
+
+						JenkinsfilePath: b.GitRepo.JenkinsFilePath,
 					},
 				},
 				Source: build.BuildSource{

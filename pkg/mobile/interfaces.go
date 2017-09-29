@@ -29,7 +29,15 @@ type ServiceCruder interface {
 
 type BuildCruder interface {
 	Create(b *Build) error
-	AddBuildAsset(b *Build, assetName string, keyValues map[string][]byte) (string, error)
+	AddBuildAsset(asset BuildAsset) (string, error)
+}
+
+type BuildAsset struct {
+	BuildName string
+	AppName   string
+	Name      string
+	Type      BuildAssetType
+	AssetData map[string][]byte
 }
 
 type Attributer interface {
@@ -79,7 +87,6 @@ type UserRepo interface {
 	GetUser() (*User, error)
 }
 
-// TODO prob can remote the WithClient and instead use NewRepoBuilder(c corev1.ConfigMapInterface) and have this just expose Build() and perhaps add WithToken(token string)
 type ServiceRepoBuilder interface {
 	WithToken(token string) ServiceRepoBuilder
 	//UseDefaultSAToken delegates off to the service account token setup with the MCP. This should only be used for APIs where no real token is provided and should always be protected

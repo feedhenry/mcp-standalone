@@ -43,12 +43,20 @@ type Build struct {
 }
 
 type BuildGitRepo struct {
-	URI         string `json:"uri"`
-	Private     bool   `json:"private"`
-	Ref         string `json:"ref"`
-	PublicKey   string `json:"public"`
-	PublicKeyID string `json:"public_key_id"`
+	URI             string `json:"uri"`
+	Private         bool   `json:"private"`
+	Ref             string `json:"ref"`
+	PublicKey       string `json:"public"`
+	PublicKeyID     string `json:"publicKeyId"`
+	JenkinsFilePath string `json:"jenkinsFilePath"`
 }
+
+type BuildAssetType string
+
+var (
+	BuildAssetTypeSourceCredential BuildAssetType = "mobile-src"
+	BuildAssetTypeBuildSecret      BuildAssetType = "mobile-build"
+)
 
 func NewMobileService() *Service {
 	return &Service{

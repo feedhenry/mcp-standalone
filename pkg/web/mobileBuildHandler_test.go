@@ -41,7 +41,7 @@ func setupMobileBuildHandler(kclient kubernetes.Interface, ocFake *kfake.Fake) h
 	return web.BuildHTTPHandler(r, nil)
 }
 
-func TestBuildHandler_Create(t *testing.T) {
+func TestBuildHandlerCreate(t *testing.T) {
 	cases := []struct {
 		Name        string
 		K8Client    func() kubernetes.Interface
@@ -86,6 +86,46 @@ func TestBuildHandler_Create(t *testing.T) {
 				}
 				if ar.PublicKey == "" {
 					t.Fatal("expected a public key in the response but got none")
+				}
+				if ar.BuildID != "mybuild" {
+					t.Fatalf("expected a build id to match : mybuild but got %s", ar.BuildID)
+				}
+			},
+		},
+		{
+			Name:       "test build create for public repo ok",
+			StatusCode: 201,
+			K8Client: func() kubernetes.Interface {
+				c := &fake.Clientset{}
+				c.AddReactor("create", "secrets", func(action kfake.Action) (handled bool, ret runtime.Object, err error) {
+					obj := action.(kfake.CreateAction).GetObject()
+					return true, obj, nil
+				})
+				return c
+			},
+			OCClient: func() *kfake.Fake {
+
+				c := &kfake.Fake{}
+				c.AddReactor("create", "buildconfig", func(action kfake.Action) (handled bool, ret runtime.Object, err error) {
+					obj := action.(kfake.CreateAction).GetObject()
+					return true, obj, nil
+				})
+				return c
+			},
+			MobileBuild: &mobile.Build{
+				Name:  "mybuild",
+				AppID: "myapp",
+				GitRepo: &mobile.BuildGitRepo{
+					URI: "git@git.com",
+					Ref: "master",
+				},
+			},
+			Validate: func(t *testing.T, ar *app.AppBuildCreatedResponse) {
+				if nil == ar {
+					t.Fatal("expected a build creation response but got none")
+				}
+				if ar.PublicKey != "" {
+					t.Fatal("did not expect a public key in the response but got one")
 				}
 				if ar.BuildID != "mybuild" {
 					t.Fatalf("expected a build id to match : mybuild but got %s", ar.BuildID)
