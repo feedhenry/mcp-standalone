@@ -137,7 +137,7 @@ This is required to produce the mcp extension files referenced in master-config.
 
 ```
 cd ui
-grunt local
+./node_modules/.bin/grunt local
 ```
 If you see an `ENOSPC` error, you may need to increase the number of files your user can watch by running this command:
 
@@ -145,7 +145,7 @@ If you see an `ENOSPC` error, you may need to increase the number of files your 
 echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
 ```
 
-*NOTE*: Running `grunt local` will *not* run `uglify` (to help with local dev), and *will* include `scripts/config.local.js`. This file is used to point to a local running MCP server rather than the default of looking up a Route names `mcp-standalone` and using that as the MCP server host.
+*NOTE*: Running `./node_modules/.bin/grunt local` will *not* run `uglify` (to help with local dev), and *will* include `scripts/config.local.js`. This file is used to point to a local running MCP server rather than the default of looking up a Route names `mcp-standalone` and using that as the MCP server host.
 
 ### Step 3, Launch Services
 
