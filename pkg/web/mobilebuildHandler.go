@@ -65,7 +65,7 @@ func (bh *BuildHandler) Create(rw http.ResponseWriter, req *http.Request) {
 }
 
 // GenerateKeys will parse the request and hand it off to the service logic to setup a new public private key pair
-func (bh BuildHandler) GenerateKeys(rw http.ResponseWriter, req *http.Request) {
+func (bh *BuildHandler) GenerateKeys(rw http.ResponseWriter, req *http.Request) {
 	token := headers.DefaultTokenRetriever(req.Header)
 	params := mux.Vars(req)
 	buildID := params["buildID"]
@@ -90,6 +90,48 @@ func (bh BuildHandler) GenerateKeys(rw http.ResponseWriter, req *http.Request) {
 	rw.WriteHeader(http.StatusCreated)
 	if err := encoder.Encode(res); err != nil {
 		err = errors.Wrap(err, "failed to encode response after creating source keys")
+		handleCommonErrorCases(err, rw, bh.logger)
+		return
+	}
+}
+
+func (bh *BuildHandler) AddAsset(rw http.ResponseWriter, req *http.Request) {
+	token := headers.DefaultTokenRetriever(req.Header)
+	buildAsset := &mobile.BuildAsset{}
+	req.ParseMultipartForm(10 * 1000000) //10MB
+	params := mux.Vars(req)
+	file, info, err := req.FormFile("asset")
+	if err != nil {
+		err = errors.Wrap(err, "getting the form file failed when adding asset")
+		handleCommonErrorCases(err, rw, bh.logger)
+		return
+	}
+	defer file.Close()
+	buildAsset.Name = info.Filename
+	buildAsset.Platform = params["platform"]
+	buildAsset.Type = mobile.BuildAssetTypeBuildSecret
+	if err := buildAsset.Validate(mobile.BuildAssetTypeBuildSecret); err != nil {
+		err = &mobile.StatusError{Message: err.Error(), Code: http.StatusBadRequest}
+		handleCommonErrorCases(err, rw, bh.logger)
+		return
+	}
+	br, err := bh.buildRepoBuilder.WithToken(token).Build()
+	if err != nil {
+		err = errors.Wrap(err, "failed to create build repo with token")
+		handleCommonErrorCases(err, rw, bh.logger)
+		return
+	}
+	asset, err := bh.buildService.AddBuildAsset(br, file, buildAsset)
+	if err != nil {
+		err = errors.Wrap(err, "AddAsset failed to add new build resource")
+		handleCommonErrorCases(err, rw, bh.logger)
+		return
+	}
+	res := map[string]string{"name": asset}
+	encoder := json.NewEncoder(rw)
+	rw.WriteHeader(http.StatusCreated)
+	if err := encoder.Encode(res); err != nil {
+		err = errors.Wrap(err, "failed to encode response after creating build asset")
 		handleCommonErrorCases(err, rw, bh.logger)
 		return
 	}

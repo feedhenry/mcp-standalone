@@ -41,9 +41,16 @@ func (br *BuildRepo) Create(b *mobile.Build) error {
 
 // AddBuildAsset will create a secret and return its name
 func (br *BuildRepo) AddBuildAsset(asset mobile.BuildAsset) (string, error) {
+	labels := map[string]string{"type": string(asset.Type), "platform": asset.Platform}
+	if asset.BuildName != "" {
+		labels["buildID"] = asset.BuildName
+	}
+	if asset.AppName != "" {
+		labels["mobileAppID"] = asset.AppName
+	}
 	secret := &v1.Secret{
 		ObjectMeta: meta_v1.ObjectMeta{
-			Labels: map[string]string{"mobile-appid": asset.AppName, "buildID": asset.BuildName, "type": string(asset.Type)},
+			Labels: labels,
 			Name:   asset.Name,
 		},
 		Data: asset.AssetData,

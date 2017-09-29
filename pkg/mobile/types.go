@@ -4,6 +4,7 @@
 package mobile
 
 import (
+	"errors"
 	"strings"
 )
 
@@ -49,6 +50,30 @@ type BuildGitRepo struct {
 	PublicKey       string `json:"public"`
 	PublicKeyID     string `json:"publicKeyId"`
 	JenkinsFilePath string `json:"jenkinsFilePath"`
+}
+
+type BuildAsset struct {
+	Platform  string
+	Path      string
+	BuildName string
+	AppName   string
+	Name      string
+	Type      BuildAssetType
+	AssetData map[string][]byte
+}
+
+func (ba *BuildAsset) Validate(assetType BuildAssetType) error {
+
+	if assetType == BuildAssetTypeBuildSecret {
+		if !ValidAppTypes.Contains(ba.Platform) {
+			return errors.New("build asset of type build secret needs a valid platform")
+		}
+	} else {
+		if ba.BuildName == "" {
+			return errors.New("build asset needs a valid build name")
+		}
+	}
+	return nil
 }
 
 type BuildAssetType string
