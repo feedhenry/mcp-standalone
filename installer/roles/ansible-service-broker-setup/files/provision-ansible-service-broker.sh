@@ -13,7 +13,7 @@ oc process -f /tmp/deploy-ansible-service-broker.template.yaml \
     -p DOCKERHUB_USER="${DOCKERHUB_USER}" \
     -p DOCKERHUB_PASS="${DOCKERHUB_PASS}" \
     -p DOCKERHUB_ORG="${DOCKERHUB_ORG}" \
-    -p BROKER_IMAGE="ansibleplaybookbundle/origin-ansible-service-broker:sprint137"
+    -p BROKER_IMAGE="ansibleplaybookbundle/origin-ansible-service-broker:sprint137" \
     -p ENABLE_BASIC_AUTH="false" \
     -p SANDBOX_ROLE="admin" \
     -p ROUTING_SUFFIX="192.168.37.1.nip.io" \
