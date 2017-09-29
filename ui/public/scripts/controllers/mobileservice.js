@@ -237,8 +237,8 @@ angular.module('mobileControlPanelApp').controller('MobileServiceController', [
       }
       return 0;
     };
-    $scope.serviceWriteable = function(service) {
-      return service.writeable;
+    $scope.serviceWritable = function(service) {
+      return service.writable;
     };
     $scope.enabled = function(integration, service) {
       if (!service) {
