@@ -106,7 +106,7 @@ func main() {
 	//kick off metrics scheduler
 	{
 		//TODO move time interval to config
-		interval := time.NewTicker(5 * time.Second)
+		interval := time.NewTicker(30 * time.Second)
 		gatherer := metrics.NewGathererScheduler(interval, stop, logger)
 
 		// add metrics gatherers

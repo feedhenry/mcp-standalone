@@ -46,7 +46,7 @@ func (bc *BuildConfigs) Create(config *build.BuildConfig) (*build.BuildConfig, e
 	}
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusCreated {
-		return nil, errors.Wrap(err, "unexpected status creating buildconfig")
+		return nil, errors.New("unexpected status code creating buildconfig " + res.Status)
 	}
 	return config, nil
 }
