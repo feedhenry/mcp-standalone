@@ -80,6 +80,11 @@ func MobileServiceRoute(r *mux.Router, handler *MobileServiceHandler) {
 	r.HandleFunc("/mobileservice/{name}/metrics", prometheus.InstrumentHandlerFunc("mobileservices get metrics", handler.GetMetrics)).Methods("GET")
 }
 
+// MobileBuildRoute sets up the /build route
+func MobileBuildRoute(r *mux.Router, handler *BuildHandler) {
+	r.HandleFunc("/build", prometheus.InstrumentHandlerFunc("build create", handler.Create)).Methods("POST")
+}
+
 //TODO maybe better place to put this
 func handleCommonErrorCases(err error, rw http.ResponseWriter, logger *logrus.Logger) {
 	e := errors.Cause(err)

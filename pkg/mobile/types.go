@@ -32,8 +32,31 @@ type Service struct {
 	Labels       map[string]string              `json:"labels"`
 	Integrations map[string]*ServiceIntegration `json:"integrations"`
 	External     bool                           `json:"external"`
-	Writeable    bool                           `json:"writeable"`
+	Writable     bool                           `json:"writable"`
 }
+
+// Build represents a build of a mobile client. It is converted to a buildconfig
+type Build struct {
+	AppID   string        `json:"appID"`
+	Name    string        `json:"name"`
+	GitRepo *BuildGitRepo `json:"gitRepo"`
+}
+
+type BuildGitRepo struct {
+	URI             string `json:"uri"`
+	Private         bool   `json:"private"`
+	Ref             string `json:"ref"`
+	PublicKey       string `json:"public"`
+	PublicKeyID     string `json:"publicKeyId"`
+	JenkinsFilePath string `json:"jenkinsFilePath"`
+}
+
+type BuildAssetType string
+
+var (
+	BuildAssetTypeSourceCredential BuildAssetType = "mobile-src"
+	BuildAssetTypeBuildSecret      BuildAssetType = "mobile-build"
+)
 
 func NewMobileService() *Service {
 	return &Service{

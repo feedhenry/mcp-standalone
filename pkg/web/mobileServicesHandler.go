@@ -2,7 +2,6 @@ package web
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -88,7 +87,6 @@ func (msh *MobileServiceHandler) Read(rw http.ResponseWriter, req *http.Request)
 	client := httpclient.NewClientBuilder().Insecure(true).Timeout(5).Build()
 
 	if withIntegrations != "" {
-		fmt.Println("with Integrations", serviceName)
 		ms, err = msh.mobileIntegrationService.ReadMobileServiceAndIntegrations(serviceCruder, authChecker, serviceName, client)
 		if err != nil {
 			handleCommonErrorCases(err, rw, msh.logger)

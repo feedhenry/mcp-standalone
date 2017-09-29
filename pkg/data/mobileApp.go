@@ -241,7 +241,7 @@ func (mar *MobileAppRepo) readUnderlyingConfigMap(a *mobile.App) (*v1.ConfigMap,
 }
 
 //NewMobileAppRepoBuilder creates a new instance of a MobileAppRepoBuilder
-func NewMobileAppRepoBuilder(clientBuilder mobile.ClientBuilder, namespace, saToken string) mobile.AppRepoBuilder {
+func NewMobileAppRepoBuilder(clientBuilder mobile.K8ClientBuilder, namespace, saToken string) mobile.AppRepoBuilder {
 	return &MobileAppRepoBuilder{
 		clientBuilder: clientBuilder,
 		namespace:     namespace,
@@ -251,7 +251,7 @@ func NewMobileAppRepoBuilder(clientBuilder mobile.ClientBuilder, namespace, saTo
 
 // MobileAppRepoBuilder builds a MobileAppRepo
 type MobileAppRepoBuilder struct {
-	clientBuilder mobile.ClientBuilder
+	clientBuilder mobile.K8ClientBuilder
 	token         string
 	namespace     string
 	saToken       string
