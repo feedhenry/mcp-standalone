@@ -224,7 +224,7 @@ func TestBuildCreateBuildSrcKeySecret(t *testing.T) {
 
 			br := data.NewBuildRepo(tc.BuildClient(), tc.SecretClient())
 			buildService := app.NewBuild()
-			secretName, pubKey, err := buildService.CreateBuildSrcKeySecret(br, "test", "test")
+			secretName, pubKey, err := buildService.CreateBuildSrcKeySecret(br, "test")
 			if tc.ExpectError && err == nil {
 				t.Fatalf("expected an err but got none!")
 			}
