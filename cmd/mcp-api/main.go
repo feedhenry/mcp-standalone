@@ -170,15 +170,22 @@ func main() {
 		staticHandler := web.NewStaticHandler(logger, *staticDirectory, consoleMountPath, "index.html")
 		web.StaticRoute(staticHandler)
 	}
-
 	handler := web.BuildHTTPHandler(router, mwAccess)
+	server := http.Server{
+		Addr:              *port,
+		IdleTimeout:       time.Second * 60,
+		ReadHeaderTimeout: time.Second * 5,
+		WriteTimeout:      time.Second * 15,
+		Handler:           handler,
+	}
+
 	logger.Info("starting server on port "+*port, " using key ", *key, " and cert ", *cert, "target namespace is ", *namespace)
 	go func() {
-		if err := http.ListenAndServeTLS(*port, *cert, *key, handler); err != nil {
+		if err := server.ListenAndServeTLS(*cert, *key); err != nil {
 			panic(err)
 		}
 	}()
-	<-s //wait for itterupt
+	<-s //wait for interrupt
 	close(stop)
 }
 
