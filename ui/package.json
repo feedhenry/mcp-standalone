@@ -5,7 +5,8 @@
   "main": "mcp.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "bower": "bower"
+    "bower": "bower",
+    "grunt": "grunt"
   },
   "repository": {
     "type": "git",
@@ -24,6 +25,7 @@
     "autoprefixer-core": "^5.2.1",
     "bower": "^1.8.2",
     "grunt": "^0.4.5",
+    "grunt-cli": "^1.2.0",
     "grunt-concurrent": "^1.0.0",
     "grunt-contrib-clean": "^0.6.0",
     "grunt-contrib-concat": "^0.5.0",

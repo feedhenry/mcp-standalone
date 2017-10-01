@@ -13,11 +13,11 @@ type MounterBuilder struct {
 	namespace     string
 	saToken       string
 	token         string
-	clientBuilder mobile.ClientBuilder
+	clientBuilder mobile.K8ClientBuilder
 }
 
 // NewMounterBuilder creates a new MounterBuilder in the provided namespace
-func NewMounterBuilder(clientBuilder mobile.ClientBuilder, namespace, saToken string) mobile.MounterBuilder {
+func NewMounterBuilder(clientBuilder mobile.K8ClientBuilder, namespace, saToken string) mobile.MounterBuilder {
 	return &MounterBuilder{
 		namespace:     namespace,
 		clientBuilder: clientBuilder,

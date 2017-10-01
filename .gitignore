@@ -2,7 +2,7 @@
 .vscode/
 
 cmd/mcp-api/mcp-api
-token
+./token
 mcp
 mcp-api
 web/app/bower_components

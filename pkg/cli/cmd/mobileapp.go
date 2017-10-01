@@ -51,7 +51,6 @@ var getmobileappCmd = &cobra.Command{
 		if name != "" {
 			u.Path = path.Join(u.Path, "/"+name)
 		}
-		fmt.Println(u.String())
 		req, err := http.NewRequest("GET", u.String(), nil)
 		if err != nil {
 			log.Fatalf(" %s : failed to create new get request %s ", cmd.Name(), err)

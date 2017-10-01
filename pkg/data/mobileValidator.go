@@ -42,10 +42,22 @@ func validateClientType(a *mobile.App) error {
 
 type DefaultMobileServiceValidator struct{}
 
+//TODO fill these out
 func (msv DefaultMobileServiceValidator) PreCreate(ms *mobile.Service) error {
 	return nil
 }
 
 func (msv DefaultMobileServiceValidator) PreUpdate(old *mobile.Service, new *mobile.Service) error {
+	return nil
+}
+
+type DefaultMobileBuildValidator struct{}
+
+//TODO fill these out
+func (msv DefaultMobileBuildValidator) PreCreate(mb *mobile.Build) error {
+	return nil
+}
+
+func (msv DefaultMobileBuildValidator) PreUpdate(old *mobile.Build, new *mobile.Build) error {
 	return nil
 }

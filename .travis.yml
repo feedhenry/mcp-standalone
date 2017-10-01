@@ -9,4 +9,4 @@ go:
   - master
 
 script:
-  - cd $HOME/gopath/src/github.com/feedhenry/mcp-standalone && make check-gofmt build
+  - cd $HOME/gopath/src/github.com/feedhenry/mcp-standalone && make check-gofmt build build_cli
