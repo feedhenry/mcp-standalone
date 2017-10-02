@@ -30,7 +30,6 @@ func NewMobileAppHandler(logger *logrus.Logger, app mobile.AppRepoBuilder, appSe
 
 // Read reads a mobileapp based on an id
 func (m *MobileAppHandler) Read(rw http.ResponseWriter, req *http.Request) {
-	// we return the actul request handleing function now that it has been configured.
 	token := headers.DefaultTokenRetriever(req.Header)
 	appRepo, err := m.appCruderBuilder.WithToken(token).Build()
 	if err != nil {

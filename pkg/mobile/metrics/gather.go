@@ -106,15 +106,17 @@ func (gs *GathererScheduler) Add(serviceName string, metricGatherer Gatherer) {
 
 // Run will start the jobs on a schedule
 func (gs *GathererScheduler) Run() {
+	defer func() {
+		gs.logger.Info("stopping metrics gatherers")
+		gs.ticker.Stop()
+		gs.logger.Info("ticker stopped")
+	}()
 	for {
 		select {
 		case <-gs.ticker.C:
 			gs.execute()
 			//run gather jobs
 		case <-gs.cancel:
-			gs.logger.Info("stopping metrics gatherers")
-			gs.ticker.Stop()
-			gs.logger.Info("ticker stopped")
 			return
 		}
 	}
