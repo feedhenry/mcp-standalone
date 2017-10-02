@@ -38,7 +38,7 @@ func (bh *BuildHandler) Create(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 	var (
-		build   = &mobile.Build{}
+		build   = &mobile.BuildConfig{}
 		decoder = json.NewDecoder(req.Body)
 		encoder = json.NewEncoder(rw)
 	)
@@ -90,6 +90,35 @@ func (bh *BuildHandler) GenerateKeys(rw http.ResponseWriter, req *http.Request) 
 	rw.WriteHeader(http.StatusCreated)
 	if err := encoder.Encode(res); err != nil {
 		err = errors.Wrap(err, "failed to encode response after creating source keys")
+		handleCommonErrorCases(err, rw, bh.logger)
+		return
+	}
+}
+
+func (bh *BuildHandler) GenerateDownload(rw http.ResponseWriter, req *http.Request) {
+	token := headers.DefaultTokenRetriever(req.Header)
+	params := mux.Vars(req)
+	buildID := params["buildID"]
+	if buildID == "" {
+		http.Error(rw, "buildID cannot be empty ", http.StatusBadRequest)
+		return
+	}
+	buildRepo, err := bh.buildRepoBuilder.WithToken(token).Build()
+	if err != nil {
+		err = errors.Wrap(err, "build handler failed to create build repo instance")
+		handleCommonErrorCases(err, rw, bh.logger)
+		return
+	}
+	download, err := bh.buildService.EnableDownload(buildRepo, buildID)
+	if err != nil {
+		err = errors.Wrap(err, "build handler failed to create download")
+		handleCommonErrorCases(err, rw, bh.logger)
+		return
+	}
+	encoder := json.NewEncoder(rw)
+	rw.WriteHeader(http.StatusCreated)
+	if err := encoder.Encode(download); err != nil {
+		err = errors.Wrap(err, "failed to encode response after creating download url")
 		handleCommonErrorCases(err, rw, bh.logger)
 		return
 	}

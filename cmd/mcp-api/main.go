@@ -69,7 +69,7 @@ func main() {
 		router           = web.NewRouter()
 		insecureRequests = *insecure == "true"
 		incluster        = os.Getenv("KUBERNETES_SERVICE_HOST") != ""
-		//setup out builders
+		//setup our builders
 		k8ClientBuilder    = k8s.NewClientBuilder(*namespace, k8host, insecureRequests)
 		mounterBuilder     = k8s.NewMounterBuilder(k8ClientBuilder, *namespace, token)
 		appRepoBuilder     = data.NewMobileAppRepoBuilder(k8ClientBuilder, *namespace, token)

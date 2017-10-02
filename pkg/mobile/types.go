@@ -36,8 +36,19 @@ type Service struct {
 	Writable     bool                           `json:"writable"`
 }
 
-// Build represents a build of a mobile client. It is converted to a buildconfig
 type Build struct {
+	Name     string         `json:"name"`
+	Download *BuildDownload `json:"download"`
+}
+
+type BuildDownload struct {
+	URL     string `json:"url"`
+	Expires int64  `json:"expires"`
+	Token   string `json:"-"`
+}
+
+// BuildConfig represents a build of a mobile client. It is converted to a buildconfig
+type BuildConfig struct {
 	AppID   string        `json:"appID"`
 	Name    string        `json:"name"`
 	GitRepo *BuildGitRepo `json:"gitRepo"`

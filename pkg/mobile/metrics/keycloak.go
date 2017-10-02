@@ -54,7 +54,7 @@ func (kc *Keycloak) Gather() ([]*metric, error) {
 		return nil, errors.Wrap(err, "keycloak gather failed to list existing services")
 	}
 	if len(kcServices) == 0 {
-		return nil, errors.New(" no keycloak service present in namespace ")
+		return nil, &noServiceProvisionedErr{Message: " no keycloak service present in namespace "}
 	}
 	kcService := kcServices[0] //TODO deal with more than one
 	//TODO get protocol from secret

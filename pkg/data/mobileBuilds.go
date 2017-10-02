@@ -3,6 +3,8 @@ package data
 import (
 	"fmt"
 
+	"strconv"
+
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
 	"github.com/feedhenry/mcp-standalone/pkg/openshift/build"
 	"github.com/feedhenry/mcp-standalone/pkg/openshift/client"
@@ -14,29 +16,68 @@ import (
 )
 
 type BuildRepo struct {
-	buildClient  client.BuildConfigInterface
-	secretClient corev1.SecretInterface
-	validator    MobileBuildValidator
+	buildConfClient client.BuildConfigInterface
+	buildClient     client.BuildInterface
+	secretClient    corev1.SecretInterface
+	validator       MobileBuildValidator
 }
 
-func NewBuildRepo(bc client.BuildConfigInterface, sc corev1.SecretInterface) *BuildRepo {
+func NewBuildRepo(bc client.BuildConfigInterface, buildc client.BuildInterface, sc corev1.SecretInterface) *BuildRepo {
 	br := &BuildRepo{
-		buildClient:  bc,
-		secretClient: sc,
+		buildConfClient: bc,
+		secretClient:    sc,
+		buildClient:     buildc,
 	}
 	br.validator = DefaultMobileBuildValidator{}
 	return br
 }
 
-func (br *BuildRepo) Create(b *mobile.Build) error {
+func (br *BuildRepo) Create(b *mobile.BuildConfig) error {
 	if err := br.validator.PreCreate(b); err != nil {
 		return errors.Wrap(err, "failed to create build as validation failed")
 	}
 	bc := convertMobileBuildToBuildConfig(b)
-	if _, err := br.buildClient.Create(bc); err != nil {
+	if _, err := br.buildConfClient.Create(bc); err != nil {
 		return errors.Wrap(err, "build repo failed to create underlying buildconfig")
 	}
 	return nil
+}
+
+func (br BuildRepo) AddDownload(buildName string, dl *mobile.BuildDownload) error {
+	build, err := br.buildClient.Get(buildName, meta_v1.GetOptions{})
+	if err != nil {
+		return errors.Wrap(err, "failed to add download settings to build")
+	}
+	fmt.Println("got build", build)
+	build.Annotations["downloadURL"] = dl.URL
+	build.Annotations["downloadExp"] = fmt.Sprintf("%d", dl.Expires)
+	build.Annotations["downloadToken"] = dl.Token
+	if _, err := br.buildClient.Update(build); err != nil {
+		return errors.Wrap(err, "failed to update the build with the download settings ")
+	}
+	return nil
+}
+
+func (br *BuildRepo) GetDownload(buildName string) (*mobile.BuildDownload, error) {
+	build, err := br.buildClient.Get(buildName, meta_v1.GetOptions{})
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to add download settings to build")
+	}
+	downLoadURL := build.Annotations["downloadURL"]
+	expire := build.Annotations["downloadExp"]
+	token := build.Annotations["downloadToken"]
+	if downLoadURL == "" || expire == "" {
+		return nil, errors.New("no download settings available")
+	}
+	expireVal, err := strconv.ParseInt(expire, 0, 0)
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to parse expire value for download")
+	}
+	return &mobile.BuildDownload{
+		Expires: expireVal,
+		URL:     downLoadURL,
+		Token:   token,
+	}, nil
 }
 
 // AddBuildAsset will create a secret and return its name
@@ -67,7 +108,7 @@ func (br *BuildRepo) Update(config *build.BuildConfig) (*build.BuildConfig, erro
 	return nil, fmt.Errorf("not yet implemented")
 }
 
-func convertMobileBuildToBuildConfig(b *mobile.Build) *build.BuildConfig {
+func convertMobileBuildToBuildConfig(b *mobile.BuildConfig) *build.BuildConfig {
 	bc := &build.BuildConfig{
 		ObjectMeta: meta_v1.ObjectMeta{
 			Labels: map[string]string{"mobile-appid": b.AppID},
@@ -101,14 +142,14 @@ func convertMobileBuildToBuildConfig(b *mobile.Build) *build.BuildConfig {
 	return bc
 }
 
-func convertBuildConfigToMobileBuild(b *build.BuildConfig) (*mobile.Build, error) {
+func convertBuildConfigToMobileBuild(b *build.BuildConfig) (*mobile.BuildConfig, error) {
 	return nil, nil
 }
 
 // MobileBuildValidator defines what a validator should do
 type MobileBuildValidator interface {
-	PreCreate(a *mobile.Build) error
-	PreUpdate(old *mobile.Build, new *mobile.Build) error
+	PreCreate(a *mobile.BuildConfig) error
+	PreUpdate(old *mobile.BuildConfig, new *mobile.BuildConfig) error
 }
 
 // NewBuildsRepoBuilder provides an implementation of mobile.ServiceRepoBuilder
@@ -161,5 +202,5 @@ func (marb *BuildRepoBuilder) Build() (mobile.BuildCruder, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to build ocClient ")
 	}
-	return NewBuildRepo(ocClient.BuildConfigs(marb.namespace), k8client.CoreV1().Secrets(marb.namespace)), nil
+	return NewBuildRepo(ocClient.BuildConfigs(marb.namespace), ocClient.Builds(marb.namespace), k8client.CoreV1().Secrets(marb.namespace)), nil
 }

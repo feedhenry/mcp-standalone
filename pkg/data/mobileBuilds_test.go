@@ -7,6 +7,7 @@ import (
 
 	"github.com/feedhenry/mcp-standalone/pkg/data"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
+	"github.com/feedhenry/mcp-standalone/pkg/openshift/build"
 	"github.com/feedhenry/mcp-standalone/pkg/openshift/client"
 	"github.com/feedhenry/mcp-standalone/pkg/openshift/testclient"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -18,11 +19,12 @@ import (
 
 func TestBuildRepo_Create(t *testing.T) {
 	cases := []struct {
-		Name         string
-		ExpectError  bool
-		BuildClient  func() client.BuildConfigInterface
-		SecretClient func() corev1.SecretInterface
-		Build        *mobile.Build
+		Name              string
+		ExpectError       bool
+		BuildConfigClient func() client.BuildConfigInterface
+		BuildClient       func() client.BuildInterface
+		SecretClient      func() corev1.SecretInterface
+		Build             *mobile.BuildConfig
 	}{
 		{
 			"test creating build succeeds",
@@ -34,11 +36,16 @@ func TestBuildRepo_Create(t *testing.T) {
 				})
 				return fakeoc
 			},
+			func() client.BuildInterface {
+				fakeoc := testclient.NewFakeBuilds("test", nil)
+				return fakeoc
+
+			},
 			func() corev1.SecretInterface {
 				kc := &fake.Clientset{}
 				return kc.CoreV1().Secrets("test")
 			},
-			&mobile.Build{
+			&mobile.BuildConfig{
 				Name:  "test",
 				AppID: "test",
 				GitRepo: &mobile.BuildGitRepo{
@@ -58,11 +65,16 @@ func TestBuildRepo_Create(t *testing.T) {
 				})
 				return fakeoc
 			},
+			func() client.BuildInterface {
+				fakeoc := testclient.NewFakeBuilds("test", nil)
+				return fakeoc
+
+			},
 			func() corev1.SecretInterface {
 				kc := &fake.Clientset{}
 				return kc.CoreV1().Secrets("test")
 			},
-			&mobile.Build{
+			&mobile.BuildConfig{
 				Name:  "test",
 				AppID: "test",
 				GitRepo: &mobile.BuildGitRepo{
@@ -76,7 +88,7 @@ func TestBuildRepo_Create(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
-			buildRepo := data.NewBuildRepo(tc.BuildClient(), tc.SecretClient())
+			buildRepo := data.NewBuildRepo(tc.BuildConfigClient(), tc.BuildClient(), tc.SecretClient())
 			err := buildRepo.Create(tc.Build)
 			if tc.ExpectError && err == nil {
 				t.Fatalf("expected an error but got none")
@@ -145,7 +157,7 @@ func TestBuildRepo_AddBuildAsset(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
-			buildRepo := data.NewBuildRepo(nil, tc.SecretClient())
+			buildRepo := data.NewBuildRepo(nil, nil, tc.SecretClient())
 			secretName, err := buildRepo.AddBuildAsset(tc.BuildAsset)
 			if tc.ExpectError && err == nil {
 				t.Fatalf("expected an error but got none")
@@ -155,6 +167,56 @@ func TestBuildRepo_AddBuildAsset(t *testing.T) {
 			}
 			if !tc.ExpectError && secretName == "" {
 				t.Fatal("expected a secret name to be returned but got none")
+			}
+		})
+	}
+}
+
+func TestBuildRepoAddDownload(t *testing.T) {
+	cases := []struct {
+		Name        string
+		ExpectError bool
+		BuildClient func(t *testing.T) client.BuildInterface
+		Download    *mobile.BuildDownload
+		BuildName   string
+	}{
+		{
+			Name: "test adding a build download is ok ",
+			BuildClient: func(t *testing.T) client.BuildInterface {
+				fakeoc := testclient.NewFakeBuilds("test", nil)
+				fakeoc.Fake.AddReactor("update", "build", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
+					b := action.(ktesting.UpdateAction).GetObject().(*build.Build)
+					if nil == b {
+						t.Fatal("expected a build but it was nil")
+					}
+					if _, ok := b.Annotations["downloadURL"]; !ok {
+						t.Fatal("expected a downloadURL but it wasnt present")
+					}
+					if _, ok := b.Annotations["downloadExpires"]; ok {
+						t.Fatal("expected an expires but there was none")
+					}
+
+					return true, b, nil
+				})
+				return fakeoc
+			},
+			Download: &mobile.BuildDownload{
+				URL:     "https://mcp.com/buid/test?token=asdadasd",
+				Expires: 12334343434,
+			},
+			BuildName: "test",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.Name, func(t *testing.T) {
+			buildRepo := data.NewBuildRepo(nil, tc.BuildClient(t), nil)
+			err := buildRepo.AddDownload(tc.BuildName, tc.Download)
+			if tc.ExpectError && err == nil {
+				t.Fatalf("expected an error but got none")
+			}
+			if !tc.ExpectError && err != nil {
+				t.Fatalf("did not expect error but got %s ", err)
 			}
 		})
 	}

@@ -122,7 +122,7 @@ func (ss *FhSyncServer) Gather() ([]*metric, error) {
 		return nil, errors.Wrap(err, "fh-sync-server gather failed to list existing services")
 	}
 	if len(ssServices) == 0 {
-		return nil, errors.New(" no fh-sync-server service present")
+		return nil, &noServiceProvisionedErr{" no fh-sync-server service present"}
 	}
 	ssService := ssServices[0] //TODO deal with more than one
 	//TODO get protocol from secret

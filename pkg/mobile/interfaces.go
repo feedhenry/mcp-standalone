@@ -28,8 +28,10 @@ type ServiceCruder interface {
 }
 
 type BuildCruder interface {
-	Create(b *Build) error
+	Create(b *BuildConfig) error
 	AddBuildAsset(asset BuildAsset) (string, error)
+	AddDownload(buildName string, dl *BuildDownload) error
+	GetDownload(buildName string) (*BuildDownload, error)
 }
 
 type Attributer interface {
