@@ -13,6 +13,10 @@ import (
 
 	"fmt"
 
+	"os"
+
+	"mime/multipart"
+
 	"github.com/Sirupsen/logrus"
 	"github.com/feedhenry/mcp-standalone/pkg/data"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
@@ -24,6 +28,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/fake"
+	"k8s.io/client-go/pkg/api/v1"
 	kfake "k8s.io/client-go/testing"
 )
 
@@ -272,4 +277,113 @@ func TestBuildHandlerGenerateKeys(t *testing.T) {
 
 		})
 	}
+}
+
+func TestBuildHandlerAddAsset(t *testing.T) {
+	cases := []struct {
+		Name       string
+		K8Client   func() kubernetes.Interface
+		OCClient   func() *kfake.Fake
+		Platform   string
+		Params     map[string]string
+		StatusCode int
+	}{
+		{
+			Name: "test adding new build asset succeeds",
+			K8Client: func() kubernetes.Interface {
+				c := &fake.Clientset{}
+				c.AddReactor("create", "secrets", func(action kfake.Action) (handled bool, ret runtime.Object, err error) {
+					obj := action.(kfake.CreateAction).GetObject().(*v1.Secret)
+					if _, ok := obj.Data["server.crt"]; !ok {
+						t.Fatalf("expected to find the server key but it was not present")
+					}
+					return true, obj, nil
+				})
+				return c
+			},
+			OCClient: func() *kfake.Fake {
+				c := &kfake.Fake{}
+				return c
+			},
+			Platform:   "android",
+			Params:     map[string]string{"platform": "android", "path": "/etc/resource"},
+			StatusCode: 201,
+		},
+		{
+			Name: "test adding new build asset fails when invalid",
+			K8Client: func() kubernetes.Interface {
+				c := &fake.Clientset{}
+				c.AddReactor("create", "secrets", func(action kfake.Action) (handled bool, ret runtime.Object, err error) {
+					obj := action.(kfake.CreateAction).GetObject()
+					return true, obj, nil
+				})
+				return c
+			},
+			OCClient: func() *kfake.Fake {
+				c := &kfake.Fake{}
+				return c
+			},
+			Platform:   "none",
+			Params:     map[string]string{},
+			StatusCode: 400,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.Name, func(t *testing.T) {
+			handler := setupMobileBuildHandler(tc.K8Client(), tc.OCClient())
+			server := httptest.NewServer(handler)
+			defer server.Close()
+			req, err := newUploadFileRequest(server.URL+"/build/platform/"+tc.Platform+"/assets", tc.Params, "asset", "../../server.crt")
+			if err != nil {
+				t.Fatal("unexpected error creating new file upload request ", err)
+			}
+			res, err := http.DefaultClient.Do(req)
+			if err != nil {
+				t.Fatal("unexpected error making asset upload request", err)
+			}
+
+			if res.StatusCode != tc.StatusCode {
+				t.Fatalf("expected status code %v but got %v ", tc.StatusCode, res.StatusCode)
+			}
+
+		})
+	}
+}
+
+func newUploadFileRequest(endpoint string, formValues map[string]string, formFileField, filePath string) (*http.Request, error) {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return nil, err
+	}
+	fileContents, err := ioutil.ReadAll(file)
+	if err != nil {
+		return nil, err
+	}
+	fi, err := file.Stat()
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+	body := new(bytes.Buffer)
+	writer := multipart.NewWriter(body)
+	part, err := writer.CreateFormFile(formFileField, fi.Name())
+	if err != nil {
+		return nil, err
+	}
+	_, err = part.Write(fileContents)
+	if err != nil {
+		return nil, err
+	}
+
+	for key, val := range formValues {
+		_ = writer.WriteField(key, val)
+	}
+	err = writer.Close()
+	if err != nil {
+		return nil, err
+	}
+	req, err := http.NewRequest("POST", endpoint, body)
+	req.Header.Set("content-type", writer.FormDataContentType())
+	return req, err
 }

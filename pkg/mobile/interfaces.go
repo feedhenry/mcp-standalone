@@ -32,14 +32,6 @@ type BuildCruder interface {
 	AddBuildAsset(asset BuildAsset) (string, error)
 }
 
-type BuildAsset struct {
-	BuildName string
-	AppName   string
-	Name      string
-	Type      BuildAssetType
-	AssetData map[string][]byte
-}
-
 type Attributer interface {
 	GetName() string
 	GetLabels() map[string]string

@@ -10,6 +10,10 @@ import (
 
 	"encoding/asn1"
 
+	"io"
+
+	"io/ioutil"
+
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
 	"github.com/pkg/errors"
 )
@@ -93,4 +97,13 @@ func (b *Build) CreateBuildSrcKeySecret(br mobile.BuildCruder, buildName string)
 		return "", nil, errors.Wrap(err, "CreateAppBuild: failed to add build asset ssh-key ")
 	}
 	return assetName, publicKeyVal.Bytes(), nil
+}
+
+func (b *Build) AddBuildAsset(br mobile.BuildCruder, resource io.Reader, asset *mobile.BuildAsset) (string, error) {
+	data, err := ioutil.ReadAll(resource)
+	if err != nil {
+		return "", errors.Wrap(err, "failed to read the data for asset ")
+	}
+	asset.AssetData = map[string][]byte{asset.Name: data}
+	return br.AddBuildAsset(*asset)
 }
