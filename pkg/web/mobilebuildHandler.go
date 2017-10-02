@@ -110,6 +110,7 @@ func (bh *BuildHandler) AddAsset(rw http.ResponseWriter, req *http.Request) {
 	buildAsset.Name = info.Filename
 	buildAsset.Platform = params["platform"]
 	buildAsset.Type = mobile.BuildAssetTypeBuildSecret
+	buildAsset.Password = req.FormValue("password")
 	if err := buildAsset.Validate(mobile.BuildAssetTypeBuildSecret); err != nil {
 		err = &mobile.StatusError{Message: err.Error(), Code: http.StatusBadRequest}
 		handleCommonErrorCases(err, rw, bh.logger)

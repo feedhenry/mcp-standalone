@@ -53,6 +53,7 @@ type BuildGitRepo struct {
 }
 
 type BuildAsset struct {
+	Password  string
 	Platform  string
 	Path      string
 	BuildName string
@@ -67,6 +68,9 @@ func (ba *BuildAsset) Validate(assetType BuildAssetType) error {
 	if assetType == BuildAssetTypeBuildSecret {
 		if !ValidAppTypes.Contains(ba.Platform) {
 			return errors.New("build asset of type build secret needs a valid platform")
+		}
+		if ba.Platform == "android" && ba.Password == "" {
+			return errors.New("build assets for android require a password")
 		}
 	} else {
 		if ba.BuildName == "" {

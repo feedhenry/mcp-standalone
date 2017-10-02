@@ -104,6 +104,9 @@ func (b *Build) AddBuildAsset(br mobile.BuildCruder, resource io.Reader, asset *
 	if err != nil {
 		return "", errors.Wrap(err, "failed to read the data for asset ")
 	}
-	asset.AssetData = map[string][]byte{asset.Name: data}
+	if asset.Platform != "android" {
+		return "", errors.New("android is the only supported build platform currently")
+	}
+	asset.AssetData = map[string][]byte{"p12": data, "password": []byte(asset.Password)}
 	return br.AddBuildAsset(*asset)
 }
