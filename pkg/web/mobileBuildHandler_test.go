@@ -294,8 +294,11 @@ func TestBuildHandlerAddAsset(t *testing.T) {
 				c := &fake.Clientset{}
 				c.AddReactor("create", "secrets", func(action kfake.Action) (handled bool, ret runtime.Object, err error) {
 					obj := action.(kfake.CreateAction).GetObject().(*v1.Secret)
-					if _, ok := obj.Data["server.crt"]; !ok {
-						t.Fatalf("expected to find the server key but it was not present")
+					if _, ok := obj.Data["p12"]; !ok {
+						t.Fatalf("expected to find the p12 cert but it was not present")
+					}
+					if _, ok := obj.Data["password"]; !ok {
+						t.Fatalf("expected to find the p12 password but it was not present")
 					}
 					return true, obj, nil
 				})
@@ -306,7 +309,7 @@ func TestBuildHandlerAddAsset(t *testing.T) {
 				return c
 			},
 			Platform:   "android",
-			Params:     map[string]string{"platform": "android", "path": "/etc/resource"},
+			Params:     map[string]string{"platform": "android", "path": "/etc/resource", "password": "secret"},
 			StatusCode: 201,
 		},
 		{
