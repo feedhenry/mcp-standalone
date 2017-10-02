@@ -80,7 +80,7 @@ angular.module('mobileControlPanelApp').controller('MobileOverviewController', [
 
                 mcpApi.mobileServices().then(services => {
                   $scope.overviews.services.objects = services;
-                  $scope.overviews.services.modalOpen = false;
+                  $scope.overviews.services.modalOpen = true;
                 });
               },
               canView: function() {
