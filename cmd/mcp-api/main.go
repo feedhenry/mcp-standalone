@@ -8,6 +8,8 @@ import (
 	"os/signal"
 	"time"
 
+	"syscall"
+
 	"github.com/Sirupsen/logrus"
 	"github.com/feedhenry/mcp-standalone/pkg/data"
 	"github.com/feedhenry/mcp-standalone/pkg/httpclient"
@@ -87,7 +89,7 @@ func main() {
 	)
 
 	// send a message to the signal channel for any interrupt type signals (ctl+c etc)
-	signal.Notify(s, os.Interrupt)
+	signal.Notify(s, os.Interrupt, syscall.SIGTERM)
 	appService := &app.Service{}
 
 	k8sMetadata, err := k8s.GetMetadata(k8host, defaultHTTPClient)
