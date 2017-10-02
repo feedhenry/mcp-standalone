@@ -31,7 +31,7 @@ angular.module('mobileControlPanelApp').component('createService', {
                         <div class="form-group">
                             <label for="id">Namespace</label>
                             <select ng-model='externalService.namespace' class="form-control" id="sel1">
-                                <option value="">NA</option>
+                                <option value="">N/A</option>
                                 <option ng-repeat="project in projects" value="{{project.metadata.name}}">{{project.metadata.name}}</option>
                             </select>
                             <span class="help-block">If the service is external to OpenShift or in a namespace you don't have access to, leave as N/A</span>
