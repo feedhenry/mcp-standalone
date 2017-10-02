@@ -26,7 +26,7 @@ import (
 
 func main() {
 	var (
-		router          = web.NewRouter()
+		k8host          string
 		port            = flag.String("port", ":3001", "set the port to listen on")
 		insecure        = flag.String("insecure", "false", "allow insecure requests")
 		cert            = flag.String("cert", "server.crt", "SSL/TLS Certificate to HTTPS")
@@ -35,7 +35,6 @@ func main() {
 		logLevel        = flag.String("log-level", "error", "the level to log at")
 		saTokenPath     = flag.String("satoken-path", "var/run/secrets/kubernetes.io/serviceaccount/token", "where on disk the service account token to use is ")
 		staticDirectory = flag.String("web-dir", "./web/app", "Location of static content to serve at /console. index.html will be used as a fallback for requested files that don't exist")
-		k8host          string
 	)
 	flag.StringVar(&k8host, "k8-host", "", "kubernetes target")
 	flag.Parse()
@@ -51,7 +50,6 @@ func main() {
 		logrus.SetLevel(logrus.ErrorLevel)
 	}
 	logger := logrus.StandardLogger()
-
 	logger.Info("insecure request set to ", *insecure)
 
 	if *namespace == "" {
@@ -60,7 +58,7 @@ func main() {
 
 	token, err := readSAToken(*saTokenPath)
 	if err != nil {
-		panic(err)
+		logger.Fatal("reading the service account token failed ", err)
 	}
 
 	if k8host == "" {
@@ -68,6 +66,7 @@ func main() {
 	}
 
 	var (
+		router           = web.NewRouter()
 		insecureRequests = *insecure == "true"
 		incluster        = os.Getenv("KUBERNETES_SERVICE_HOST") != ""
 		//setup out builders
@@ -90,21 +89,18 @@ func main() {
 
 	// send a message to the signal channel for any interrupt type signals (ctl+c etc)
 	signal.Notify(s, os.Interrupt, syscall.SIGTERM)
-	appService := &app.Service{}
 
 	k8sMetadata, err := k8s.GetMetadata(k8host, defaultHTTPClient)
 	if err != nil {
-		panic(err)
+		logger.Fatal("failed to get Kubernetes meta data ", err)
 	}
-
 	// Ensure that the apiKey map exists
 	{
 		err := createAppAPIKeyMap(appRepoBuilder, token)
 		if err != nil {
-			panic(err)
+			logger.Fatal("failed to create the appApiKeyMap at start up ", err)
 		}
 	}
-
 	//kick off metrics scheduler
 	{
 		//TODO move time interval to config
@@ -122,69 +118,66 @@ func main() {
 		// start collecting metrics
 		go gatherer.Run()
 	}
-
-	//mobileapp handler
+	//mobileapp httpHandler
 	{
+		appService := &app.Service{}
 		appHandler := web.NewMobileAppHandler(logger, appRepoBuilder, appService)
 		web.MobileAppRoute(router, appHandler)
 	}
 
-	//mobileservice handler
+	//mobileservice httpHandler
 	{
 		integrationSvc := integration.NewMobileSevice(*namespace)
 		metricSvc := &metrics.MetricsService{}
 		svcHandler := web.NewMobileServiceHandler(logger, integrationSvc, mounterBuilder, metricSvc, svcRepoBuilder, userRepoBuilder, authCheckerBuilder)
 		web.MobileServiceRoute(router, svcHandler)
 	}
-
-	//sdk handler
+	//sdk httpHandler
 	{
 		sdkService := &integration.SDKService{}
 		sdkHandler := web.NewSDKConfigHandler(logger, sdkService, svcRepoBuilder, appRepoBuilder)
 		web.SDKConfigRoute(router, sdkHandler)
 	}
-	//sys handler
+	//sys httpHandler
 	{
 		sysHandler := web.NewSysHandler(logger)
 		web.SysRoute(router, sysHandler)
 	}
-
-	//build handler
+	//build httpHandler
 	{
 		buildSvc := app.NewBuild()
 		buildHandler := web.NewBuildHandler(buildRepoBuilder, buildSvc, logger)
 		web.MobileBuildRoute(router, buildHandler)
 	}
 
-	//console config handler
+	//console config httpHandler
 	var consoleMountPath = ""
 	{
 		k8MetaHost, err := k8sMetadata.GetK8IssuerHost()
 		if err != nil {
-			panic(err)
+			logger.Fatal("failed to get the k8 meta host at startup", err)
 		}
 		consoleConfigHandler := web.NewConsoleConfigHandler(logger, k8MetaHost, k8sMetadata.AuthorizationEndpoint, *namespace)
 		web.ConsoleConfigRoute(router, consoleConfigHandler)
 	}
-
-	//static handler
+	//static httpHandler
 	{
 		staticHandler := web.NewStaticHandler(logger, *staticDirectory, consoleMountPath, "index.html")
 		web.StaticRoute(staticHandler)
 	}
-	handler := web.BuildHTTPHandler(router, mwAccess)
+	httpHandler := web.BuildHTTPHandler(router, mwAccess)
 	server := http.Server{
 		Addr:              *port,
 		IdleTimeout:       time.Second * 60,
 		ReadHeaderTimeout: time.Second * 5,
 		WriteTimeout:      time.Second * 15,
-		Handler:           handler,
+		Handler:           httpHandler,
 	}
 
 	logger.Info("starting server on port "+*port, " using key ", *key, " and cert ", *cert, "target namespace is ", *namespace)
 	go func() {
 		if err := server.ListenAndServeTLS(*cert, *key); err != nil {
-			panic(err)
+			logger.Fatal("failed to listen and server https ", err)
 		}
 	}()
 	<-s //wait for interrupt
