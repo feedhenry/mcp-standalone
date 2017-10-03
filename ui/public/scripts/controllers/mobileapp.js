@@ -11,6 +11,7 @@ angular.module('mobileControlPanelApp').controller('MobileAppController', [
   '$scope',
   '$location',
   '$routeParams',
+  '$filter',
   'ProjectsService',
   'mcpApi',
   'DataService',
@@ -19,6 +20,7 @@ angular.module('mobileControlPanelApp').controller('MobileAppController', [
     $scope,
     $location,
     $routeParams,
+    $filter,
     ProjectsService,
     mcpApi,
     DataService,
@@ -109,6 +111,15 @@ angular.module('mobileControlPanelApp').controller('MobileAppController', [
       $scope.view = 'view';
     };
 
+    var buildConfigForBuild = $filter('buildConfigForBuild');
+    var updateBuilds = function(allBuilds) {
+      $scope.builds = _.filter(allBuilds, build => {
+        var buildConfigName = buildConfigForBuild(build) || '';
+        return $scope.buildConfig.metadata.name === buildConfigName;
+      });
+      $scope.orderedBuilds = BuildsService.sortBuilds($scope.builds, true);
+    };
+
     ProjectsService.get($routeParams.project)
       .then(function(projectInfo) {
         const [project = {}, projectContext = {}] = projectInfo;
@@ -147,16 +158,11 @@ angular.module('mobileControlPanelApp').controller('MobileAppController', [
           $scope.view = 'view';
         }
 
-        $scope.builds = builds['_data'];
-        $scope.orderedBuilds = BuildsService.sortBuilds($scope.builds, true);
+        updateBuilds(builds['_data']);
 
         watches.push(
           DataService.watch('builds', $scope.projectContext, function(builds) {
-            $scope.builds = builds['_data'];
-            $scope.orderedBuilds = BuildsService.sortBuilds(
-              $scope.builds,
-              true
-            );
+            updateBuilds(builds['_data']);
           })
         );
 
