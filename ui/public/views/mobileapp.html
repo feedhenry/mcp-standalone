@@ -20,8 +20,8 @@
         <div class="container-fluid">
           <div class="row">
             <div class="col-md-12">
-              <uib-tabset active=activeTab>
-                <uib-tab index=0 active="selectedTab.sdk" ng-if="app">
+              <uib-tabset>
+                <uib-tab active="selectedTab.sdk" select="setView('view')">
                   <uib-tab-heading>SDK</uib-tab-heading>
                   <h3>Core SDK Setup</h3>
                   <p>
@@ -220,22 +220,21 @@ mobileCore.configure(mcpConfig).then((config) => {
                   </div>
                 </uib-tab>
 
-                <uib-tab index=1 active="selectedTab.buildConfig">
+                <uib-tab active="selectedTab.buildConfig">
                   <uib-tab-heading>Build Config</uib-tab-heading>
                   <div ng-if="loading">
                     Loading...
                   </div>
                   <div ng-if="!loading">
-                    <get-started ng-if="!hasBuildFarm"></get-started>
-                  <div class="config-actions clearfix">
-                    <div ng-if="buildConfig && hasBuildFarm"  class="pull-right">
-                      <!-- ng-if="'buildconfigs/instantiate' | canI : 'create'"  -->
-                      <button ng-disabled="view === 'edit'" type="button" class="btn btn-default" ng-click="startBuild()">Build App</button>
-                      <action-dropdown actions=dropdownActions selected=setView></action-dropdown>
+                    <enable-mobile-build ng-if="!hasBuildFarm"></enable-mobile-build>
+                    <div class="config-actions clearfix">
+                      <div ng-if="buildConfig && hasBuildFarm"  class="pull-right">
+                        <!-- ng-if="'buildconfigs/instantiate' | canI : 'create'"  -->
+                        <button ng-disabled="view === 'edit'" type="button" class="btn btn-default" ng-click="startBuild()">Build App</button>
+                        <action-dropdown actions=dropdownActions selected=setView></action-dropdown>
+                      </div>
                     </div>
-                  </div>
                     <div ng-if="hasBuildFarm" ng-switch="view">
-                      <!-- TODO: See if these can be combined -->
                       <create-app-config ng-switch-when="create" created=createAppBuildConfig></create-app-config>
                       <view-app-config ng-switch-when="view" config=buildConfig></view-app-config>
                       <edit-app-config ng-switch-when="edit" config=buildConfig updated=updateAppBuildConfig cancelled=cancelEdit></edit-app-config>
@@ -245,7 +244,7 @@ mobileCore.configure(mcpConfig).then((config) => {
 
                 </uib-tab>
 
-                <uib-tab index=2 active="selectedTab.buildHistory">
+                <uib-tab active="selectedTab.buildHistory" select="setView('view')">
                   <uib-tab-heading>Build History</uib-tab-heading>
                   <div class="config-actions clearfix">
                     <div ng-if="buildConfig && hasBuildFarm"  class="pull-right">

@@ -45,7 +45,6 @@ angular.module('mobileControlPanelApp').controller('MobileAppController', [
 
     const watches = [];
     const BUILDFARM_ID = 'fh-sync-server';
-    $scope.activeTab = 0;
     $scope.loading = true;
     $scope.view = 'create';
     $scope.dropdownActions = [
@@ -57,7 +56,9 @@ angular.module('mobileControlPanelApp').controller('MobileAppController', [
     $scope.dropdownLabel = 'Actions';
     $scope.setView = function(view) {
       if (view === 'edit') {
-        $scope.activeTab = 1;
+        $location.url(
+          `project/${$routeParams.project}/browse/mobileapps/${$routeParams.mobileapp}?tab=buildConfig`
+        );
       }
 
       $scope.view = view;
