@@ -86,11 +86,6 @@ angular
           controller: 'CreateMobileappController',
           resolve: resolveMCPRoute
         })
-        .when('/project/:project/create-mobileservice', {
-          templateUrl: 'extensions/mcp/views/create-service.html',
-          controller: 'CreateMobileServiceController',
-          resolve: resolveMCPRoute
-        })
         .when('/project/:project/browse/mobileoverview', {
           templateUrl: 'extensions/mcp/views/mobileoverview.html',
           controller: 'MobileOverviewController',

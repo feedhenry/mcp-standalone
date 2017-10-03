@@ -44,6 +44,7 @@ angular.module('mobileControlPanelApp').controller('MobileOverviewController', [
         $scope.projectContext = projectContext;
 
         $scope.overviews.apps = {
+          type: 'app',
           title: 'Mobile Apps',
           text:
             'You can create a Mobile App to enable Mobile Integrations with Mobile Enabled Services',
@@ -62,16 +63,26 @@ angular.module('mobileControlPanelApp').controller('MobileOverviewController', [
           ]
         };
         $scope.overviews.services = {
+          type: 'service',
           title: 'Mobile Enabled Services',
+          modalOpen: false,
           text:
             'You can provision or link a Mobile Enabled Service to enable a Mobile App Integration.',
           actions: [
             {
               label: 'Add External Service',
-              action: $location.path.bind(
-                $location,
-                `project/${projectContext.projectName}/create-mobileservice`
-              ),
+              modal: true,
+              contentUrl: 'extensions/mcp/views/create-service.html',
+              action: function(err) {
+                if (err) {
+                  return;
+                }
+
+                mcpApi.mobileServices().then(services => {
+                  $scope.overviews.services.objects = services;
+                  $scope.overviews.services.modalOpen = true;
+                });
+              },
               canView: function() {
                 return AuthorizationService.canI(
                   'services',
