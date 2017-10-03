@@ -46,14 +46,12 @@ angular.module('mobileControlPanelApp').controller('MobileAppController', [
     const watches = [];
     const BUILDFARM_ID = 'fh-sync-server';
     $scope.loading = true;
-    $scope.view = 'create';
     $scope.dropdownActions = [
       {
         label: 'Edit',
         value: 'edit'
       }
     ];
-    $scope.dropdownLabel = 'Actions';
     $scope.setView = function(view) {
       if (view === 'edit') {
         $location.url(
@@ -113,10 +111,13 @@ angular.module('mobileControlPanelApp').controller('MobileAppController', [
     };
 
     var buildConfigForBuild = $filter('buildConfigForBuild');
-    var updateBuilds = function(allBuilds) {
+    var filterBuilds = function(allBuilds) {
       $scope.builds = _.filter(allBuilds, build => {
         var buildConfigName = buildConfigForBuild(build) || '';
-        return $scope.buildConfig.metadata.name === buildConfigName;
+        return (
+          $scope.buildConfig &&
+          $scope.buildConfig.metadata.name === buildConfigName
+        );
       });
       $scope.orderedBuilds = BuildsService.sortBuilds($scope.builds, true);
     };
@@ -155,15 +156,13 @@ angular.module('mobileControlPanelApp').controller('MobileAppController', [
           })
           .pop();
 
-        if ($scope.buildConfig) {
-          $scope.view = 'view';
-        }
+        $scope.view = $scope.buildConfig ? 'view' : 'create';
 
-        updateBuilds(builds['_data']);
+        filterBuilds(builds['_data']);
 
         watches.push(
           DataService.watch('builds', $scope.projectContext, function(builds) {
-            updateBuilds(builds['_data']);
+            filterBuilds(builds['_data']);
           })
         );
 
