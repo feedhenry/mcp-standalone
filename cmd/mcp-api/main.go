@@ -10,9 +10,12 @@ import (
 
 	"syscall"
 
+	"context"
+
 	"github.com/Sirupsen/logrus"
 	"github.com/feedhenry/mcp-standalone/pkg/data"
 	"github.com/feedhenry/mcp-standalone/pkg/httpclient"
+	"github.com/feedhenry/mcp-standalone/pkg/jenkins"
 	"github.com/feedhenry/mcp-standalone/pkg/k8s"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile/app"
@@ -69,7 +72,7 @@ func main() {
 		router           = web.NewRouter()
 		insecureRequests = *insecure == "true"
 		incluster        = os.Getenv("KUBERNETES_SERVICE_HOST") != ""
-		//setup out builders
+		//setup our builders
 		k8ClientBuilder    = k8s.NewClientBuilder(*namespace, k8host, insecureRequests)
 		mounterBuilder     = k8s.NewMounterBuilder(k8ClientBuilder, *namespace, token)
 		appRepoBuilder     = data.NewMobileAppRepoBuilder(k8ClientBuilder, *namespace, token)
@@ -145,7 +148,8 @@ func main() {
 	}
 	//build httpHandler
 	{
-		buildSvc := app.NewBuild()
+		artifactRet := jenkins.NewClient(defaultHTTPClient, logger)
+		buildSvc := app.NewBuild(artifactRet, token)
 		buildHandler := web.NewBuildHandler(buildRepoBuilder, buildSvc, logger)
 		web.MobileBuildRoute(router, buildHandler)
 	}
@@ -182,6 +186,9 @@ func main() {
 	}()
 	<-s //wait for interrupt
 	close(stop)
+	logger.Println("\nShutting down the server...")
+	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+	server.Shutdown(ctx)
 }
 
 func readSAToken(path string) (string, error) {

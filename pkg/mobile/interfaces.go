@@ -3,6 +3,10 @@ package mobile
 import (
 	"net/http"
 
+	"io"
+
+	"net/url"
+
 	"github.com/feedhenry/mcp-standalone/pkg/openshift/client"
 	"k8s.io/client-go/kubernetes"
 )
@@ -28,8 +32,15 @@ type ServiceCruder interface {
 }
 
 type BuildCruder interface {
-	Create(b *Build) error
+	Create(b *BuildConfig) error
 	AddBuildAsset(asset BuildAsset) (string, error)
+	AddDownload(buildName string, dl *BuildDownload) error
+	GetDownload(buildName string) (*BuildDownload, error)
+	Status(buildName string) (*BuildStatus, error)
+}
+
+type ArtifactRetriever interface {
+	Retrieve(location *url.URL, token string) (io.ReadCloser, error)
 }
 
 type Attributer interface {

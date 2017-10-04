@@ -17,8 +17,11 @@ import (
 
 	"mime/multipart"
 
+	"time"
+
 	"github.com/Sirupsen/logrus"
 	"github.com/feedhenry/mcp-standalone/pkg/data"
+	"github.com/feedhenry/mcp-standalone/pkg/jenkins"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile/app"
 	"github.com/feedhenry/mcp-standalone/pkg/mock"
@@ -32,7 +35,7 @@ import (
 	kfake "k8s.io/client-go/testing"
 )
 
-func setupMobileBuildHandler(kclient kubernetes.Interface, ocFake *kfake.Fake) http.Handler {
+func setupMobileBuildHandler(kclient kubernetes.Interface, ocFake *kfake.Fake, externalRequester mobile.ExternalHTTPRequester) http.Handler {
 	r := web.NewRouter()
 	logger := logrus.StandardLogger()
 	if nil == kclient {
@@ -44,7 +47,7 @@ func setupMobileBuildHandler(kclient kubernetes.Interface, ocFake *kfake.Fake) h
 	}
 	ocClientBuilder := mock.NewOCClientBuilder("test", "test", "https://notthere.com", ocFake)
 	repoBuilder := data.NewBuildsRepoBuilder(cb, ocClientBuilder, "test", "test")
-	buildService := app.NewBuild()
+	buildService := app.NewBuild(jenkins.NewClient(externalRequester, logger), "token")
 	handler := web.NewBuildHandler(repoBuilder, buildService, logger)
 	web.MobileBuildRoute(r, handler)
 	return web.BuildHTTPHandler(r, nil)
@@ -57,7 +60,7 @@ func TestBuildHandlerCreate(t *testing.T) {
 		OCClient    func() *kfake.Fake
 		ExpectError bool
 		StatusCode  int
-		MobileBuild *mobile.Build
+		MobileBuild *mobile.BuildConfig
 		Validate    func(t *testing.T, ar *app.AppBuildCreatedResponse)
 	}{
 		{
@@ -80,7 +83,7 @@ func TestBuildHandlerCreate(t *testing.T) {
 				})
 				return c
 			},
-			MobileBuild: &mobile.Build{
+			MobileBuild: &mobile.BuildConfig{
 				Name:  "mybuild",
 				AppID: "myapp",
 				GitRepo: &mobile.BuildGitRepo{
@@ -121,7 +124,7 @@ func TestBuildHandlerCreate(t *testing.T) {
 				})
 				return c
 			},
-			MobileBuild: &mobile.Build{
+			MobileBuild: &mobile.BuildConfig{
 				Name:  "mybuild",
 				AppID: "myapp",
 				GitRepo: &mobile.BuildGitRepo{
@@ -145,7 +148,7 @@ func TestBuildHandlerCreate(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
-			handler := setupMobileBuildHandler(tc.K8Client(), tc.OCClient())
+			handler := setupMobileBuildHandler(tc.K8Client(), tc.OCClient(), nil)
 			server := httptest.NewServer(handler)
 			defer server.Close()
 			payload, err := json.Marshal(tc.MobileBuild)
@@ -246,7 +249,7 @@ func TestBuildHandlerGenerateKeys(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
-			handler := setupMobileBuildHandler(tc.K8Client(), tc.OCClient())
+			handler := setupMobileBuildHandler(tc.K8Client(), tc.OCClient(), nil)
 			server := httptest.NewServer(handler)
 			defer server.Close()
 			req, err := http.NewRequest("POST", server.URL+"/build/"+tc.BuildID+"/generatekeys", nil)
@@ -334,7 +337,7 @@ func TestBuildHandlerAddAsset(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
-			handler := setupMobileBuildHandler(tc.K8Client(), tc.OCClient())
+			handler := setupMobileBuildHandler(tc.K8Client(), tc.OCClient(), nil)
 			server := httptest.NewServer(handler)
 			defer server.Close()
 			req, err := newUploadFileRequest(server.URL+"/build/platform/"+tc.Platform+"/assets", tc.Params, "asset", "../../server.crt")
@@ -352,6 +355,75 @@ func TestBuildHandlerAddAsset(t *testing.T) {
 
 		})
 	}
+}
+
+func TestBuildHandlerGenerateDownload(t *testing.T) {
+	cases := []struct {
+		Name       string
+		K8Client   func() kubernetes.Interface
+		OCClient   func() *kfake.Fake
+		StatusCode int
+		Validate   func(dld *mobile.BuildDownload, t *testing.T)
+	}{
+		{
+			Name:       "test creating download ok",
+			StatusCode: 201,
+			K8Client: func() kubernetes.Interface {
+				c := &fake.Clientset{}
+				c.AddReactor("create", "secrets", func(action kfake.Action) (handled bool, ret runtime.Object, err error) {
+					obj := action.(kfake.CreateAction).GetObject()
+					return true, obj, nil
+				})
+				return c
+			},
+			OCClient: func() *kfake.Fake {
+				c := &kfake.Fake{}
+				return c
+			},
+			Validate: func(dld *mobile.BuildDownload, t *testing.T) {
+				if nil == dld {
+					t.Fatal("expected a download but got none")
+				}
+				if dld.URL == "" {
+					t.Fatal("expected a download url but got none")
+				}
+				if dld.Expires < time.Now().Unix() {
+					t.Fatal("expected an expire time and for it to be greater than now")
+				}
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.Name, func(t *testing.T) {
+			handler := setupMobileBuildHandler(tc.K8Client(), tc.OCClient(), nil)
+			server := httptest.NewServer(handler)
+			defer server.Close()
+			req, err := http.NewRequest("POST", server.URL+"/build/test/download", nil)
+			if err != nil {
+				t.Fatal("failed to create download request", err)
+			}
+			client := http.Client{}
+			client.Timeout = 5 * time.Second
+			res, err := client.Do(req)
+			if err != nil {
+				t.Fatal("failed to do download request", err)
+			}
+			defer res.Body.Close()
+			if res.StatusCode != tc.StatusCode {
+				t.Fatalf("expected a status code of %v but got %v ", tc.StatusCode, res.StatusCode)
+			}
+			if res.StatusCode == http.StatusCreated {
+				download := &mobile.BuildDownload{}
+				decoder := json.NewDecoder(res.Body)
+				if err := decoder.Decode(download); err != nil {
+					t.Fatal("failed to decode download object", err)
+				}
+			}
+
+		})
+	}
+
 }
 
 func newUploadFileRequest(endpoint string, formValues map[string]string, formFileField, filePath string) (*http.Request, error) {

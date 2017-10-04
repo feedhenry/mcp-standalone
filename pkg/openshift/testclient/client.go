@@ -22,7 +22,7 @@ func NewClient(ns, host, token string, fake *testing.Fake) *Client {
 
 // Builds provides a REST client for Builds
 func (c *Client) Builds(namespace string) client.BuildInterface {
-	return NewFakeBuildConfigs(namespace, c.Fake)
+	return NewFakeBuilds(namespace, c.Fake)
 }
 
 // BuildConfigs provides a REST client for BuildConfigs

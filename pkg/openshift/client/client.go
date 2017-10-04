@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/feedhenry/mcp-standalone/pkg/openshift/build"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type Client struct {
@@ -23,7 +24,7 @@ func NewClient(ns, host, token string, httpClient *http.Client) *Client {
 
 // Builds provides a REST client for Builds
 func (c *Client) Builds(namespace string) BuildInterface {
-	return &BuildConfigs{ns: namespace, host: c.host, token: c.token, restClient: c.restClient}
+	return &Builds{ns: namespace, host: c.host, token: c.token, restClient: c.restClient}
 }
 
 // BuildConfigs provides a REST client for BuildConfigs
@@ -45,9 +46,11 @@ type BuildConfigsNamespacer interface {
 	BuildConfigs(namespace string) BuildConfigInterface
 }
 
-type BuildInterface interface{}
+type BuildInterface interface {
+	Get(name string, options metav1.GetOptions) (*build.Build, error)
+	Update(build *build.Build) (*build.Build, error)
+}
 
 type BuildConfigInterface interface {
 	Create(config *build.BuildConfig) (*build.BuildConfig, error)
-	Update(config *build.BuildConfig) (*build.BuildConfig, error)
 }

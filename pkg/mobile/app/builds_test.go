@@ -5,6 +5,8 @@ import (
 
 	"strings"
 
+	"time"
+
 	"github.com/feedhenry/mcp-standalone/pkg/data"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile/app"
@@ -21,16 +23,17 @@ import (
 
 func TestBuildCreateAppBuild(t *testing.T) {
 	cases := []struct {
-		Name         string
-		Build        *mobile.Build
-		ExpectError  bool
-		BuildClient  func() client.BuildConfigInterface
-		SecretClient func() corev1.SecretInterface
-		Validate     func(t *testing.T, br *app.AppBuildCreatedResponse)
+		Name            string
+		Build           *mobile.BuildConfig
+		ExpectError     bool
+		BuildConfClient func() client.BuildConfigInterface
+		BuildClient     func() client.BuildInterface
+		SecretClient    func() corev1.SecretInterface
+		Validate        func(t *testing.T, br *app.AppBuildCreatedResponse)
 	}{
 		{
 			Name: "test create app build with new public private key",
-			Build: &mobile.Build{
+			Build: &mobile.BuildConfig{
 				AppID: "test",
 				Name:  "test",
 				GitRepo: &mobile.BuildGitRepo{
@@ -38,7 +41,7 @@ func TestBuildCreateAppBuild(t *testing.T) {
 					Private: true,
 				},
 			},
-			BuildClient: func() client.BuildConfigInterface {
+			BuildConfClient: func() client.BuildConfigInterface {
 				fakeoc := testclient.NewFakeBuildConfigs("test", nil)
 				fakeoc.Fake.AddReactor("create", "buildconfigs", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
 					bc := action.(ktesting.CreateAction).GetObject().(*build.BuildConfig)
@@ -50,6 +53,10 @@ func TestBuildCreateAppBuild(t *testing.T) {
 					}
 					return true, bc, nil
 				})
+				return fakeoc
+			},
+			BuildClient: func() client.BuildInterface {
+				fakeoc := testclient.NewFakeBuilds("test", nil)
 				return fakeoc
 			},
 			SecretClient: func() corev1.SecretInterface {
@@ -70,7 +77,7 @@ func TestBuildCreateAppBuild(t *testing.T) {
 		},
 		{
 			Name: "test create app build with custom jenkinsfile location",
-			Build: &mobile.Build{
+			Build: &mobile.BuildConfig{
 				AppID: "test",
 				Name:  "test",
 				GitRepo: &mobile.BuildGitRepo{
@@ -79,7 +86,11 @@ func TestBuildCreateAppBuild(t *testing.T) {
 					JenkinsFilePath: "/build/Jenkinsfile",
 				},
 			},
-			BuildClient: func() client.BuildConfigInterface {
+			BuildClient: func() client.BuildInterface {
+				fakeoc := testclient.NewFakeBuilds("test", nil)
+				return fakeoc
+			},
+			BuildConfClient: func() client.BuildConfigInterface {
 				fakeoc := testclient.NewFakeBuildConfigs("test", nil)
 				fakeoc.Fake.AddReactor("create", "buildconfigs", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
 					bc := action.(ktesting.CreateAction).GetObject().(*build.BuildConfig)
@@ -111,7 +122,7 @@ func TestBuildCreateAppBuild(t *testing.T) {
 		},
 		{
 			Name: "test create app build for public repo",
-			Build: &mobile.Build{
+			Build: &mobile.BuildConfig{
 				AppID: "test",
 				Name:  "test",
 				GitRepo: &mobile.BuildGitRepo{
@@ -119,7 +130,7 @@ func TestBuildCreateAppBuild(t *testing.T) {
 					Private: false,
 				},
 			},
-			BuildClient: func() client.BuildConfigInterface {
+			BuildConfClient: func() client.BuildConfigInterface {
 				fakeoc := testclient.NewFakeBuildConfigs("test", nil)
 				fakeoc.Fake.AddReactor("create", "buildconfigs", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
 					bc := action.(ktesting.CreateAction).GetObject().(*build.BuildConfig)
@@ -131,6 +142,10 @@ func TestBuildCreateAppBuild(t *testing.T) {
 					}
 					return true, bc, nil
 				})
+				return fakeoc
+			},
+			BuildClient: func() client.BuildInterface {
+				fakeoc := testclient.NewFakeBuilds("test", nil)
 				return fakeoc
 			},
 			SecretClient: func() corev1.SecretInterface {
@@ -148,7 +163,7 @@ func TestBuildCreateAppBuild(t *testing.T) {
 		},
 		{
 			Name: "test create app build fails when cant create buildconfig",
-			Build: &mobile.Build{
+			Build: &mobile.BuildConfig{
 				AppID: "test",
 				Name:  "test",
 				GitRepo: &mobile.BuildGitRepo{
@@ -157,7 +172,11 @@ func TestBuildCreateAppBuild(t *testing.T) {
 				},
 			},
 			ExpectError: true,
-			BuildClient: func() client.BuildConfigInterface {
+			BuildClient: func() client.BuildInterface {
+				fakeoc := testclient.NewFakeBuilds("test", nil)
+				return fakeoc
+			},
+			BuildConfClient: func() client.BuildConfigInterface {
 				fakeoc := testclient.NewFakeBuildConfigs("test", nil)
 				fakeoc.Fake.AddReactor("create", "buildconfigs", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
 					return true, nil, errors.New("faield to create buildconfig")
@@ -178,8 +197,8 @@ func TestBuildCreateAppBuild(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
-			bc := data.NewBuildRepo(tc.BuildClient(), tc.SecretClient())
-			buildService := app.NewBuild()
+			bc := data.NewBuildRepo(tc.BuildConfClient(), tc.BuildClient(), tc.SecretClient())
+			buildService := app.NewBuild(nil, "token")
 			br, err := buildService.CreateAppBuild(bc, tc.Build)
 			if tc.ExpectError && err == nil {
 				t.Fatalf("expected an err but got none!")
@@ -196,15 +215,20 @@ func TestBuildCreateAppBuild(t *testing.T) {
 
 func TestBuildCreateBuildSrcKeySecret(t *testing.T) {
 	cases := []struct {
-		Name         string
-		ExpectError  bool
-		BuildClient  func() client.BuildConfigInterface
-		SecretClient func() corev1.SecretInterface
+		Name            string
+		ExpectError     bool
+		BuildConfClient func() client.BuildConfigInterface
+		BuildClient     func() client.BuildInterface
+		SecretClient    func() corev1.SecretInterface
 	}{
 		{
 			Name: "test creating src key secret ok",
-			BuildClient: func() client.BuildConfigInterface {
+			BuildConfClient: func() client.BuildConfigInterface {
 				fakeoc := testclient.NewFakeBuildConfigs("test", nil)
+				return fakeoc
+			},
+			BuildClient: func() client.BuildInterface {
+				fakeoc := testclient.NewFakeBuilds("test", nil)
 				return fakeoc
 			},
 			SecretClient: func() corev1.SecretInterface {
@@ -221,9 +245,8 @@ func TestBuildCreateBuildSrcKeySecret(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
-
-			br := data.NewBuildRepo(tc.BuildClient(), tc.SecretClient())
-			buildService := app.NewBuild()
+			br := data.NewBuildRepo(tc.BuildConfClient(), tc.BuildClient(), tc.SecretClient())
+			buildService := app.NewBuild(nil, "token")
 			secretName, pubKey, err := buildService.CreateBuildSrcKeySecret(br, "test")
 			if tc.ExpectError && err == nil {
 				t.Fatalf("expected an err but got none!")
@@ -241,4 +264,88 @@ func TestBuildCreateBuildSrcKeySecret(t *testing.T) {
 
 		})
 	}
+}
+
+func TestBuildEnableDownload(t *testing.T) {
+	cases := []struct {
+		Name            string
+		ExpectError     bool
+		BuildConfClient func() client.BuildConfigInterface
+		BuildClient     func() client.BuildInterface
+		SecretClient    func() corev1.SecretInterface
+		Validate        func(download *mobile.BuildDownload, t *testing.T)
+	}{
+		{
+			Name: "test enabling download ok",
+			BuildConfClient: func() client.BuildConfigInterface {
+				fakeoc := testclient.NewFakeBuildConfigs("test", nil)
+				return fakeoc
+			},
+			BuildClient: func() client.BuildInterface {
+				fakeoc := testclient.NewFakeBuilds("test", nil)
+				return fakeoc
+			},
+			SecretClient: func() corev1.SecretInterface {
+				fakec := &fake.Clientset{}
+				return fakec.CoreV1().Secrets("test")
+			},
+			Validate: func(download *mobile.BuildDownload, t *testing.T) {
+				if nil == download {
+					t.Fatal("expected a download but got nil")
+				}
+				if download.Expires < time.Now().Unix() {
+					t.Fatal("the download expires before the current time")
+				}
+				if download.URL == "" && strings.Contains(download.URL, "test") {
+					t.Fatal("expected a download url and for it to have the build name in the url ")
+				}
+				if download.Token == "" {
+					t.Fatal("expected a token but got none")
+				}
+			},
+		},
+		{
+			Name:        "test enabling download fails if build not updated",
+			ExpectError: true,
+			BuildConfClient: func() client.BuildConfigInterface {
+				fakeoc := testclient.NewFakeBuildConfigs("test", nil)
+				return fakeoc
+			},
+			BuildClient: func() client.BuildInterface {
+
+				fakeoc := testclient.NewFakeBuilds("test", nil)
+				fakeoc.Fake.AddReactor("get", "build", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
+					return true, nil, errors.New("failed to get build")
+				})
+				return fakeoc
+			},
+			SecretClient: func() corev1.SecretInterface {
+				fakec := &fake.Clientset{}
+				return fakec.CoreV1().Secrets("test")
+			},
+			Validate: func(download *mobile.BuildDownload, t *testing.T) {
+				if nil != download {
+					t.Fatal("expected no download but got one", download)
+				}
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.Name, func(t *testing.T) {
+			br := data.NewBuildRepo(tc.BuildConfClient(), tc.BuildClient(), tc.SecretClient())
+			buildService := app.NewBuild(nil, "token")
+			download, err := buildService.EnableDownload(br, "test")
+			if tc.ExpectError && err == nil {
+				t.Fatalf("expected an err but got none!")
+			}
+			if !tc.ExpectError && err != nil {
+				t.Fatalf("did not expect and err but got one %v", err)
+			}
+			if tc.Validate != nil {
+				tc.Validate(download, t)
+			}
+		})
+	}
+
 }

@@ -14,15 +14,23 @@ import (
 
 	"io/ioutil"
 
+	"time"
+
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
 	"github.com/pkg/errors"
+	"github.com/satori/go.uuid"
 )
 
 type Build struct {
+	artifactRetriever mobile.ArtifactRetriever
+	saToken           string
 }
 
-func NewBuild() *Build {
-	return &Build{}
+func NewBuild(artifactRetriever mobile.ArtifactRetriever, saToken string) *Build {
+	return &Build{
+		artifactRetriever: artifactRetriever,
+		saToken:           saToken,
+	}
 }
 
 type AppBuildCreatedResponse struct {
@@ -30,7 +38,7 @@ type AppBuildCreatedResponse struct {
 	BuildID   string `json:"buildID"`
 }
 
-func (b *Build) CreateAppBuild(buildRepo mobile.BuildCruder, build *mobile.Build) (*AppBuildCreatedResponse, error) {
+func (b *Build) CreateAppBuild(buildRepo mobile.BuildCruder, build *mobile.BuildConfig) (*AppBuildCreatedResponse, error) {
 	var res = &AppBuildCreatedResponse{BuildID: build.Name}
 	if build.GitRepo.JenkinsFilePath == "" {
 		build.GitRepo.JenkinsFilePath = "Jenkinsfile"
@@ -97,6 +105,34 @@ func (b *Build) CreateBuildSrcKeySecret(br mobile.BuildCruder, buildName string)
 		return "", nil, errors.Wrap(err, "CreateAppBuild: failed to add build asset ssh-key ")
 	}
 	return assetName, publicKeyVal.Bytes(), nil
+}
+
+// EnableDownload will enabling downloading of a build artefact for a set amount of time
+func (b *Build) EnableDownload(br mobile.BuildCruder, buildName string) (*mobile.BuildDownload, error) {
+	download := &mobile.BuildDownload{}
+	token := uuid.NewV4().String()
+	download.URL = "/build/" + buildName + "/download?token=" + token
+	download.Expires = time.Now().Add(time.Minute * 30).Unix() //TODO this should be in config
+	download.Token = token
+	if err := br.AddDownload(buildName, download); err != nil {
+		return nil, errors.Wrap(err, "enabling download failed when trying to add the download to the build")
+	}
+	return download, nil
+}
+
+func (b *Build) Download(br mobile.BuildCruder, buildName string) (io.ReadCloser, error) {
+	buildStatus, err := br.Status(buildName)
+	if err != nil {
+		return nil, errors.Wrap(err, "download failed to get build status")
+	}
+	if buildStatus.Phase != "Complete" {
+		return nil, &mobile.StatusError{Code: 404, Message: "no artifact found, build not completed yet. Build status : " + buildStatus.Phase}
+	}
+	u, err := buildStatus.ArtifactURL()
+	if err != nil {
+		return nil, errors.Wrap(err, "during download failed to get artifact url from build status")
+	}
+	return b.artifactRetriever.Retrieve(u, b.saToken)
 }
 
 func (b *Build) AddBuildAsset(br mobile.BuildCruder, resource io.Reader, asset *mobile.BuildAsset) (string, error) {

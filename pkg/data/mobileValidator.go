@@ -54,10 +54,10 @@ func (msv DefaultMobileServiceValidator) PreUpdate(old *mobile.Service, new *mob
 type DefaultMobileBuildValidator struct{}
 
 //TODO fill these out
-func (msv DefaultMobileBuildValidator) PreCreate(mb *mobile.Build) error {
+func (msv DefaultMobileBuildValidator) PreCreate(mb *mobile.BuildConfig) error {
 	return nil
 }
 
-func (msv DefaultMobileBuildValidator) PreUpdate(old *mobile.Build, new *mobile.Build) error {
+func (msv DefaultMobileBuildValidator) PreUpdate(old *mobile.BuildConfig, new *mobile.BuildConfig) error {
 	return nil
 }

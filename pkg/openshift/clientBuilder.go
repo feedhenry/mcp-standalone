@@ -69,6 +69,6 @@ func (cb *ClientBuilder) BuildClient() (client.Interface, error) {
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: cb.insecure},
 	}
 	httpClient := &http.Client{Transport: tr}
-	httpClient.Timeout = 30 * time.Second
+	httpClient.Timeout = 15 * time.Second
 	return client.NewClient(cb.ns, cb.host, cb.token, httpClient), nil
 }

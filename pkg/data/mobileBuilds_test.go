@@ -7,8 +7,10 @@ import (
 
 	"github.com/feedhenry/mcp-standalone/pkg/data"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
+	"github.com/feedhenry/mcp-standalone/pkg/openshift/build"
 	"github.com/feedhenry/mcp-standalone/pkg/openshift/client"
 	"github.com/feedhenry/mcp-standalone/pkg/openshift/testclient"
+	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes/fake"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
@@ -18,11 +20,12 @@ import (
 
 func TestBuildRepo_Create(t *testing.T) {
 	cases := []struct {
-		Name         string
-		ExpectError  bool
-		BuildClient  func() client.BuildConfigInterface
-		SecretClient func() corev1.SecretInterface
-		Build        *mobile.Build
+		Name              string
+		ExpectError       bool
+		BuildConfigClient func() client.BuildConfigInterface
+		BuildClient       func() client.BuildInterface
+		SecretClient      func() corev1.SecretInterface
+		Build             *mobile.BuildConfig
 	}{
 		{
 			"test creating build succeeds",
@@ -34,11 +37,16 @@ func TestBuildRepo_Create(t *testing.T) {
 				})
 				return fakeoc
 			},
+			func() client.BuildInterface {
+				fakeoc := testclient.NewFakeBuilds("test", nil)
+				return fakeoc
+
+			},
 			func() corev1.SecretInterface {
 				kc := &fake.Clientset{}
 				return kc.CoreV1().Secrets("test")
 			},
-			&mobile.Build{
+			&mobile.BuildConfig{
 				Name:  "test",
 				AppID: "test",
 				GitRepo: &mobile.BuildGitRepo{
@@ -58,11 +66,16 @@ func TestBuildRepo_Create(t *testing.T) {
 				})
 				return fakeoc
 			},
+			func() client.BuildInterface {
+				fakeoc := testclient.NewFakeBuilds("test", nil)
+				return fakeoc
+
+			},
 			func() corev1.SecretInterface {
 				kc := &fake.Clientset{}
 				return kc.CoreV1().Secrets("test")
 			},
-			&mobile.Build{
+			&mobile.BuildConfig{
 				Name:  "test",
 				AppID: "test",
 				GitRepo: &mobile.BuildGitRepo{
@@ -76,7 +89,7 @@ func TestBuildRepo_Create(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
-			buildRepo := data.NewBuildRepo(tc.BuildClient(), tc.SecretClient())
+			buildRepo := data.NewBuildRepo(tc.BuildConfigClient(), tc.BuildClient(), tc.SecretClient())
 			err := buildRepo.Create(tc.Build)
 			if tc.ExpectError && err == nil {
 				t.Fatalf("expected an error but got none")
@@ -145,7 +158,7 @@ func TestBuildRepo_AddBuildAsset(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
-			buildRepo := data.NewBuildRepo(nil, tc.SecretClient())
+			buildRepo := data.NewBuildRepo(nil, nil, tc.SecretClient())
 			secretName, err := buildRepo.AddBuildAsset(tc.BuildAsset)
 			if tc.ExpectError && err == nil {
 				t.Fatalf("expected an error but got none")
@@ -158,4 +171,141 @@ func TestBuildRepo_AddBuildAsset(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestBuildRepoAddDownload(t *testing.T) {
+	cases := []struct {
+		Name        string
+		ExpectError bool
+		BuildClient func(t *testing.T) client.BuildInterface
+		Download    *mobile.BuildDownload
+		BuildName   string
+	}{
+		{
+			Name: "test adding a build download is ok ",
+			BuildClient: func(t *testing.T) client.BuildInterface {
+				fakeoc := testclient.NewFakeBuilds("test", nil)
+				fakeoc.Fake.AddReactor("update", "build", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
+					b := action.(ktesting.UpdateAction).GetObject().(*build.Build)
+					if nil == b {
+						t.Fatal("expected a build but it was nil")
+					}
+					if _, ok := b.Annotations["downloadURL"]; !ok {
+						t.Fatal("expected a downloadURL but it wasnt present")
+					}
+					if _, ok := b.Annotations["downloadExpires"]; ok {
+						t.Fatal("expected an expires but there was none")
+					}
+
+					return true, b, nil
+				})
+				return fakeoc
+			},
+			Download: &mobile.BuildDownload{
+				URL:     "https://mcp.com/buid/test?token=asdadasd",
+				Expires: 12334343434,
+			},
+			BuildName: "test",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.Name, func(t *testing.T) {
+			buildRepo := data.NewBuildRepo(nil, tc.BuildClient(t), nil)
+			err := buildRepo.AddDownload(tc.BuildName, tc.Download)
+			if tc.ExpectError && err == nil {
+				t.Fatalf("expected an error but got none")
+			}
+			if !tc.ExpectError && err != nil {
+				t.Fatalf("did not expect error but got %s ", err)
+			}
+		})
+	}
+}
+
+func TestBuildRepoStatus(t *testing.T) {
+	cases := []struct {
+		Name        string
+		BuildClient func() client.BuildInterface
+		ExpectError bool
+		Validate    func(status *mobile.BuildStatus, err error, t *testing.T)
+	}{
+		{
+			Name: "test getting build status ok",
+			BuildClient: func() client.BuildInterface {
+				fakeoc := testclient.NewFakeBuilds("test", nil)
+				fakeoc.Fake.AddReactor("get", "build", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
+					b := &build.Build{
+						ObjectMeta: meta_v1.ObjectMeta{
+							Annotations: map[string]string{
+								"openshift.io/jenkins-status-json": `{"_links":{"self":{"href":"http://jenkins-localmcp.192.168.37.1.nip.io/job/localmcp-androidapp1/1/wfapi/describe"},"artifacts":{"href":"//job/localmcp-androidapp1/1/wfapi/artifacts"}},"id":"1","name":"#1","status":"SUCCESS","startTimeMillis":1506071344983,"endTimeMillis":0,"durationMillis":0,"queueDurationMillis":157994,"pauseDurationMillis":0,"stages":[{"_links":{"self":{"href":"http://jenkins-localmcp.192.168.37.1.nip.io/job/localmcp-androidapp1/1/execution/node/6/wfapi/describe"}},"id":"6","name":"Checkout","execNode":"","status":"SUCCESS","startTimeMillis":1506071502977,"durationMillis":7089,"pauseDurationMillis":0,"stageFlowNodes":[{"_links":{"self":{"href":"http://jenkins-localmcp.192.168.37.1.nip.io/job/localmcp-androidapp1/1/execution/node/7/wfapi/describe"}},"id":"7","name":"General SCM","execNode":"","status":"SUCCESS","startTimeMillis":1506071503267,"durationMillis":6792,"pauseDurationMillis":0,"parentNodes":["6"]}]},{"_links":{"self":{"href":"http://jenkins-localmcp.192.168.37.1.nip.io/job/localmcp-androidapp1/1/execution/node/11/wfapi/describe"}},"id":"11","name":"Prepare","execNode":"","status":"SUCCESS","startTimeMillis":1506071510078,"durationMillis":81130,"pauseDurationMillis":0,"stageFlowNodes":[{"_links":{"self":{"href":"http://jenkins-localmcp.192.168.37.1.nip.io/job/localmcp-androidapp1/1/execution/node/12/wfapi/describe"}},"id":"12","name":"Shell Script","execNode":"","status":"SUCCESS","startTimeMillis":1506071512564,"durationMillis":78639,"pauseDurationMillis":0,"parentNodes":["11"]}]},{"_links":{"self":{"href":"http://jenkins-localmcp.192.168.37.1.nip.io/job/localmcp-androidapp1/1/execution/node/16/wfapi/describe"}},"id":"16","name":"Build","execNode":"","status":"SUCCESS","startTimeMillis":1506071591273,"durationMillis":175102,"pauseDurationMillis":0,"stageFlowNodes":[{"_links":{"self":{"href":"http://jenkins-localmcp.192.168.37.1.nip.io/job/localmcp-androidapp1/1/execution/node/17/wfapi/describe"}},"id":"17","name":"Shell Script","execNode":"","status":"SUCCESS","startTimeMillis":1506071591384,"durationMillis":174986,"pauseDurationMillis":0,"parentNodes":["16"]}]},{"_links":{"self":{"href":"http://jenkins-localmcp.192.168.37.1.nip.io/job/localmcp-androidapp1/1/execution/node/21/wfapi/describe"}},"id":"21","name":"Archive","execNode":"","status":"SUCCESS","startTimeMillis":1506071766385,"durationMillis":2588,"pauseDurationMillis":0,"stageFlowNodes":[{"_links":{"self":{"href":"http://jenkins-localmcp.192.168.37.1.nip.io/job/localmcp-androidapp1/1/execution/node/22/wfapi/describe"}},"id":"22","name":"General Build Step","execNode":"","status":"SUCCESS","startTimeMillis":1506071766665,"durationMillis":2305,"pauseDurationMillis":0,"parentNodes":["21"]}]}]}`,
+							},
+							Name: "test",
+						},
+						Status: build.BuildStatus{
+							Phase: build.BuildPhaseComplete,
+						},
+					}
+					return true, b, nil
+				})
+				return fakeoc
+			},
+			Validate: func(status *mobile.BuildStatus, err error, t *testing.T) {
+				if nil == status {
+					t.Fatal("expected a build status but got none")
+				}
+				if status.Phase != "Complete" {
+					t.Fatalf("expected phase to be Complete but got: %s", status.Phase)
+				}
+				if status.Links.Artifacts.Href == "" {
+					t.Fatal("expected an artifact href but got none")
+				}
+			},
+		},
+		{
+			Name: "test getting build fails with not found when no status",
+			BuildClient: func() client.BuildInterface {
+				fakeoc := testclient.NewFakeBuilds("test", nil)
+				fakeoc.Fake.AddReactor("get", "build", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
+					b := &build.Build{
+						ObjectMeta: meta_v1.ObjectMeta{
+							Annotations: map[string]string{},
+							Name:        "test",
+						},
+						Status: build.BuildStatus{
+							Phase: build.BuildPhaseComplete,
+						},
+					}
+					return true, b, nil
+				})
+				return fakeoc
+			},
+			ExpectError: true,
+			Validate: func(status *mobile.BuildStatus, err error, t *testing.T) {
+				if nil != status {
+					t.Fatal("did not expect a build status but got one")
+				}
+				if !data.IsNotFoundErr(err) {
+					t.Fatal("expected a not found error ")
+				}
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.Name, func(t *testing.T) {
+			buildRepo := data.NewBuildRepo(nil, tc.BuildClient(), nil)
+			bs, err := buildRepo.Status("test")
+			if tc.ExpectError && err == nil {
+				t.Fatalf("expected an error but got none")
+			}
+			if !tc.ExpectError && err != nil {
+				t.Fatalf("did not expect error but got %s ", err)
+			}
+			if nil != tc.Validate {
+				tc.Validate(bs, err, t)
+			}
+		})
+	}
+
 }

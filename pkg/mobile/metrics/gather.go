@@ -27,6 +27,19 @@ type metric struct {
 	YValue int64
 }
 
+type noServiceProvisionedErr struct {
+	Message string
+}
+
+func (npe *noServiceProvisionedErr) Error() string {
+	return npe.Message
+}
+
+func isNoServiceProvisionedErr(e error) bool {
+	_, ok := e.(*noServiceProvisionedErr)
+	return ok
+}
+
 // Gatherer is something that knows how to Gather metrics
 type Gatherer func() ([]*metric, error)
 
@@ -115,7 +128,6 @@ func (gs *GathererScheduler) Run() {
 		select {
 		case <-gs.ticker.C:
 			gs.execute()
-			//run gather jobs
 		case <-gs.cancel:
 			return
 		}
@@ -125,7 +137,7 @@ func (gs *GathererScheduler) Run() {
 func (gs *GathererScheduler) execute() {
 
 	//wait for the previous group to be done. If all completed will continue on
-	gs.logger.Info("executing gatherers after previous set done")
+	gs.logger.Debug("executing gatherers after previous set done")
 	gs.waitGroup.Wait()
 	gs.logger.Debug("executing gatherers previous complete")
 	for s, g := range gs.jobs {
@@ -141,8 +153,8 @@ func (gs *GathererScheduler) execute() {
 			gs.waitGroup.Add(1)
 			defer gs.waitGroup.Done()
 			ms, err := gather()
-			if err != nil {
-				gs.logger.Error("failed to gather metrics for service ", service, err)
+			if err != nil && !isNoServiceProvisionedErr(err) {
+				gs.logger.Error("unexpected error: failed to gather metrics for service ", service, err)
 			}
 			for _, m := range ms {
 				gs.metrics.add(service, m)
