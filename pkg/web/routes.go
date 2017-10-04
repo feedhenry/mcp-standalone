@@ -13,6 +13,8 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	kerror "k8s.io/apimachinery/pkg/api/errors"
+
+	"github.com/feedhenry/mcp-standalone/pkg/data"
 )
 
 // NewRouter sets up the HTTP Router
@@ -85,13 +87,14 @@ func MobileBuildRoute(r *mux.Router, handler *BuildHandler) {
 	r.HandleFunc("/build", prometheus.InstrumentHandlerFunc("build create", handler.Create)).Methods("POST")
 	r.HandleFunc("/build/{buildID}/generatekeys", prometheus.InstrumentHandlerFunc("generate build keys", handler.GenerateKeys)).Methods("POST")
 	r.HandleFunc("/build/{buildID}/download", prometheus.InstrumentHandlerFunc("generate download url", handler.GenerateDownload)).Methods("POST")
+	r.HandleFunc("/build/{buildID}/download", prometheus.InstrumentHandlerFunc(" download build", handler.Download)).Methods("GET")
 	r.HandleFunc("/build/platform/{platform}/assets", prometheus.InstrumentHandlerFunc("generate build keys", handler.AddAsset)).Methods("POST")
 }
 
 //TODO maybe better place to put this
 func handleCommonErrorCases(err error, rw http.ResponseWriter, logger *logrus.Logger) {
 	e := errors.Cause(err)
-	if mobile.IsNotFoundError(err) {
+	if mobile.IsNotFoundError(e) || data.IsNotFoundErr(e) {
 		http.Error(rw, err.Error(), http.StatusNotFound)
 		return
 	}

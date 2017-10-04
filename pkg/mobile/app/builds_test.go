@@ -198,7 +198,7 @@ func TestBuildCreateAppBuild(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
 			bc := data.NewBuildRepo(tc.BuildConfClient(), tc.BuildClient(), tc.SecretClient())
-			buildService := app.NewBuild()
+			buildService := app.NewBuild(nil, "token")
 			br, err := buildService.CreateAppBuild(bc, tc.Build)
 			if tc.ExpectError && err == nil {
 				t.Fatalf("expected an err but got none!")
@@ -246,7 +246,7 @@ func TestBuildCreateBuildSrcKeySecret(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
 			br := data.NewBuildRepo(tc.BuildConfClient(), tc.BuildClient(), tc.SecretClient())
-			buildService := app.NewBuild()
+			buildService := app.NewBuild(nil, "token")
 			secretName, pubKey, err := buildService.CreateBuildSrcKeySecret(br, "test")
 			if tc.ExpectError && err == nil {
 				t.Fatalf("expected an err but got none!")
@@ -334,7 +334,7 @@ func TestBuildEnableDownload(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
 			br := data.NewBuildRepo(tc.BuildConfClient(), tc.BuildClient(), tc.SecretClient())
-			buildService := app.NewBuild()
+			buildService := app.NewBuild(nil, "token")
 			download, err := buildService.EnableDownload(br, "test")
 			if tc.ExpectError && err == nil {
 				t.Fatalf("expected an err but got none!")

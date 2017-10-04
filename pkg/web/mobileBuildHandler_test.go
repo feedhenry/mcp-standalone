@@ -21,6 +21,7 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/feedhenry/mcp-standalone/pkg/data"
+	"github.com/feedhenry/mcp-standalone/pkg/jenkins"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile/app"
 	"github.com/feedhenry/mcp-standalone/pkg/mock"
@@ -34,7 +35,7 @@ import (
 	kfake "k8s.io/client-go/testing"
 )
 
-func setupMobileBuildHandler(kclient kubernetes.Interface, ocFake *kfake.Fake) http.Handler {
+func setupMobileBuildHandler(kclient kubernetes.Interface, ocFake *kfake.Fake, externalRequester mobile.ExternalHTTPRequester) http.Handler {
 	r := web.NewRouter()
 	logger := logrus.StandardLogger()
 	if nil == kclient {
@@ -46,7 +47,7 @@ func setupMobileBuildHandler(kclient kubernetes.Interface, ocFake *kfake.Fake) h
 	}
 	ocClientBuilder := mock.NewOCClientBuilder("test", "test", "https://notthere.com", ocFake)
 	repoBuilder := data.NewBuildsRepoBuilder(cb, ocClientBuilder, "test", "test")
-	buildService := app.NewBuild()
+	buildService := app.NewBuild(jenkins.NewClient(externalRequester, logger), "token")
 	handler := web.NewBuildHandler(repoBuilder, buildService, logger)
 	web.MobileBuildRoute(r, handler)
 	return web.BuildHTTPHandler(r, nil)
@@ -147,7 +148,7 @@ func TestBuildHandlerCreate(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
-			handler := setupMobileBuildHandler(tc.K8Client(), tc.OCClient())
+			handler := setupMobileBuildHandler(tc.K8Client(), tc.OCClient(), nil)
 			server := httptest.NewServer(handler)
 			defer server.Close()
 			payload, err := json.Marshal(tc.MobileBuild)
@@ -248,7 +249,7 @@ func TestBuildHandlerGenerateKeys(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
-			handler := setupMobileBuildHandler(tc.K8Client(), tc.OCClient())
+			handler := setupMobileBuildHandler(tc.K8Client(), tc.OCClient(), nil)
 			server := httptest.NewServer(handler)
 			defer server.Close()
 			req, err := http.NewRequest("POST", server.URL+"/build/"+tc.BuildID+"/generatekeys", nil)
@@ -336,7 +337,7 @@ func TestBuildHandlerAddAsset(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
-			handler := setupMobileBuildHandler(tc.K8Client(), tc.OCClient())
+			handler := setupMobileBuildHandler(tc.K8Client(), tc.OCClient(), nil)
 			server := httptest.NewServer(handler)
 			defer server.Close()
 			req, err := newUploadFileRequest(server.URL+"/build/platform/"+tc.Platform+"/assets", tc.Params, "asset", "../../server.crt")
@@ -395,7 +396,7 @@ func TestBuildHandlerGenerateDownload(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
-			handler := setupMobileBuildHandler(tc.K8Client(), tc.OCClient())
+			handler := setupMobileBuildHandler(tc.K8Client(), tc.OCClient(), nil)
 			server := httptest.NewServer(handler)
 			defer server.Close()
 			req, err := http.NewRequest("POST", server.URL+"/build/test/download", nil)

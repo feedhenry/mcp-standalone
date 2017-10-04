@@ -30,19 +30,19 @@ func NewAccess(logger *logrus.Logger, host string, userCheck UserChecker) *Acces
 }
 
 func buildIgnoreList() []*regexp.Regexp {
-	cfg := regexp.MustCompile("^/config.js")
-	sdk := regexp.MustCompile("^/sdk/mobileapp/.*/config")
-	ping := regexp.MustCompile("^/sys/info/ping")
-	health := regexp.MustCompile("^/sys/info/health")
-	metrics := regexp.MustCompile("^/metrics")
-	oauth := regexp.MustCompile("^/oauth/token")
+	cfg := regexp.MustCompile("GET:/config.js")
+	sdk := regexp.MustCompile("GET:/sdk/mobileapp/.*/config")
+	ping := regexp.MustCompile("GET:/sys/info/ping")
+	health := regexp.MustCompile("GET:/sys/info/health")
+	metrics := regexp.MustCompile("GET:/metrics")
+	download := regexp.MustCompile("GET:/build/.*/download")
 	return []*regexp.Regexp{
+		download,
 		cfg,
 		sdk,
 		ping,
 		health,
 		metrics,
-		oauth,
 	}
 }
 
@@ -60,7 +60,7 @@ func shouldIgnore(path string) bool {
 // Handle sets the required headers
 func (c Access) Handle(w http.ResponseWriter, req *http.Request, next http.HandlerFunc) {
 	token := headers.DefaultTokenRetriever(req.Header)
-	if shouldIgnore(req.URL.Path) {
+	if shouldIgnore(req.Method + ":" + req.URL.Path) {
 		next(w, req)
 		return
 	}

@@ -10,6 +10,7 @@ import (
 	"github.com/feedhenry/mcp-standalone/pkg/openshift/client"
 	"github.com/pkg/errors"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/json"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/pkg/api/v1"
 	kapi "k8s.io/client-go/pkg/api/v1"
@@ -43,12 +44,28 @@ func (br *BuildRepo) Create(b *mobile.BuildConfig) error {
 	return nil
 }
 
+func (br *BuildRepo) Status(buildName string) (*mobile.BuildStatus, error) {
+	build, err := br.buildClient.Get(buildName, meta_v1.GetOptions{})
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get build in order to get status ")
+	}
+	statusJSON := build.Annotations["openshift.io/jenkins-status-json"]
+	if "" == statusJSON {
+		return nil, newNotFoundError("failed to find a status on the build")
+	}
+	buildStatus := &mobile.BuildStatus{}
+	if err := json.Unmarshal([]byte(statusJSON), buildStatus); err != nil {
+		return nil, errors.Wrap(err, "read the status from the build but failed to unmarshal "+statusJSON)
+	}
+	buildStatus.Phase = string(build.Status.Phase)
+	return buildStatus, nil
+}
+
 func (br BuildRepo) AddDownload(buildName string, dl *mobile.BuildDownload) error {
 	build, err := br.buildClient.Get(buildName, meta_v1.GetOptions{})
 	if err != nil {
 		return errors.Wrap(err, "failed to add download settings to build")
 	}
-	fmt.Println("got build", build)
 	build.Annotations["downloadURL"] = dl.URL
 	build.Annotations["downloadExp"] = fmt.Sprintf("%d", dl.Expires)
 	build.Annotations["downloadToken"] = dl.Token

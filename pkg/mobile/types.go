@@ -5,6 +5,7 @@ package mobile
 
 import (
 	"errors"
+	"net/url"
 	"strings"
 )
 
@@ -61,6 +62,37 @@ type BuildGitRepo struct {
 	PublicKey       string `json:"public"`
 	PublicKeyID     string `json:"publicKeyId"`
 	JenkinsFilePath string `json:"jenkinsFilePath"`
+}
+
+type BuildStatus struct {
+	Links struct {
+		Self struct {
+			Href string `json:"href"`
+		} `json:"self"`
+		Artifacts struct {
+			Href string `json:"href"`
+		} `json:"artifacts"`
+	} `json:"_links"`
+	Phase string `json:"phase"`
+}
+
+func (bs *BuildStatus) Host() (string, error) {
+	if bs.Links.Self.Href == "" {
+		return "", errors.New("href is missing from build status")
+	}
+	u, err := url.Parse(bs.Links.Self.Href)
+	if err != nil {
+		return "", err
+	}
+	return u.Scheme + "://" + u.Host, nil
+}
+
+func (bs *BuildStatus) ArtifactURL() (*url.URL, error) {
+	host, err := bs.Host()
+	if err != nil {
+		return nil, err
+	}
+	return url.Parse(host + bs.Links.Artifacts.Href)
 }
 
 type BuildAsset struct {
