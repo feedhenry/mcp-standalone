@@ -9,6 +9,7 @@
 angular.module('mobileControlPanelApp').directive('modal', function($timeout) {
   return {
     template: `<div class="controlPanelAppModal">
+                <button class="btn btn-primary launch">{{launch}}</button>
                 <div class="modal container" tabindex="-1" role="dialog" aria-labelledby="update this" aria-hidden="true">
                   <div class="modal-dialog">
                     <div class="modal-content">
@@ -46,9 +47,16 @@ angular.module('mobileControlPanelApp').directive('modal', function($timeout) {
       scope.modalOpen = scope.modalOpen || false;
 
       $timeout(() => {
+        const launchButton = $('.launch', element);
         const okButton = $('.ok', element);
         const cancelButton = $('.cancel', element);
         const closeIcon = $('.close', element);
+
+        launchButton.on('click', () => {
+          $timeout(() => {
+            scope.modalOpen = true;
+          });
+        });
 
         okButton.on('click', () => {
           $timeout(() => {
