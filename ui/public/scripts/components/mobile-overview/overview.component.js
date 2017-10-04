@@ -16,11 +16,11 @@ angular.module('mobileControlPanelApp').component('overview', {
                   </a>
                 </span>
                 <div class="pull-right">
-                  <div class="actions {{$ctrl.model.type}}" ng-repeat="action in $ctrl.model.actions">
+                  <div class="actions" ng-repeat="action in $ctrl.model.actions">
                     <a ng-if="!action.modal" ng-class="['btn', {'btn-default': !action.primary, 'btn-primary': action.primary}]" ng-click="action.action()" ng-if="action.canView()">
                       {{action.label}}
                     </a>
-                    <modal ng-if="action.modal" modal-open=$ctrl.model.modalOpen launch=action.label modal-title=action.label display-controls=false ng-if="action.canView()">
+                    <modal ng-if="action.modal" ng-class="{'btn-default': !action.primary, 'btn-primary': action.primary}" modal-open=$ctrl.model.modalOpen launch=action.label modal-title=action.label display-controls=false ng-if="action.canView()">
                       <div class="content" ng-include=action.contentUrl></div>
                     </modal>
                   </div>
@@ -51,7 +51,7 @@ angular.module('mobileControlPanelApp').component('overview', {
                 <a ng-if="!action.modal" ng-class="['btn', {'btn-default': !action.primary, 'btn-primary': action.primary}]" ng-click="action.action()" ng-if="action.canView()">
                     {{action.label}}
                 </a>
-                <modal ng-if="action.modal" modal-open=$ctrl.model.modalOpen launch=action.label modal-title=action.label display-controls=false ng-if="action.canView()">
+                <modal ng-if="action.modal" class="btn-default" modal-open=$ctrl.model.modalOpen launch=action.label modal-title=action.label display-controls=false ng-if="action.canView()">
                   <div ng-include=action.contentUrl></div>
                 </modal>  
               </div>
