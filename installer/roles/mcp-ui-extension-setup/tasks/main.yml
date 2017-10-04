@@ -36,4 +36,4 @@
   changed_when: false
   until: oc_cluster_status.rc == 0
   poll: 5
-  retries: 30
+  retries: 40
