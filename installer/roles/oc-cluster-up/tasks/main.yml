@@ -29,6 +29,11 @@
       cluster_up_command: oc cluster up
 
   - set_fact:
+      cluster_up_command: "{{ cluster_up_command }} --metrics"
+    when:
+    - hawkular_metrics == true
+
+  - set_fact:
       cluster_up_command: "{{ cluster_up_command }} --service-catalog={{ service_catalog }}"
     when:
     - service_catalog is defined
