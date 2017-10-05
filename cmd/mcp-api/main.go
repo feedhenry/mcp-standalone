@@ -29,15 +29,18 @@ import (
 
 func main() {
 	var (
-		k8host          string
-		port            = flag.String("port", ":3001", "set the port to listen on")
-		insecure        = flag.String("insecure", "false", "allow insecure requests")
-		cert            = flag.String("cert", "server.crt", "SSL/TLS Certificate to HTTPS")
-		key             = flag.String("key", "server.key", "SSL/TLS Private Key for the Certificate")
-		namespace       = flag.String("namespace", os.Getenv("NAMESPACE"), "the namespace to target")
-		logLevel        = flag.String("log-level", "error", "the level to log at")
-		saTokenPath     = flag.String("satoken-path", "var/run/secrets/kubernetes.io/serviceaccount/token", "where on disk the service account token to use is ")
-		staticDirectory = flag.String("web-dir", "./web/app", "Location of static content to serve at /console. index.html will be used as a fallback for requested files that don't exist")
+		k8host             string
+		port               = flag.String("port", ":3001", "set the port to listen on")
+		insecure           = flag.String("insecure", "false", "allow insecure requests")
+		cert               = flag.String("cert", "server.crt", "SSL/TLS Certificate to HTTPS")
+		key                = flag.String("key", "server.key", "SSL/TLS Private Key for the Certificate")
+		namespace          = flag.String("namespace", os.Getenv("NAMESPACE"), "the namespace to target")
+		logLevel           = flag.String("log-level", "error", "the level to log at")
+		saTokenPath        = flag.String("satoken-path", "var/run/secrets/kubernetes.io/serviceaccount/token", "where on disk the service account token to use is ")
+		staticDirectory    = flag.String("web-dir", "./web/app", "Location of static content to serve at /console. index.html will be used as a fallback for requested files that don't exist")
+		serverReadTimeout  = flag.Int("server-read-timeout", 5, "sets the maximum amount of time in seconds allowed for the server to read the headers")
+		serverWriteTimeout = flag.Int("server-write-timeout", 15, " WriteTimeout is the maximum duration in seconds before timing out writes of the response")
+		serverIdleTimeout  = flag.Int("server-idle-timeout", 60, " IdleTimeout is the maximum amount of time in seconds to wait for the next request when keep-alives are enabled. ")
 	)
 	flag.StringVar(&k8host, "k8-host", "", "kubernetes target")
 	flag.Parse()
@@ -53,7 +56,6 @@ func main() {
 		logrus.SetLevel(logrus.ErrorLevel)
 	}
 	logger := logrus.StandardLogger()
-	logger.Info("insecure request set to ", *insecure)
 
 	if *namespace == "" {
 		logger.Fatal("-namespace is a required flag or it can be set via NAMESPACE env var")
@@ -67,6 +69,8 @@ func main() {
 	if k8host == "" {
 		k8host = "https://" + os.Getenv("KUBERNETES_SERVICE_HOST") + ":" + os.Getenv("KUBERNETES_SERVICE_PORT")
 	}
+
+	logger.Info("insecure requests set to ", *insecure)
 
 	var (
 		router           = web.NewRouter()
@@ -172,9 +176,9 @@ func main() {
 	httpHandler := web.BuildHTTPHandler(router, mwAccess)
 	server := http.Server{
 		Addr:              *port,
-		IdleTimeout:       time.Second * 60,
-		ReadHeaderTimeout: time.Second * 5,
-		WriteTimeout:      time.Second * 15,
+		IdleTimeout:       time.Second * time.Duration(*serverIdleTimeout),
+		ReadHeaderTimeout: time.Second * time.Duration(*serverReadTimeout),
+		WriteTimeout:      time.Second * time.Duration(*serverWriteTimeout),
 		Handler:           httpHandler,
 	}
 

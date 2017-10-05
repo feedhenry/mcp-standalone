@@ -4,7 +4,12 @@
 
 - name: provision
   shell: | 
-    oc new-app -f /opt/ansible/roles/provision-cordova-apb/templates/template.json -n '{{namespace}}'
+    oc new-app -f /opt/ansible/roles/provision-cordova-apb/templates/template.json -n '{{namespace}}' -p ACCEPT_UNKNOWN_CERTS=true -p LOG_LEVEL=info
+  when: mobile_route.stdout == ""
+  
+- name: add-role
+  shell: |
+    oc policy add-role-to-user edit system:serviceaccount:{{namespace}}:mcp-standalone
   when: mobile_route.stdout == ""
 
 - name: check_exists_again
