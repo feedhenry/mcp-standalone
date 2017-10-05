@@ -13,12 +13,12 @@ angular.module('mobileControlPanelApp').component('viewAppConfig', {
                   <h3>Details</h3>
                   <dl class="dl-horizontal left">
                     <div>
-                      <dt>Name</dt>
-                      <dd>{{$ctrl.config.metadata.name}}</dd>
-                    </div>
-                    <div>
                       <dt>Repo URL</dt>
                       <dd>{{$ctrl.config.spec.source.git.uri}}</dd>
+                    </div>
+                    <div>
+                      <dt>Jenkins Job Name</dt>
+                      <dd>{{$ctrl.config.metadata.name}}</dd>
                     </div>
                     <div>
                       <dt>Branch</dt>

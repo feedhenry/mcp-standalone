@@ -14,7 +14,7 @@ angular.module('mobileControlPanelApp').component('editAppConfig', {
                   <form novalidate class="form-horizontal" name="appBuildConfig">
                     <dl class="dl-horizontal left">
                       <div>
-                        <dt>Name</dt>
+                        <dt>Jenkins Job Name</dt>
                         <dd>{{$ctrl.config.metadata.name}}</dd>
                       </div>
                       <div ng-class="{'has-error': appBuildConfig.repoUri.$touched && appBuildConfig.repoUri.$error.required}">

@@ -18,13 +18,13 @@ angular.module('mobileControlPanelApp').component('enableMobileBuild', {
                 To enable mobile application builds, please provision the Mobile CI/CD service.
               </p>
               <p>
-                This can be provisioned via the application catalog.
+                This can be provisioned via the Service Catalog.
               </p>
               <p>
                 Learn more about this <a href="http://feedhenry.org/docs/">in the documentation</a>.
               </p>
               <div class="blank-slate-pf-main-action">
-                <a ng-href="/" class="btn btn-primary btn-lg">Application Catalog</a>
+                <a ng-href="/" class="btn btn-primary btn-lg">Provision Mobile CI/CD Service</a>
               </div>
             </div>`
 });

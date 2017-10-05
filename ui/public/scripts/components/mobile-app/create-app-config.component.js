@@ -23,7 +23,7 @@ angular.module('mobileControlPanelApp').component('createAppConfig', {
                         </dd>
                       </div>
                       <div class="name-field">
-                        <dt>Name</dt>
+                        <dt>Jenkins Job Name</dt>
                         <dd>
                           <div ng-class="{'has-error': appBuildConfig.buildname.$touched && (appBuildConfig.buildname.$error.pattern || appBuildConfig.buildname.$error.required)}">
                             <input placeholder="A unique name for the build config." ng-model="config.name" name="buildname" type="text" id="build-name" class="form-control" required pattern="[a-z0-9]([-a-z0-9]*[a-z0-9])?">
