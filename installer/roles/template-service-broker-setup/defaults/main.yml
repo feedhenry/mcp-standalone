@@ -6,6 +6,7 @@ openshift_project: openshift
 
 templates:
 - https://raw.githubusercontent.com/feedhenry/fh-sync-server/master/fh-sync-server-DEVELOPMENT.yaml
+- ../artifacts/fake-templates/android-sdk.yaml
 - ../artifacts/fake-templates/build-farm.yaml
 - ../artifacts/fake-templates/push.yaml
 - ../artifacts/fake-templates/remote-debug.yaml
