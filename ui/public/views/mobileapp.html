@@ -226,15 +226,15 @@ mobileCore.configure(mcpConfig).then((config) => {
                     Loading...
                   </div>
                   <div ng-if="!loading">
-                    <enable-mobile-build ng-if="!hasBuildFarm"></enable-mobile-build>
+                    <enable-mobile-build ng-if="!hasMobileCiCd"></enable-mobile-build>
                     <div class="config-actions clearfix">
-                      <div ng-if="buildConfig && hasBuildFarm"  class="pull-right">
+                      <div ng-if="buildConfig && hasMobileCiCd"  class="pull-right">
                         <!-- ng-if="'buildconfigs/instantiate' | canI : 'create'"  -->
                         <button ng-disabled="view === 'edit'" type="button" class="btn btn-default" ng-click="startBuild()">Build App</button>
                         <action-dropdown actions=dropdownActions selected=setView></action-dropdown>
                       </div>
                     </div>
-                    <div ng-if="hasBuildFarm" ng-switch="view">
+                    <div ng-if="hasMobileCiCd" ng-switch="view">
                       <create-app-config ng-switch-when="create" created=createAppBuildConfig></create-app-config>
                       <view-app-config ng-switch-when="view" config=buildConfig></view-app-config>
                       <edit-app-config ng-switch-when="edit" config=buildConfig updated=updateAppBuildConfig cancelled=cancelEdit></edit-app-config>
@@ -246,7 +246,7 @@ mobileCore.configure(mcpConfig).then((config) => {
                 <uib-tab active="selectedTab.buildHistory" select="setView(buildConfig ? 'view' : 'create')">
                   <uib-tab-heading>Build History</uib-tab-heading>
                   <div class="config-actions clearfix">
-                    <div ng-if="buildConfig && hasBuildFarm"  class="pull-right">
+                    <div ng-if="buildConfig && hasMobileCiCd"  class="pull-right">
                       <!-- ng-if="'buildconfigs/instantiate' | canI : 'create'"  -->
                       <button ng-disabled="view === 'edit'" type="button" class="btn btn-default" ng-click="startBuild()">Build App</button>
                       <action-dropdown actions=dropdownActions selected=setView></action-dropdown>
@@ -259,7 +259,10 @@ mobileCore.configure(mcpConfig).then((config) => {
                   </div>
                   <div class="row">
                     <div class="col-lg-12">
-                      <build-pipeline ng-repeat="build in orderedBuilds" build=build></build-pipeline>
+                      <div class="build-pipelines" ng-repeat="build in orderedBuilds">
+                        <build-pipeline build=build></build-pipeline>
+                        <app-download-url build=build></app-download-url>
+                      </div>
                     </div>
                   </div>
                 </uib-tab>
