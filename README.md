@@ -48,6 +48,11 @@ Issues are tracked in both [Jira](https://issues.jboss.org/secure/RapidBoard.jsp
   * [Keycloak](https://github.com/keycloak/keycloak)
   * [Keycloak APB](https://github.com/feedhenry/keycloak-apb)
 
+
+## Running Locally
+
+See [Local Walkthrough](./docs/walkthroughs/local-walkthrough.md) for running locally.
+
 ## Local Development
 
 This document is intended to walk you through setting up a local openshift development cluster, deploying two mobile services (in particular `Feedhenry Sync` and `Keycloak`) to it via the ASB then executing the mobile control panel server configured to communicate with this cluster to connect those two services together.
