@@ -9,7 +9,7 @@
 angular.module('mobileControlPanelApp').directive('modal', function($timeout) {
   return {
     template: `<button class="btn launch" ng-class={{ngClass}}>{{launch}}</button>
-              <div class="modal container control-panel" tabindex="-1" role="dialog" aria-labelledby="" aria-hidden="true">
+              <div class="modal container" tabindex="-1" role="dialog" aria-labelledby="" aria-hidden="true">
                 <div class="modal-dialog">
                   <div class="modal-content">
                     <div class="modal-header">
@@ -35,18 +35,20 @@ angular.module('mobileControlPanelApp').directive('modal', function($timeout) {
       modalTitle: '=?',
       cancel: '&?',
       ok: '&?',
-      ngClass: '=?'
+      ngClass: '=?',
+      modalClass: '=?'
     },
     transclude: true,
     link: function(scope, element, attrs) {
-      const modalContainer = $('.modal.container', element);
+      element.removeClass();
 
+      const modalContainer = $('.modal.container', element);
+      modalContainer.addClass(scope.modalClass);
       scope.modal = modalContainer.modal({
         show: false,
         keyboard: true
       });
 
-      scope.modalOpen = scope.modalOpen || false;
       scope.modalOpen = scope.modalOpen || false;
 
       $timeout(() => {

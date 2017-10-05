@@ -28,6 +28,7 @@ angular.module('mobileControlPanelApp').service('mcpApi', [
             return reject('No MCP URL');
           });
         }
+
         return $http.get(getMobileAppsURL(), requestConfig).then(res => {
           return res.data;
         });
@@ -41,6 +42,19 @@ angular.module('mobileControlPanelApp').service('mcpApi', [
         return $http
           .get(getMobileAppsURL() + '/' + id, requestConfig)
           .then(res => {
+            return res.data;
+          });
+      },
+      mobileAppDownloadUrl: function(id) {
+        if (!window.MCP_URL) {
+          return Promise.reject('No MCP URL');
+        }
+
+        return $http
+          .post(`${window.MCP_URL}/build/${id}/download`, {}, requestConfig)
+          .then(res => {
+            res.data.url = `${window.MCP_URL}${res.data.url}`;
+            res.data.expires = res.data.expires * 1000;
             return res.data;
           });
       },
