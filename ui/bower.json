@@ -2,7 +2,8 @@
   "name": "mcp",
   "version": "0.0.0",
   "dependencies": {
-    "google-code-prettify": "^1.0.5"
+    "google-code-prettify": "^1.0.5",
+    "jquery-qrcode": "https://github.com/lrsjng/jquery-qrcode.git"
   },
   "devDependencies": {},
   "appPath": "public",

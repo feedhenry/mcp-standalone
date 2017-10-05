@@ -259,7 +259,10 @@ mobileCore.configure(mcpConfig).then((config) => {
                   </div>
                   <div class="row">
                     <div class="col-lg-12">
-                      <build-pipeline ng-repeat="build in orderedBuilds" build=build></build-pipeline>
+                      <div class="build-pipelines" ng-repeat="build in orderedBuilds">
+                        <build-pipeline build=build></build-pipeline>
+                        <app-download-url build=build></app-download-url>
+                      </div>
                     </div>
                   </div>
                 </uib-tab>
