@@ -44,7 +44,7 @@ angular.module('mobileControlPanelApp').controller('MobileAppController', [
     $scope.route = window.MCP_URL;
 
     const watches = [];
-    const BUILDFARM_ID = 'fh-sync-server';
+    const BUILDFARM_NAME = 'fh-mobile-ci-cd';
     $scope.loading = true;
     $scope.dropdownActions = [
       {
@@ -131,6 +131,7 @@ angular.module('mobileControlPanelApp').controller('MobileAppController', [
         return Promise.all([
           DataService.list('buildconfigs', projectContext),
           DataService.list('builds', projectContext),
+          DataService.list('secrets', projectContext),
           mcpApi.mobileApp($routeParams.mobileapp),
           mcpApi.mobileServices()
         ]);
@@ -139,10 +140,12 @@ angular.module('mobileControlPanelApp').controller('MobileAppController', [
         const [
           buildConfigs = {},
           builds = {},
+          secrets = {},
           app = {},
           services = []
         ] = viewData;
 
+        console.log('secrets', secrets);
         const buildData = buildConfigs['_data'];
         $scope.buildConfig = Object.keys(buildData)
           .map(key => {
@@ -180,9 +183,13 @@ angular.module('mobileControlPanelApp').controller('MobileAppController', [
         }
 
         $scope.integrations = services;
-        $scope.hasBuildFarm = services.some(
-          service => service.params.type === BUILDFARM_ID
-        );
+        $scope.hasBuildFarm = Object.keys(secrets['_data'])
+          .map(key => secrets['_data'][key])
+          .some(secret => {
+            secret.metadata.name =
+              BUILDFARM_NAME &&
+              secret.metadata.namespace === $scope.project.metadata.name;
+          });
 
         $scope.loading = false;
       });
