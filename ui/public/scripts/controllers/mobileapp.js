@@ -186,9 +186,10 @@ angular.module('mobileControlPanelApp').controller('MobileAppController', [
         $scope.hasBuildFarm = Object.keys(secrets['_data'])
           .map(key => secrets['_data'][key])
           .some(secret => {
-            secret.metadata.name =
-              BUILDFARM_NAME &&
-              secret.metadata.namespace === $scope.project.metadata.name;
+            return (
+              secret.metadata.name === BUILDFARM_NAME &&
+              secret.metadata.namespace === $scope.project.metadata.name
+            );
           });
 
         $scope.loading = false;

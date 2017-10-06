@@ -49,15 +49,15 @@ angular.module('mobileControlPanelApp').service('mcpApi', [
           return Promise.reject('No MCP URL');
         }
         console.log(`POST: ${window.MCP_URL}/build/${id}/download`);
-        // return $http
-        //   .post(`${window.MCP_URL}/build/${id}/download`, requestConfig)
-        //   .then(res => {
-        //     return res.data;
-        //   });
-        return Promise.resolve({
-          url: `${window.MCP_URL}/build/androidapp1-1/download?token=e7b20bf6-4e80-47fb-9f9c-24ff0c6442a8`,
-          expires: Date.now() + 5000
-        });
+        return $http
+          .post(`${window.MCP_URL}/build/${id}/download`, null, requestConfig)
+          .then(res => {
+            return res.data;
+          });
+        // return Promise.resolve({
+        //   url: `${window.MCP_URL}/build/androidapp1-1/download?token=e7b20bf6-4e80-47fb-9f9c-24ff0c6442a8`,
+        //   expires: Date.now() + 5000
+        // });
       },
       createMobileApp: function(mobileApp) {
         if (!window.MCP_URL) {

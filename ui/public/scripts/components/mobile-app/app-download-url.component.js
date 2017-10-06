@@ -47,7 +47,6 @@ angular.module('mobileControlPanelApp').component('appDownloadUrl', {
           .mobileAppDownloadUrl($scope.$ctrl.build.metadata.name)
           .then(res => {
             $scope.url = res.url;
-            $scope.$apply();
             $window.localStorage.setItem(
               $scope.$ctrl.build.metadata.name,
               JSON.stringify(res)
