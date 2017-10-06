@@ -11,9 +11,21 @@ angular.module('mobileControlPanelApp').controller('MobileAppController', [
   '$scope',
   '$location',
   '$routeParams',
+  '$filter',
   'ProjectsService',
   'mcpApi',
-  function($scope, $location, $routeParams, ProjectsService, mcpApi) {
+  'DataService',
+  'BuildsService',
+  function(
+    $scope,
+    $location,
+    $routeParams,
+    $filter,
+    ProjectsService,
+    mcpApi,
+    DataService,
+    BuildsService
+  ) {
     $scope.projectName = $routeParams.project;
     $scope.alerts = {};
     $scope.renderOptions = $scope.renderOptions || {};
@@ -31,39 +43,149 @@ angular.module('mobileControlPanelApp').controller('MobileAppController', [
     $scope.installType = '';
     $scope.route = window.MCP_URL;
 
-    ProjectsService.get($routeParams.project).then(
-      _.spread(function(project, context) {
+    const watches = [];
+    const BUILDFARM_ID = 'fh-sync-server';
+    $scope.loading = true;
+    $scope.dropdownActions = [
+      {
+        label: 'Edit',
+        value: 'edit'
+      }
+    ];
+    $scope.setView = function(view) {
+      if (view === 'edit') {
+        $location.url(
+          `project/${$routeParams.project}/browse/mobileapps/${$routeParams.mobileapp}?tab=buildConfig`
+        );
+      }
+
+      $scope.view = view;
+    };
+    $scope.startBuild = function() {
+      BuildsService.startBuild($scope.buildConfig).then(() => {
+        $location.url(
+          `project/${$routeParams.project}/browse/mobileapps/${$routeParams.mobileapp}?tab=buildHistory`
+        );
+      });
+    };
+
+    $scope.createAppBuildConfig = function(appConfig) {
+      appConfig.appID = $routeParams.mobileapp;
+      mcpApi
+        .createBuildConfig(appConfig)
+        .then(response => {
+          return DataService.get(
+            'buildconfigs',
+            appConfig.name,
+            $scope.projectContext
+          );
+        })
+        .then(res => {
+          $scope.buildConfig = res;
+          $scope.view = 'view';
+        });
+    };
+
+    $scope.updateAppBuildConfig = function(appConfig) {
+      DataService.update(
+        'buildconfigs',
+        appConfig.metadata.name,
+        appConfig,
+        $scope.projectContext
+      )
+        .then(() => {
+          return DataService.get(
+            'buildconfigs',
+            appConfig.metadata.name,
+            $scope.projectContext
+          );
+        })
+        .then(res => {
+          $scope.buildConfig = res;
+          $scope.view = 'view';
+        });
+    };
+
+    $scope.cancelEdit = function() {
+      $scope.view = 'view';
+    };
+
+    var buildConfigForBuild = $filter('buildConfigForBuild');
+    var filterBuilds = function(allBuilds) {
+      $scope.builds = _.filter(allBuilds, build => {
+        var buildConfigName = buildConfigForBuild(build) || '';
+        return (
+          $scope.buildConfig &&
+          $scope.buildConfig.metadata.name === buildConfigName
+        );
+      });
+      $scope.orderedBuilds = BuildsService.sortBuilds($scope.builds, true);
+    };
+
+    ProjectsService.get($routeParams.project)
+      .then(function(projectInfo) {
+        const [project = {}, projectContext = {}] = projectInfo;
         $scope.project = project;
-        $scope.projectContext = context;
-        mcpApi
-          .mobileApp($routeParams.mobileapp)
-          .then(app => {
-            $scope.app = app;
-            switch (app.clientType) {
-              case 'cordova':
-                $scope.installType = 'npm';
-                break;
-              case 'android':
-                $scope.installType = 'maven';
-                break;
-              case 'iOS':
-                $scope.installType = 'cocoapods';
-                break;
-            }
-          })
-          .catch(e => {
-            console.error('failed to read app', e);
-          });
-        mcpApi
-          .mobileServices()
-          .then(services => {
-            $scope.integrations = services;
-          })
-          .catch(e => {
-            console.log('error getting services ', e);
-          });
+        $scope.projectContext = projectContext;
+
+        return Promise.all([
+          DataService.list('buildconfigs', projectContext),
+          DataService.list('builds', projectContext),
+          mcpApi.mobileApp($routeParams.mobileapp),
+          mcpApi.mobileServices()
+        ]);
       })
-    );
+      .then(viewData => {
+        const [
+          buildConfigs = {},
+          builds = {},
+          app = {},
+          services = []
+        ] = viewData;
+
+        const buildData = buildConfigs['_data'];
+        $scope.buildConfig = Object.keys(buildData)
+          .map(key => {
+            return buildData[key];
+          })
+          .filter(buildConfig => {
+            return (
+              buildConfig.metadata.labels['mobile-appid'] ===
+              $routeParams.mobileapp
+            );
+          })
+          .pop();
+
+        $scope.view = $scope.buildConfig ? 'view' : 'create';
+
+        filterBuilds(builds['_data']);
+
+        watches.push(
+          DataService.watch('builds', $scope.projectContext, function(builds) {
+            filterBuilds(builds['_data']);
+          })
+        );
+
+        $scope.app = app;
+        switch (app.clientType) {
+          case 'cordova':
+            $scope.installType = 'npm';
+            break;
+          case 'android':
+            $scope.installType = 'maven';
+            break;
+          case 'iOS':
+            $scope.installType = 'cocoapods';
+            break;
+        }
+
+        $scope.integrations = services;
+        $scope.hasBuildFarm = services.some(
+          service => service.params.type === BUILDFARM_ID
+        );
+
+        $scope.loading = false;
+      });
 
     $scope.installationOpt = function(type) {
       $scope.installType = type;
@@ -75,12 +197,12 @@ angular.module('mobileControlPanelApp').controller('MobileAppController', [
 
     $scope.openServiceIntegration = function(id) {
       $location.url(
-        'project/' +
-          $routeParams.project +
-          '/browse/mobileservices/' +
-          id +
-          '?tab=integrations'
+        `project/${$routeParams.project}/browse/mobileservices/${id}?tab=integrations`
       );
     };
+
+    $scope.$on('$destroy', function() {
+      DataService.unwatchAll(watches);
+    });
   }
 ]);

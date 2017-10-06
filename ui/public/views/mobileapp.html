@@ -16,13 +16,12 @@
           </div>
         </div>
       </div>
-
       <div class="middle-content mobile-content" persist-tab-state>
         <div class="container-fluid">
           <div class="row">
             <div class="col-md-12">
               <uib-tabset>
-                <uib-tab active="selectedTab.sdk" ng-if="app">
+                <uib-tab active="selectedTab.sdk" select="setView('view')">
                   <uib-tab-heading>SDK</uib-tab-heading>
                   <h3>Core SDK Setup</h3>
                   <p>
@@ -220,6 +219,51 @@ mobileCore.configure(mcpConfig).then((config) => {
                     </div>
                   </div>
                 </uib-tab>
+
+                <uib-tab active="selectedTab.buildConfig">
+                  <uib-tab-heading>Build Config</uib-tab-heading>
+                  <div ng-if="loading">
+                    Loading...
+                  </div>
+                  <div ng-if="!loading">
+                    <enable-mobile-build ng-if="!hasBuildFarm"></enable-mobile-build>
+                    <div class="config-actions clearfix">
+                      <div ng-if="buildConfig && hasBuildFarm"  class="pull-right">
+                        <!-- ng-if="'buildconfigs/instantiate' | canI : 'create'"  -->
+                        <button ng-disabled="view === 'edit'" type="button" class="btn btn-default" ng-click="startBuild()">Build App</button>
+                        <action-dropdown actions=dropdownActions selected=setView></action-dropdown>
+                      </div>
+                    </div>
+                    <div ng-if="hasBuildFarm" ng-switch="view">
+                      <create-app-config ng-switch-when="create" created=createAppBuildConfig></create-app-config>
+                      <view-app-config ng-switch-when="view" config=buildConfig></view-app-config>
+                      <edit-app-config ng-switch-when="edit" config=buildConfig updated=updateAppBuildConfig cancelled=cancelEdit></edit-app-config>
+                    </div>
+                  </div>
+
+                </uib-tab>
+
+                <uib-tab active="selectedTab.buildHistory" select="setView(buildConfig ? 'view' : 'create')">
+                  <uib-tab-heading>Build History</uib-tab-heading>
+                  <div class="config-actions clearfix">
+                    <div ng-if="buildConfig && hasBuildFarm"  class="pull-right">
+                      <!-- ng-if="'buildconfigs/instantiate' | canI : 'create'"  -->
+                      <button ng-disabled="view === 'edit'" type="button" class="btn btn-default" ng-click="startBuild()">Build App</button>
+                      <action-dropdown actions=dropdownActions selected=setView></action-dropdown>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-lg-12 build-trend">
+                      <build-trends-chart builds=builds></build-trends-chart>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-lg-12">
+                      <build-pipeline ng-repeat="build in orderedBuilds" build=build></build-pipeline>
+                    </div>
+                  </div>
+                </uib-tab>
+
               </uib-tabset>
             <script>prettyPrint()</script>
             </div>
