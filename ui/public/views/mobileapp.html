@@ -243,23 +243,28 @@ mobileCore.configure(mcpConfig).then((config) => {
 
                 </uib-tab>
 
-                <uib-tab active="selectedTab.buildHistory" select="setView(buildConfig ? 'view' : 'create')">
+                <uib-tab ng-if="buildConfig && hasBuildFarm" active="selectedTab.buildHistory" select="setView(buildConfig ? 'view' : 'create')">
                   <uib-tab-heading>Build History</uib-tab-heading>
-                  <div class="config-actions clearfix">
-                    <div ng-if="buildConfig && hasBuildFarm"  class="pull-right">
-                      <!-- ng-if="'buildconfigs/instantiate' | canI : 'create'"  -->
-                      <button ng-disabled="view === 'edit'" type="button" class="btn btn-default" ng-click="startBuild()">Build App</button>
-                      <action-dropdown actions=dropdownActions selected=setView></action-dropdown>
-                    </div>
+                  <div ng-if="loading">
+                    Loading...
                   </div>
-                  <div class="row">
-                    <div class="col-lg-12 build-trend">
-                      <build-trends-chart builds=builds></build-trends-chart>
+                  <div ng-if="!loading">
+                    <div class="config-actions clearfix">
+                      <div ng-if="buildConfig && hasBuildFarm"  class="pull-right">
+                        <!-- ng-if="'buildconfigs/instantiate' | canI : 'create'"  -->
+                        <button ng-disabled="view === 'edit'" type="button" class="btn btn-default" ng-click="startBuild()">Build App</button>
+                        <action-dropdown actions=dropdownActions selected=setView></action-dropdown>
+                      </div>
                     </div>
-                  </div>
-                  <div class="row">
-                    <div class="col-lg-12">
-                      <build-pipeline ng-repeat="build in orderedBuilds" build=build></build-pipeline>
+                    <div class="row">
+                      <div class="col-lg-12 build-trend">
+                        <build-trends-chart builds=builds></build-trends-chart>
+                      </div>
+                    </div>
+                    <div class="row">
+                      <div class="col-lg-12">
+                        <build-pipeline ng-repeat="build in orderedBuilds" build=build></build-pipeline>
+                      </div>
                     </div>
                   </div>
                 </uib-tab>
