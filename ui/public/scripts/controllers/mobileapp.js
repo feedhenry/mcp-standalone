@@ -44,7 +44,7 @@ angular.module('mobileControlPanelApp').controller('MobileAppController', [
     $scope.route = window.MCP_URL;
 
     const watches = [];
-    const BUILDFARM_ID = 'fh-sync-server';
+    const BUILDFARM_ID = 'aerogear-digger';
     $scope.loading = true;
     $scope.dropdownActions = [
       {
