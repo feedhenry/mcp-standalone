@@ -197,7 +197,7 @@ var ValidAppTypes = AppTypes{CordovaApp, AndroidApp, IOSApp}
 
 //TODO move out to config or env var
 //ServiceTypes are the service types that we are aware of and support
-var ServiceTypes = []string{"fh-sync-server", "keycloak", "custom"}
+var ServiceTypes = []string{"fh-sync-server", "keycloak", "aerogear-digger", "custom"}
 
 const (
 	//AppAPIKeyHeader is the header sent by mobile clients when they want to interact with mcp
