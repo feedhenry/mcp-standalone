@@ -163,9 +163,9 @@ func (bh *BuildHandler) Download(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 	defer artifactReader.Close()
-	req.Header.Set("content-type", "octet/stream")
+	rw.Header().Set("content-type", "octet/stream")
 	// TODO handle more than apk
-	req.Header.Set("content-disposition", "attachment; filename=\"app.apk\"")
+	rw.Header().Set("content-disposition", "attachment; filename=\"app.apk\"")
 	if _, err := io.Copy(rw, artifactReader); err != nil {
 		err = errors.Wrap(err, "failed to write download")
 		handleCommonErrorCases(err, rw, bh.logger)
