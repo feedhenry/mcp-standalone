@@ -44,7 +44,7 @@ angular.module('mobileControlPanelApp').controller('MobileAppController', [
     $scope.route = window.MCP_URL;
 
     const watches = [];
-    const BUILDFARM_ID = 'aerogear-digger';
+    const MOBILE_CI_CD_NAME = 'aerogear-digger';
     $scope.loading = true;
     $scope.dropdownActions = [
       {
@@ -131,6 +131,7 @@ angular.module('mobileControlPanelApp').controller('MobileAppController', [
         return Promise.all([
           DataService.list('buildconfigs', projectContext),
           DataService.list('builds', projectContext),
+          DataService.list('secrets', projectContext),
           mcpApi.mobileApp($routeParams.mobileapp),
           mcpApi.mobileServices()
         ]);
@@ -139,6 +140,7 @@ angular.module('mobileControlPanelApp').controller('MobileAppController', [
         const [
           buildConfigs = {},
           builds = {},
+          secrets = {},
           app = {},
           services = []
         ] = viewData;
@@ -180,9 +182,14 @@ angular.module('mobileControlPanelApp').controller('MobileAppController', [
         }
 
         $scope.integrations = services;
-        $scope.hasBuildFarm = services.some(
-          service => service.params.type === BUILDFARM_ID
-        );
+        $scope.hasMobileCiCd = Object.keys(secrets['_data'])
+          .map(key => secrets['_data'][key])
+          .some(secret => {
+            return (
+              secret.metadata.name === MOBILE_CI_CD_NAME &&
+              secret.metadata.namespace === $scope.project.metadata.name
+            );
+          });
 
         $scope.loading = false;
       });
