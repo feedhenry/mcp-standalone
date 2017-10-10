@@ -250,7 +250,7 @@ mobileCore.configure(mcpConfig).then((config) => {
                   </div>
                   <div ng-if="!loading">
                     <div class="config-actions clearfix">
-                      <div ng-if="buildConfig && hasBuildFarm"  class="pull-right">
+                      <div ng-if="buildConfig && hasMobileCiCd"  class="pull-right">
                         <!-- ng-if="'buildconfigs/instantiate' | canI : 'create'"  -->
                         <button ng-disabled="view === 'edit'" type="button" class="btn btn-default" ng-click="startBuild()">Build App</button>
                         <action-dropdown actions=dropdownActions selected=setView></action-dropdown>
