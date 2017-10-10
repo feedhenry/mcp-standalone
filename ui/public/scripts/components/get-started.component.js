@@ -28,11 +28,22 @@ angular.module('mobileControlPanelApp').component('getStarted', {
               </div>
               <div class="blank-slate-pf-secondary-action">
                 <a ng-href="/" class="btn btn-default">Provision Catalog Service</a>
-                <a ng-href="project/{{ $ctrl.projectName }}/create-mobileservice" class="btn btn-default">Add External Service</a>
+                <modal class="btn-default" modal-open=$ctrl.options.modalOpen modal-class="'control-panel'" launch="'Add External Service'" modal-title="'Add External Service'"" display-controls=false>
+                  <div ng-include="'extensions/mcp/views/create-service.html'"></div>
+                </modal>
               </div>
             </div>`,
   bindings: {
-    projectName: '<'
+    projectName: '<',
+    serviceCreated: '&?',
+    options: '='
   },
-  controller: ['$scope', function($scope) {}]
+  controller: [
+    '$scope',
+    function($scope) {
+      $scope.created = function(err, service) {
+        $scope.$ctrl.serviceCreated()(err, service);
+      };
+    }
+  ]
 });

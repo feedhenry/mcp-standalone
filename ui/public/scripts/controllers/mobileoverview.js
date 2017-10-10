@@ -31,6 +31,9 @@ angular.module('mobileControlPanelApp').controller('MobileOverviewController', [
         hideFilterWidget: true
       }),
       mcpError: false,
+      getStartedOptions: {
+        modalOpen: false
+      },
       overviews: {
         apps: {},
         services: {}
@@ -141,6 +144,17 @@ angular.module('mobileControlPanelApp').controller('MobileOverviewController', [
         .then(objects => {
           $scope.overviews[objectType].objects = objects;
         });
+    };
+
+    $scope.serviceCreated = function(err) {
+      if (err) {
+        return;
+      }
+
+      return mcpApi.mobileServices().then(services => {
+        $scope.overviews.services.objects = services;
+        $scope.getStartedOptions.modalOpen = false;
+      });
     };
 
     $scope.objectSelected = function(object) {

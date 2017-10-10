@@ -12,7 +12,7 @@
         </div>
 
         <no-mcp ng-if="mcpError"></no-mcp>
-        <get-started ng-if="!mcpError && overviews.apps.objects.length === 0 && overviews.services.objects.length === 0" project-name=projectContext.projectName></get-started>
+        <get-started ng-if="!mcpError && overviews.apps.objects.length === 0 && overviews.services.objects.length === 0" project-name=projectContext.projectName service-created=serviceCreated options=getStartedOptions></get-started>
         <mobile-overview ng-if="overviews.apps.objects.length > 0 || overviews.services.objects.length > 0" overviews=overviews object-selected=objectSelected action-selected=actionSelected></mobile-overview>
 
       </div>

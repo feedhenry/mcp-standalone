@@ -16,7 +16,7 @@ angular.module('mobileControlPanelApp').component('overview', {
                   </a>
                 </span>
                 <div class="pull-right">
-                  <div class="actions" ng-repeat="action in $ctrl.model.actions">
+                  <div class="actions" ng-repeat="action in $ctrl.model.actions" ng-init="created = action.action" >
                     <a ng-if="!action.modal" ng-class="['btn', {'btn-default': !action.primary, 'btn-primary': action.primary}]" ng-click="action.action()" ng-if="action.canView()">
                       {{action.label}}
                     </a>
@@ -47,7 +47,7 @@ angular.module('mobileControlPanelApp').component('overview', {
               <p>
                 Learn more about {{$ctrl.model.title}} <a href="http://feedhenry.org/docs/">in the documentation</a>.
               </p>
-              <div ng-repeat="action in $ctrl.model.actions | orderBy: 'primary'" class="blank-slate-pf-main-action">
+              <div ng-repeat="action in $ctrl.model.actions | orderBy: 'primary'" ng-init="created = action.action" class="blank-slate-pf-main-action">
                 <a ng-if="!action.modal" ng-class="['btn', {'btn-default': !action.primary, 'btn-primary': action.primary}]" ng-click="action.action()" ng-if="action.canView()">
                     {{action.label}}
                 </a>
