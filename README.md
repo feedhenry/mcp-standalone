@@ -123,9 +123,10 @@ cd installer/
 ansible-playbook playbook.yml \
   -e "dockerhub_username=<your docker login>" \
   -e "dockerhub_password=<your docker password>" \
-  -e "dockerhub_org=<docker org containing APBs>" \
   --ask-become-pass
 ```
+
+We ask for a DockerHub username and password currently because the Ansible Service Broker calls some Docker APIs in order to read/load Ansible Playbook Bundles from an Docker Hub organisation (defaults to `feedhenry` currently).
 
 This will set up your cluster for you - note that it is possible for this to fail on the first attempt, as the cluster up check may fail waiting for the images to be pulled - if this happens, re-run `oc cluster down` and execute the playbook again.
 
