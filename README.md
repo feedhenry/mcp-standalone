@@ -123,7 +123,6 @@ cd installer/
 ansible-playbook playbook.yml \
   -e "dockerhub_username=<your docker login>" \
   -e "dockerhub_password=<your docker password>" \
-  -e "dockerhub_org=<docker org containing APBs>" \
   --ask-become-pass
 ```
 
