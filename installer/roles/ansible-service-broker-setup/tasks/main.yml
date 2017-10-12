@@ -11,14 +11,16 @@
     
   - name: Copy APB's from feedhenry docker org to {{ dockerhub_org }}
     shell: >
-      docker login -u {{dockerhub_username}} -p {{dockerhub_password}} {{dockerhost}} &&
+      docker login -u {{ dockerhub_username }} -p "{{ dockerhub_password }}" {{ dockerhost }} &&
       docker pull docker.io/feedhenry/{{ item.name }}:latest &&
-      docker tag docker.io/feedhenry/{{ item.name }}:latest {{dockerhost}}/{{dockerhub_org}}/{{ item.name }}:latest &&
-      docker push {{dockerhost}}/{{dockerhub_org}}/{{ item.name }}:latest
+      docker tag docker.io/feedhenry/{{ item.name }}:latest {{ dockerhost }}/{{ dockerhub_org }}/{{ item.name }}:latest &&
+      docker push {{ dockerhost }}/{{ dockerhub_org }}/{{ item.name }}:latest
     loop_control:
       label: "{{ item.name }}"
     with_items: 
       "{{ apb_raw.json.results }}"
+    when: 
+      - item.name != skip_apb
 
   when:
     - dockerhub_org is defined

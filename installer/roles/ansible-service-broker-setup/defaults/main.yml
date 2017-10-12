@@ -3,3 +3,4 @@
 dockerhub_org: feedhenry
 dockerhost: docker.io
 launch_apb_on_bind: true
+skip_apb: 
