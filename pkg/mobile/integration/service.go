@@ -32,7 +32,7 @@ func (ms *MobileService) FindByNames(names []string, serviceCruder mobile.Servic
 var capabilities = map[string]map[string][]string{
 	"fh-sync-server": map[string][]string{
 		"capabilities": {"data storage, data syncronisation"},
-		"integrations": {"keycloak", "mcp-mobile-keys"},
+		"integrations": {"keycloak", "mcp-mobile-keys", "apicast-configuration-url-secret"},
 	},
 	"keycloak": map[string][]string{
 		"capabilities": {"authentication, authorisation"},
@@ -40,7 +40,11 @@ var capabilities = map[string]map[string][]string{
 	},
 	"mcp-mobile-keys": map[string][]string{
 		"capabilities": {"access apps"},
-		"integrations": {"mcp-mobile-keys"},
+		"integrations": {},
+	},
+	"apicast-configuration-url-secret": map[string][]string{
+		"capabilities": {"authentication, authorization"},
+		"integrations": {},
 	},
 	"custom": map[string][]string{
 		"capabilities": {""},
