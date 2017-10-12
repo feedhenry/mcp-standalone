@@ -65,6 +65,9 @@ angular.module('mobileControlPanelApp').controller('MobileServiceController', [
     Promise.all([
       mcpApi.mobileService($routeParams.service, 'true').then(s => {
         $scope.service = s;
+        $scope.service.integrations = Object.keys(s.integrations).map(key => {
+          return Object.assign(s.integrations[key], { target: s });
+        });
         $scope.integrations = Object.keys(s.integrations);
       }),
       mcpApi.mobileApps().then(apps => {
@@ -172,32 +175,35 @@ angular.module('mobileControlPanelApp').controller('MobileServiceController', [
       }
       return false;
     };
-    $scope.enableIntegration = function(service, key) {
-      var integration = service.integrations[key];
-      integration.processing = true;
+
+    $scope.integrationToggled = function(integration, enabled) {
+      if (enabled) {
+        $scope.enableIntegration(integration);
+      } else {
+        $scope.disableIntegration(integration);
+      }
+    };
+
+    $scope.enableIntegration = function(integration) {
       mcpApi
-        .integrateService(service, key)
+        .integrateService(integration)
         .then(res => {
-          integration.processing = false;
+          //inspect res
           integration.enabled = true;
         })
         .catch(e => {
-          integration.processing = false;
           console.log('error integrating service ', e);
         });
       return true;
     };
-    $scope.disableIntegration = function(service, key) {
-      var integration = service.integrations[key];
-      service.processing = true;
+    $scope.disableIntegration = function(integration) {
       mcpApi
-        .deintegrateService(service, key)
+        .deintegrateService(integration)
         .then(res => {
-          integration.processing = false;
+          //inspect res
           integration.enabled = false;
         })
         .catch(e => {
-          integration.processing = false;
           console.log('error deintegrating service ', e);
         });
       return true;
