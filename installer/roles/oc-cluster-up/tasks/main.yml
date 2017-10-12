@@ -31,7 +31,7 @@
   - set_fact:
       cluster_up_command: "{{ cluster_up_command }} --metrics"
     when:
-    - hawkular_metrics == true
+    - hawkular_metrics|bool
 
   - set_fact:
       cluster_up_command: "{{ cluster_up_command }} --service-catalog={{ service_catalog }}"
