@@ -130,6 +130,9 @@ We ask for a DockerHub username and password currently because the Ansible Servi
 
 This will set up your cluster for you - note that it is possible for this to fail on the first attempt, as the cluster up check may fail waiting for the images to be pulled - if this happens, re-run `oc cluster down` and execute the playbook again.
 
+** Optional **
+You can enable Hawkular metrics by passing `-e 'hawkular_metrics=true'` as part of your `ansible-playbook` command.
+
 ### Step 2, Run the MCP Server
 
 We are now ready to compile the MCP Server so that we can execute against our new cluster. Compiling this is easy with the Makefile, this should be executed in the root directory of this repo:
