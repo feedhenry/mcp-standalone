@@ -214,8 +214,6 @@ angular.module('mobileControlPanelApp').service('mcpApi', [
           '/' +
           params.component +
           '/' +
-          service.name +
-          '/' +
           params.service;
         return $http.post(url, {}, requestConfig).then(res => {
           return res.data;

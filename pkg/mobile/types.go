@@ -9,6 +9,12 @@ import (
 	"strings"
 )
 
+const (
+	ServiceNameKeycloak   = "keycloak"
+	ServiceNameThreeScale = "3scale"
+	ServiceNameSync       = "fh-sync-server"
+)
+
 // App represents a mobile app
 type App struct {
 	ID          string            `json:"id"`
@@ -140,6 +146,7 @@ func NewMobileService() *Service {
 }
 
 type ServiceIntegration struct {
+
 	Enabled         bool   `json:"enabled"`
 	Component       string `json:"component"`
 	Service         string `json:"service"`

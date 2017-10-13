@@ -141,7 +141,8 @@ func main() {
 	{
 		integrationSvc := integration.NewMobileSevice(*namespace)
 		metricSvc := &metrics.MetricsService{}
-		svcHandler := web.NewMobileServiceHandler(logger, integrationSvc, mounterBuilder, metricSvc, svcRepoBuilder, userRepoBuilder, authCheckerBuilder)
+		scClientBuilder := k8s.NewServiceCatalogClientBuilder(k8ClientBuilder, defaultHTTPClient, token, *namespace, k8host)
+		svcHandler := web.NewMobileServiceHandler(logger, integrationSvc, mounterBuilder, metricSvc, svcRepoBuilder, userRepoBuilder, authCheckerBuilder, scClientBuilder)
 		web.MobileServiceRoute(router, svcHandler)
 	}
 	//sdk httpHandler

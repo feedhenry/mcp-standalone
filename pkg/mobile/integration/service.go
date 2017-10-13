@@ -29,6 +29,7 @@ func (ms *MobileService) FindByNames(names []string, serviceCruder mobile.Servic
 }
 
 // TODO move to the secret data read when discovering the services
+//TODO need to come up with a better way of representing this
 var capabilities = map[string]map[string][]string{
 	"fh-sync-server": map[string][]string{
 		"capabilities": {"data storage, data syncronisation"},
@@ -126,6 +127,13 @@ func filterServices(serviceTypes []string) func(att mobile.Attributer) bool {
 		}
 		return false
 	}
+}
+
+func (ms *MobileService) BindService(sccClient mobile.SCCInterface, svcCruder mobile.ServiceCruder, targetServiceName, service string) error {
+	if mobile.ServiceNameKeycloak == service {
+		return sccClient.BindServiceToKeyCloak(targetServiceName, ms.namespace)
+	}
+	return errors.New("unknown service type " + service)
 }
 
 //MountSecretForComponent will mount secret into component, returning any errors

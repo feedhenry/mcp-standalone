@@ -58,11 +58,23 @@ type K8ClientBuilder interface {
 	BuildClient() (kubernetes.Interface, error)
 }
 
+type SCClientBuilder interface {
+	WithToken(token string) SCClientBuilder
+	WithHost(host string) SCClientBuilder
+	UseDefaultSAToken() SCClientBuilder
+	Build() (SCCInterface, error)
+}
+
+type SCCInterface interface {
+	BindServiceToKeyCloak(targetSvcName, namespace string) error
+}
+
 type OSClientBuilder interface {
 	WithToken(token string) OSClientBuilder
 	WithNamespace(ns string) OSClientBuilder
 	WithHost(host string) OSClientBuilder
 	WithHostAndNamespace(host, ns string) OSClientBuilder
+	//TODO change to Build to be consistent
 	BuildClient() (client.Interface, error)
 }
 
@@ -95,13 +107,6 @@ type ServiceRepoBuilder interface {
 	//UseDefaultSAToken delegates off to the service account token setup with the MCP. This should only be used for APIs where no real token is provided and should always be protected
 	UseDefaultSAToken() ServiceRepoBuilder
 	Build() (ServiceCruder, error)
-}
-
-type TokenScopedClientBuilder interface {
-	K8s(token string) (kubernetes.Interface, error)
-	UseDefaultSAToken() TokenScopedClientBuilder
-	VolumeMounterUnmounter(token string) (VolumeMounterUnmounter, error)
-	AuthChecker(token string, ignoreCerts bool) AuthChecker
 }
 
 type HTTPRequesterBuilder interface {

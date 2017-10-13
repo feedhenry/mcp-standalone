@@ -25,10 +25,13 @@ type MobileServiceHandler struct {
 	metricsGetter            mobile.MetricsGetter
 	userRepoBuilder          mobile.UserRepoBuilder
 	authCheckerBuilder       mobile.AuthCheckerBuilder
+	sccClientBuilder         mobile.SCClientBuilder
 }
 
 // NewMobileServiceHandler returns a new MobileServiceHandler
-func NewMobileServiceHandler(logger *logrus.Logger, integrationService *integration.MobileService, mounterBuilder mobile.MounterBuilder, mg mobile.MetricsGetter, serviceRepoBuilder mobile.ServiceRepoBuilder, userRepoBuilder mobile.UserRepoBuilder, authCheckerBuilder mobile.AuthCheckerBuilder) *MobileServiceHandler {
+func NewMobileServiceHandler(logger *logrus.Logger, integrationService *integration.MobileService, mounterBuilder mobile.MounterBuilder,
+	mg mobile.MetricsGetter, serviceRepoBuilder mobile.ServiceRepoBuilder, userRepoBuilder mobile.UserRepoBuilder, authCheckerBuilder mobile.AuthCheckerBuilder,
+	sccClientBuilder mobile.SCClientBuilder) *MobileServiceHandler {
 	return &MobileServiceHandler{
 		logger: logger,
 		mobileIntegrationService: integrationService,
@@ -37,6 +40,7 @@ func NewMobileServiceHandler(logger *logrus.Logger, integrationService *integrat
 		serviceRepoBuilder:       serviceRepoBuilder,
 		userRepoBuilder:          userRepoBuilder,
 		authCheckerBuilder:       authCheckerBuilder,
+		sccClientBuilder:         sccClientBuilder,
 	}
 }
 
@@ -136,43 +140,35 @@ func (msh *MobileServiceHandler) Create(rw http.ResponseWriter, req *http.Reques
 func (msh *MobileServiceHandler) Configure(rw http.ResponseWriter, req *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	token := headers.DefaultTokenRetriever(req.Header)
-
 	params := mux.Vars(req)
-	componentType := strings.ToLower(params["componentType"])
-	componentName := strings.ToLower(params["componentName"])
-	secret := strings.ToLower(params["secret"])
-	if len(componentType) == 0 {
-		handleCommonErrorCases(errors.New("web.msh.Configure -> provided componentType must not be empty"), rw, msh.logger)
+	clientServiceName := strings.ToLower(params["clientService"])
+	serviceName := strings.ToLower(params["targetService"])
+	if len(serviceName) == 0 {
+		handleCommonErrorCases(errors.New("web.msh.Configure: provided targetService must not be empty"), rw, msh.logger)
 		return
 	}
-	if len(componentName) == 0 {
-		handleCommonErrorCases(errors.New("web.msh.Configure -> provided componentName must not be empty"), rw, msh.logger)
-		return
-	}
-	if len(secret) == 0 {
-		handleCommonErrorCases(errors.New("web.msh.Configure -> provided secret must not be empty"), rw, msh.logger)
+	if len(clientServiceName) == 0 {
+		handleCommonErrorCases(errors.New("web.msh.Configure: provided clientServiceName must not be empty"), rw, msh.logger)
 		return
 	}
 
-	mounter, err := msh.mounterBuilder.WithToken(token).Build()
+	scClient, err := msh.sccClientBuilder.WithToken(token).Build()
 	if err != nil {
-		handleCommonErrorCases(errors.Wrap(err, "web.msh.Configure -> could not create mounter"), rw, msh.logger)
+		err = errors.Wrap(err, "web.msh.Configure: failed to create the service catalog client")
+		handleCommonErrorCases(err, rw, msh.logger)
 		return
 	}
 
 	serviceCruder, err := msh.serviceRepoBuilder.WithToken(token).Build()
 	if err != nil {
-		handleCommonErrorCases(errors.Wrap(err, "web.msh.Configure -> could not create service cruder"), rw, msh.logger)
+		handleCommonErrorCases(errors.Wrap(err, "web.msh.Configure: could not create service cruder"), rw, msh.logger)
 		return
 	}
 
-	err = msh.mobileIntegrationService.MountSecretForComponent(serviceCruder, mounter, componentType, componentName, secret)
-	if err != nil {
-		handleCommonErrorCases(errors.Wrap(err, "web.msh.Configure -> could not mount secret: '"+secret+"' into component: '"+componentType+":"+componentName+"'"), rw, msh.logger)
+	if err := msh.mobileIntegrationService.BindService(scClient, serviceCruder, clientServiceName, serviceName); err != nil {
+		handleCommonErrorCases(errors.Wrap(err, "web.msh.Configure: could not create binding for service : '"+serviceName+"' for target: '"+clientServiceName), rw, msh.logger)
 		return
 	}
-
-	return
 }
 
 // Deconfigure removes configuration for components binding
