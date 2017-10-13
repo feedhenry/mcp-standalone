@@ -9,6 +9,15 @@ import (
 	"strings"
 )
 
+const (
+	ServiceNameKeycloak   = "keycloak"
+	ServiceNameThreeScale = "3scale"
+	ServiceNameSync       = "fh-sync-server"
+	ServiceNameMobileCICD = "aerogear-digger"
+	ServiceNameCustom     = "custom"
+	IntegrationAPIKeys    = "mcp-mobile-keys"
+)
+
 // App represents a mobile app
 type App struct {
 	ID          string            `json:"id"`
@@ -196,8 +205,20 @@ const CordovaApp = "cordova"
 var ValidAppTypes = AppTypes{CordovaApp, AndroidApp, IOSApp}
 
 //TODO move out to config or env var
-//ServiceTypes are the service types that we are aware of and support
-var ServiceTypes = []string{"fh-sync-server", "keycloak", "aerogear-digger", "custom"}
+//ValidServiceTypes are the service types that we are aware of and support
+type ServiceTypes []string
+
+func (st ServiceTypes) Contains(service string) bool {
+	for _, s := range st {
+		if service == s {
+			return true
+		}
+	}
+	return false
+}
+
+var ValidServiceTypes = ServiceTypes{ServiceNameKeycloak, ServiceNameThreeScale, ServiceNameSync, ServiceNameMobileCICD, ServiceNameCustom}
+var ValidServicesAndIntegrations = ServiceTypes{ServiceNameKeycloak, ServiceNameThreeScale, ServiceNameSync, ServiceNameMobileCICD, ServiceNameCustom, IntegrationAPIKeys}
 
 const (
 	//AppAPIKeyHeader is the header sent by mobile clients when they want to interact with mcp

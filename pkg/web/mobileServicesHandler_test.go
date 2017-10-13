@@ -9,8 +9,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/feedhenry/mcp-standalone/pkg/k8s"
-
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/fake"
@@ -29,7 +27,7 @@ import (
 	ktesting "k8s.io/client-go/testing"
 )
 
-func setupMobileServiceHandler(kclient kubernetes.Interface) http.Handler {
+func setupMobileServiceHandler(kclient kubernetes.Interface, sccClientBuilder mobile.SCClientBuilder) http.Handler {
 	r := web.NewRouter()
 	logger := logrus.StandardLogger()
 	if nil == kclient {
@@ -41,10 +39,9 @@ func setupMobileServiceHandler(kclient kubernetes.Interface) http.Handler {
 		Fakeclient: kclient,
 	}
 	serviceCruder := data.NewServiceRepoBuilder(cb, "test", "test")
-	mountBuilder := k8s.NewMounterBuilder(cb, "test", "test")
 	userRepoBuilder := openshift.NewUserRepoBuilder("test", true)
 	authCheckerBuilder := openshift.NewAuthCheckerBuilder("test")
-	handler := web.NewMobileServiceHandler(logger, ms, mountBuilder, metricGetter, serviceCruder, userRepoBuilder, authCheckerBuilder)
+	handler := web.NewMobileServiceHandler(logger, ms, metricGetter, serviceCruder, userRepoBuilder, authCheckerBuilder, sccClientBuilder, "test")
 	web.MobileServiceRoute(r, handler)
 	return web.BuildHTTPHandler(r, nil)
 }
@@ -92,7 +89,7 @@ func TestListMobileServices(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
-			handler := setupMobileServiceHandler(tc.Client())
+			handler := setupMobileServiceHandler(tc.Client(), nil)
 			server := httptest.NewServer(handler)
 			defer server.Close()
 			res, err := http.Get(server.URL + "/mobileservice")
@@ -118,6 +115,7 @@ func TestConfigure(t *testing.T) {
 	cases := []struct {
 		Name       string
 		Client     func() kubernetes.Interface
+		SCCClient  func() mobile.SCClientBuilder
 		StatusCode int
 		Validate   func(r *http.Response, t *testing.T)
 	}{
@@ -193,6 +191,10 @@ func TestConfigure(t *testing.T) {
 				})
 				return client
 			},
+			SCCClient: func() mobile.SCClientBuilder {
+				client := mock.NewSCClient()
+				return &mock.SCClientBuilder{Client: client}
+			},
 			StatusCode: http.StatusOK,
 			Validate: func(r *http.Response, t *testing.T) {
 				bodyBytes, _ := ioutil.ReadAll(r.Body)
@@ -205,10 +207,10 @@ func TestConfigure(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
-			handler := setupMobileServiceHandler(tc.Client())
+			handler := setupMobileServiceHandler(tc.Client(), tc.SCCClient())
 			server := httptest.NewServer(handler)
 			defer server.Close()
-			res, err := http.Post(server.URL+"/mobileservice/configure/fh-sync-server/fh-sync-arinky-dink/keycloak-public-client", "text/plain", strings.NewReader(""))
+			res, err := http.Post(server.URL+"/mobileservice/configure/fh-sync-arinky-dink/keycloak-public-client", "text/plain", strings.NewReader(""))
 			if err != nil {
 				t.Fatal("did not expect an error requesting mobile services ", err)
 			}
@@ -228,6 +230,7 @@ func TestDeconfigure(t *testing.T) {
 		Client     func() kubernetes.Interface
 		StatusCode int
 		Validate   func(r *http.Response, t *testing.T)
+		SCCClient  func() mobile.SCClientBuilder
 	}{
 		{
 			Name: "test deconfiguring fh-sync-server for keycloak",
@@ -310,6 +313,10 @@ func TestDeconfigure(t *testing.T) {
 				})
 				return client
 			},
+			SCCClient: func() mobile.SCClientBuilder {
+				client := mock.NewSCClient()
+				return &mock.SCClientBuilder{Client: client}
+			},
 			StatusCode: http.StatusOK,
 			Validate: func(r *http.Response, t *testing.T) {
 				bodyBytes, _ := ioutil.ReadAll(r.Body)
@@ -322,10 +329,10 @@ func TestDeconfigure(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
-			handler := setupMobileServiceHandler(tc.Client())
+			handler := setupMobileServiceHandler(tc.Client(), tc.SCCClient())
 			server := httptest.NewServer(handler)
 			defer server.Close()
-			req, err := http.NewRequest("DELETE", server.URL+"/mobileservice/configure/fh-sync-server/fh-sync-arinky-dink/keycloak-public-client", strings.NewReader(""))
+			req, err := http.NewRequest("DELETE", server.URL+"/mobileservice/configure/fh-sync-arinky-dink/keycloak-public-client", strings.NewReader(""))
 			if err != nil {
 				t.Fatal("did not expect an error creating a http requets", err)
 			}
@@ -362,7 +369,7 @@ func TestCreateMobileService(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
-			handler := setupMobileServiceHandler(nil)
+			handler := setupMobileServiceHandler(nil, nil)
 			server := httptest.NewServer(handler)
 			defer server.Close()
 			bod, err := json.Marshal(tc.MobileService)
@@ -395,7 +402,7 @@ func TestMobileServiceHandler_Delete(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
-			handler := setupMobileServiceHandler(nil)
+			handler := setupMobileServiceHandler(nil, nil)
 			server := httptest.NewServer(handler)
 			defer server.Close()
 

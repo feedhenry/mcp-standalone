@@ -83,7 +83,6 @@ func main() {
 		incluster        = os.Getenv("KUBERNETES_SERVICE_HOST") != ""
 		//setup our builders
 		k8ClientBuilder    = k8s.NewClientBuilder(*namespace, k8host, insecureRequests)
-		mounterBuilder     = k8s.NewMounterBuilder(k8ClientBuilder, *namespace, token)
 		appRepoBuilder     = data.NewMobileAppRepoBuilder(k8ClientBuilder, *namespace, token)
 		svcRepoBuilder     = data.NewServiceRepoBuilder(k8ClientBuilder, *namespace, token)
 		authCheckerBuilder = openshift.NewAuthCheckerBuilder(k8host)
@@ -141,7 +140,8 @@ func main() {
 	{
 		integrationSvc := integration.NewMobileSevice(*namespace)
 		metricSvc := &metrics.MetricsService{}
-		svcHandler := web.NewMobileServiceHandler(logger, integrationSvc, mounterBuilder, metricSvc, svcRepoBuilder, userRepoBuilder, authCheckerBuilder)
+		scClientBuilder := k8s.NewServiceCatalogClientBuilder(k8ClientBuilder, defaultHTTPClient, token, *namespace, k8host)
+		svcHandler := web.NewMobileServiceHandler(logger, integrationSvc, metricSvc, svcRepoBuilder, userRepoBuilder, authCheckerBuilder, scClientBuilder, *namespace)
 		web.MobileServiceRoute(router, svcHandler)
 	}
 	//sdk httpHandler

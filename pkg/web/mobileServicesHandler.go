@@ -18,25 +18,29 @@ import (
 // MobileServiceHandler handles endpoints associated with mobile enabled services. It will list services in the namespace that
 // it knows about so that they can be rendered in the MCP
 type MobileServiceHandler struct {
+	namespace                string
 	logger                   *logrus.Logger
 	mobileIntegrationService *integration.MobileService
-	mounterBuilder           mobile.MounterBuilder
 	serviceRepoBuilder       mobile.ServiceRepoBuilder
 	metricsGetter            mobile.MetricsGetter
 	userRepoBuilder          mobile.UserRepoBuilder
 	authCheckerBuilder       mobile.AuthCheckerBuilder
+	sccClientBuilder         mobile.SCClientBuilder
 }
 
 // NewMobileServiceHandler returns a new MobileServiceHandler
-func NewMobileServiceHandler(logger *logrus.Logger, integrationService *integration.MobileService, mounterBuilder mobile.MounterBuilder, mg mobile.MetricsGetter, serviceRepoBuilder mobile.ServiceRepoBuilder, userRepoBuilder mobile.UserRepoBuilder, authCheckerBuilder mobile.AuthCheckerBuilder) *MobileServiceHandler {
+func NewMobileServiceHandler(logger *logrus.Logger, integrationService *integration.MobileService,
+	mg mobile.MetricsGetter, serviceRepoBuilder mobile.ServiceRepoBuilder, userRepoBuilder mobile.UserRepoBuilder, authCheckerBuilder mobile.AuthCheckerBuilder,
+	sccClientBuilder mobile.SCClientBuilder, namespace string) *MobileServiceHandler {
 	return &MobileServiceHandler{
 		logger: logger,
 		mobileIntegrationService: integrationService,
 		metricsGetter:            mg,
-		mounterBuilder:           mounterBuilder,
 		serviceRepoBuilder:       serviceRepoBuilder,
 		userRepoBuilder:          userRepoBuilder,
 		authCheckerBuilder:       authCheckerBuilder,
+		sccClientBuilder:         sccClientBuilder,
+		namespace:                namespace,
 	}
 }
 
@@ -124,6 +128,7 @@ func (msh *MobileServiceHandler) Create(rw http.ResponseWriter, req *http.Reques
 		handleCommonErrorCases(err, rw, msh.logger)
 		return
 	}
+	ms.External = msh.namespace == ms.Namespace
 	if err := serviceCruder.Create(ms); err != nil {
 		err = errors.Wrap(err, "failed to create mobile app")
 		handleCommonErrorCases(err, rw, msh.logger)
@@ -136,85 +141,71 @@ func (msh *MobileServiceHandler) Create(rw http.ResponseWriter, req *http.Reques
 func (msh *MobileServiceHandler) Configure(rw http.ResponseWriter, req *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	token := headers.DefaultTokenRetriever(req.Header)
-
 	params := mux.Vars(req)
-	componentType := strings.ToLower(params["componentType"])
-	componentName := strings.ToLower(params["componentName"])
-	secret := strings.ToLower(params["secret"])
-	if len(componentType) == 0 {
-		handleCommonErrorCases(errors.New("web.msh.Configure -> provided componentType must not be empty"), rw, msh.logger)
+	clientServiceName := strings.ToLower(params["clientService"])
+	serviceName := strings.ToLower(params["targetService"])
+	if len(serviceName) == 0 {
+		handleCommonErrorCases(errors.New("web.msh.Configure: provided targetService must not be empty"), rw, msh.logger)
 		return
 	}
-	if len(componentName) == 0 {
-		handleCommonErrorCases(errors.New("web.msh.Configure -> provided componentName must not be empty"), rw, msh.logger)
-		return
-	}
-	if len(secret) == 0 {
-		handleCommonErrorCases(errors.New("web.msh.Configure -> provided secret must not be empty"), rw, msh.logger)
+	if len(clientServiceName) == 0 {
+		handleCommonErrorCases(errors.New("web.msh.Configure: provided clientServiceName must not be empty"), rw, msh.logger)
 		return
 	}
 
-	mounter, err := msh.mounterBuilder.WithToken(token).Build()
+	scClient, err := msh.sccClientBuilder.WithToken(token).Build()
 	if err != nil {
-		handleCommonErrorCases(errors.Wrap(err, "web.msh.Configure -> could not create mounter"), rw, msh.logger)
+		err = errors.Wrap(err, "web.msh.Configure: failed to create the service catalog client")
+		handleCommonErrorCases(err, rw, msh.logger)
 		return
 	}
 
 	serviceCruder, err := msh.serviceRepoBuilder.WithToken(token).Build()
 	if err != nil {
-		handleCommonErrorCases(errors.Wrap(err, "web.msh.Configure -> could not create service cruder"), rw, msh.logger)
+		handleCommonErrorCases(errors.Wrap(err, "web.msh.Configure: could not create service cruder"), rw, msh.logger)
 		return
 	}
 
-	err = msh.mobileIntegrationService.MountSecretForComponent(serviceCruder, mounter, componentType, componentName, secret)
-	if err != nil {
-		handleCommonErrorCases(errors.Wrap(err, "web.msh.Configure -> could not mount secret: '"+secret+"' into component: '"+componentType+":"+componentName+"'"), rw, msh.logger)
+	if err := msh.mobileIntegrationService.BindMobileServices(scClient, serviceCruder, clientServiceName, serviceName); err != nil {
+		handleCommonErrorCases(errors.Wrap(err, "web.msh.Configure: could not create binding for service : '"+serviceName+"' for target: '"+clientServiceName), rw, msh.logger)
 		return
 	}
-
-	return
 }
 
 // Deconfigure removes configuration for components binding
 func (msh *MobileServiceHandler) Deconfigure(rw http.ResponseWriter, req *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	token := headers.DefaultTokenRetriever(req.Header)
-
 	params := mux.Vars(req)
-	componentType := strings.ToLower(params["componentType"])
-	componentName := strings.ToLower(params["componentName"])
-	secret := params["secret"]
-	if len(componentType) == 0 {
-		handleCommonErrorCases(errors.New("web.msh.Configure -> provided componentType must not be empty"), rw, msh.logger)
+	clientServiceName := strings.ToLower(params["clientService"])
+	serviceName := strings.ToLower(params["targetService"])
+	if len(serviceName) == 0 {
+		handleCommonErrorCases(errors.New("web.msh.Configure: provided targetService must not be empty"), rw, msh.logger)
 		return
 	}
-	if len(componentName) == 0 {
-		handleCommonErrorCases(errors.New("web.msh.Configure -> provided componentName must not be empty"), rw, msh.logger)
+	if len(clientServiceName) == 0 {
+		handleCommonErrorCases(errors.New("web.msh.Configure: provided clientServiceName must not be empty"), rw, msh.logger)
 		return
 	}
-	if len(secret) == 0 {
-		handleCommonErrorCases(errors.New("web.msh.Configure -> provided secret must not be empty"), rw, msh.logger)
+
+	scClient, err := msh.sccClientBuilder.WithToken(token).Build()
+	if err != nil {
+		err = errors.Wrap(err, "web.msh.Configure: failed to create the service catalog client")
+		handleCommonErrorCases(err, rw, msh.logger)
 		return
 	}
 
 	serviceCruder, err := msh.serviceRepoBuilder.WithToken(token).Build()
 	if err != nil {
-		handleCommonErrorCases(errors.Wrap(err, "web.msh.Deconfigure -> could not create service cruder"), rw, msh.logger)
+		handleCommonErrorCases(errors.Wrap(err, "web.msh.Configure: could not create service cruder"), rw, msh.logger)
 		return
 	}
 
-	unmounter, err := msh.mounterBuilder.WithToken(token).Build()
+	err = msh.mobileIntegrationService.UnBindMobileServices(scClient, serviceCruder, clientServiceName, serviceName)
 	if err != nil {
-		handleCommonErrorCases(errors.Wrap(err, "web.msh.Deconfigure -> could not create volume unmounter"), rw, msh.logger)
+		handleCommonErrorCases(errors.Wrap(err, "web.msh.Deconfigure: could not unbind: '"+clientServiceName+"' from "+serviceName), rw, msh.logger)
 		return
 	}
-
-	err = msh.mobileIntegrationService.UnmountSecretInComponent(serviceCruder, unmounter, componentType, componentName, secret)
-	if err != nil {
-		handleCommonErrorCases(errors.Wrap(err, "web.msh.Deconfigure -> could not unmount secret: '"+secret+"' from component: '"+componentType+":"+componentName+"'"), rw, msh.logger)
-		return
-	}
-	return
 }
 
 func (msh *MobileServiceHandler) Delete(rw http.ResponseWriter, req *http.Request) {

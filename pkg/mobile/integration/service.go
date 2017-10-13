@@ -1,10 +1,9 @@
 package integration
 
 import (
-	"fmt"
-
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
 	"github.com/pkg/errors"
+	"github.com/satori/go.uuid"
 )
 
 // MobileService holds the business logic for dealing with the mobile services and integrations with those services
@@ -29,10 +28,11 @@ func (ms *MobileService) FindByNames(names []string, serviceCruder mobile.Servic
 }
 
 // TODO move to the secret data read when discovering the services
+//TODO need to come up with a better way of representing this
 var capabilities = map[string]map[string][]string{
 	"fh-sync-server": map[string][]string{
 		"capabilities": {"data storage, data syncronisation"},
-		"integrations": {"keycloak", "mcp-mobile-keys", "3scale"},
+		"integrations": {mobile.ServiceNameKeycloak, mobile.IntegrationAPIKeys, mobile.ServiceNameThreeScale},
 	},
 	"keycloak": map[string][]string{
 		"capabilities": {"authentication, authorisation"},
@@ -54,7 +54,7 @@ var capabilities = map[string]map[string][]string{
 
 // DiscoverMobileServices will discover mobile services configured in the current namespace
 func (ms *MobileService) DiscoverMobileServices(serviceCruder mobile.ServiceCruder, authChecker mobile.AuthChecker, client mobile.ExternalHTTPRequester) ([]*mobile.Service, error) {
-	svc, err := serviceCruder.List(filterServices(mobile.ServiceTypes))
+	svc, err := serviceCruder.List(filterServices(mobile.ValidServiceTypes))
 	if err != nil {
 		return nil, errors.Wrap(err, "Attempting to discover mobile services.")
 	}
@@ -128,80 +128,85 @@ func filterServices(serviceTypes []string) func(att mobile.Attributer) bool {
 	}
 }
 
-//MountSecretForComponent will mount secret into component, returning any errors
-func (ms *MobileService) MountSecretForComponent(svcCruder mobile.ServiceCruder, mounter mobile.VolumeMounter, clientServiceType, clientServiceName, serviceSecret string) error {
-	//check secret exists and store for later update
-	service, err := svcCruder.Read(serviceSecret)
-	if err != nil {
-		return errors.Wrap(err, "failed to find secret: '"+serviceSecret+"'")
+func buildBindParams(from *mobile.Service, to *mobile.Service) map[string]interface{} {
+	var p = map[string]interface{}{}
+	p["credentials"] = map[string]string{
+		"route":          from.Host,
+		"service_secret": to.ID,
 	}
-
-	css, err := svcCruder.List(filterServices([]string{clientServiceType}))
-	if err != nil || len(css) == 0 {
-		return errors.New("failed to find secret for client service: '" + clientServiceType + "'")
-	}
-	cService := &mobile.Service{}
-	for _, cs := range css {
-		fmt.Printf("cservice name: %s", cs.Name)
-		if cs.Name == clientServiceName {
-			cService = cs
+	if from.Name == mobile.ServiceNameThreeScale {
+		p["apicast_route"] = from.Params["apicast_route"]
+		p["apicast_token"] = from.Params["token"]
+		p["apicast_service_id"] = from.Params["service_id"]
+		p["service_route"] = to.Host
+		p["service_name"] = to.Name
+		p["app_key"] = uuid.NewV4().String()
+		p["service_secret"] = to.ID
+	} else if from.Name == mobile.ServiceNameKeycloak {
+		p = map[string]interface{}{
+			"service_name": to.Name,
 		}
 	}
-	if cService.Name != clientServiceName {
-		return errors.New("integration.ms.MountSecretForComponent -> Could not find service of type '" + clientServiceType + "' with name '" + clientServiceName + "'")
-	}
+	return p
+}
 
-	err = mounter.Mount(service, cService)
+// BindMobileServices will find the mobile service backed by a secret. It will use the values here to perform the binding
+func (ms *MobileService) BindMobileServices(sccClient mobile.SCCInterface, svcCruder mobile.ServiceCruder, targetMobileServiceID, bindableMobileServiceID string) error {
+	targetService, err := svcCruder.Read(targetMobileServiceID)
 	if err != nil {
-		return errors.Wrap(err, "failed to mount secret '"+serviceSecret+"' into service '"+clientServiceType+"'")
+		return errors.Wrap(err, "failed to read target mobile bindableMobileServiceID "+targetMobileServiceID)
 	}
-
-	clientServiceID := cService.ID
-
-	//update secret with integration enabled
-	enabled := map[string]string{service.Type: "true"}
-	if err := svcCruder.UpdateEnabledIntegrations(clientServiceID, enabled); err != nil {
-		return errors.Wrap(err, "failed to update enabled services after mounting secret")
+	mobileService, err := svcCruder.Read(bindableMobileServiceID)
+	if err != nil {
+		return errors.Wrap(err, "failed to read mobile bindableMobileServiceID "+bindableMobileServiceID)
 	}
-
+	var targetSvcNamespace = ms.namespace
+	var bindableSvcNamespace = ms.namespace
+	if targetService.Namespace != "" {
+		targetSvcNamespace = targetService.Namespace
+	}
+	if mobileService.Namespace != "" {
+		bindableSvcNamespace = mobileService.Namespace
+	}
+	bindParams := buildBindParams(mobileService, targetService)
+	if mobile.IntegrationAPIKeys == mobileService.Name {
+		if err := sccClient.AddMobileApiKeys(targetService.Name, targetSvcNamespace); err != nil {
+			return errors.Wrap(err, "failed to add mobile API Keys to bindableMobileServiceID "+targetMobileServiceID)
+		}
+	} else {
+		// ensure service instance provisioned in the namespace
+		if err := sccClient.BindToService(mobileService.Name, targetService.Name, bindParams, bindableSvcNamespace, targetSvcNamespace); err != nil {
+			return errors.Wrap(err, "Binding "+bindableMobileServiceID+" to "+targetMobileServiceID+" failed")
+		}
+	}
+	if err := svcCruder.UpdateEnabledIntegrations(targetMobileServiceID, map[string]string{mobileService.Name: "true"}); err != nil {
+		return errors.Wrap(err, "updating the enabled integrations for bindableMobileServiceID "+targetMobileServiceID+" failed ")
+	}
 	return nil
 }
 
-//UnmountSecretInComponent will unmount secret from component, so it can be no longer use serviceName, returning any errors
-func (ms *MobileService) UnmountSecretInComponent(svcCruder mobile.ServiceCruder, unmounter mobile.VolumeUnmounter, clientServiceType, clientServiceName, serviceSecret string) error {
-	//check secret exists and store for later update
-	service, err := svcCruder.Read(serviceSecret)
+func (ms *MobileService) UnBindMobileServices(scClient mobile.SCCInterface, svcCruder mobile.ServiceCruder, targetMobileServiceID, bindableMobileServiceID string) error {
+	targetService, err := svcCruder.Read(targetMobileServiceID)
 	if err != nil {
-		return errors.Wrap(err, "failed to find secret: '"+serviceSecret+"'")
+		return errors.Wrap(err, "failed to read target mobile service "+targetMobileServiceID)
 	}
-
-	//find the clientService secret name
-	css, err := svcCruder.List(filterServices([]string{clientServiceType}))
-	if err != nil || len(css) == 0 {
-		return errors.New("failed to find secret for client service: '" + clientServiceType + "'")
+	mobileService, err := svcCruder.Read(bindableMobileServiceID)
+	if err != nil {
+		return errors.Wrap(err, "failed to read mobile bindableMobileServiceID "+bindableMobileServiceID)
 	}
-	cService := &mobile.Service{}
-	for _, cs := range css {
-		if cs.Name == clientServiceName {
-			cService = cs
+	var targetSvcNamespace = ms.namespace
+	if targetService.Namespace != "" {
+		targetSvcNamespace = targetService.Namespace
+	}
+	if mobile.IntegrationAPIKeys == mobileService.Name {
+		if err := scClient.RemoveMobileApiKeys(targetService.Name, targetSvcNamespace); err != nil {
+			return errors.Wrap(err, "failed to remove mobile API Keys from service "+targetMobileServiceID)
 		}
+	} else if err := scClient.UnBindFromService(mobileService.Name, targetService.Name, targetSvcNamespace); err != nil {
+		return errors.Wrap(err, "UnBinding Service from "+mobileService.Name+" failed")
 	}
-	if cService.Name != clientServiceName {
-		return errors.New("integration.ms.UnmountSecretForComponent -> Could not find service of type '" + clientServiceType + "' with name '" + clientServiceName + "'")
+	if err := svcCruder.UpdateEnabledIntegrations(targetMobileServiceID, map[string]string{mobileService.Name: "false"}); err != nil {
+		return errors.Wrap(err, "updating the enabled integrations for service "+targetMobileServiceID+" failed ")
 	}
-
-	err = unmounter.Unmount(service, cService)
-	if err != nil {
-		return errors.Wrap(err, "failed to unmount secret '"+serviceSecret+"' from component '"+clientServiceType+"'")
-	}
-
-	clientServiceId := cService.ID
-
-	//update secret with integration enabled
-	disabled := map[string]string{service.Type: "false"}
-	if err := svcCruder.UpdateEnabledIntegrations(clientServiceId, disabled); err != nil {
-		return errors.Wrap(err, "failed to update enabled services after unmounting secret")
-	}
-
 	return nil
 }
