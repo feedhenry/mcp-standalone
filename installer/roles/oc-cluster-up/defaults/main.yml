@@ -5,6 +5,8 @@ service_catalog: "true"
 
 hawkular_metrics: "false"
 
+alias_interface: "true"
+
 host_config_dir: "{{playbook_dir}}/../ui"
 
 cluster_version: v3.6.0
