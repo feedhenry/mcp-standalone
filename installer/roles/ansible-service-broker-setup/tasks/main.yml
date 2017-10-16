@@ -25,6 +25,8 @@
   when:
     - dockerhub_org is defined
     - dockerhub_org != 'feedhenry'
+    - apb_sync is defined
+    - apb_sync
 
 # tasks file for ansible-service-broker-setup
 
