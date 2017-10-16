@@ -67,6 +67,44 @@
   line-height: 0;
 }
 
+@import "mp-tabsets.less";
+
+.object-tab-title {
+    position: relative;
+    min-height: 1px;
+
+    h1 {
+      margin-top: 0px;
+      margin-left: 0px;
+      margin-right: 0px;
+      margin-bottom: 10px;
+      line-height: 60px;
+      border-bottom: 1px solid #ccc !important;
+    }
+}
+
+
+@media (min-width: 768px) {
+  .object-tab-title {
+    float: left;
+    width: 100%;
+  }
+}
+
+@media (min-width: 992px) {
+  .object-tab-title {
+    float: left;
+    width: 33.33333333%;
+  }
+
+}
+
+.service-dashboard {
+  .dashboard-details {
+    margin: 0px;
+  }
+}
+
 .control-panel {
 
   .modal-dialog {

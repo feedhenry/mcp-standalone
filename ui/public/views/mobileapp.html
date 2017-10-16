@@ -8,20 +8,20 @@
         <div class="container-fluid">
           <breadcrumbs breadcrumbs="breadcrumbs"></breadcrumbs>
           <alerts alerts="alerts"></alerts>
-          <div>
-            <h1>
-              <span class="fa icon {{app.metadata.icon}} card-pf-icon-circle">&nbsp;</span>{{app.name}}
-              <small class="meta" ng-if="app">created <span am-time-ago="app.metadata.created"></span></small>
-            </h1>
-          </div>
         </div>
       </div>
       <div class="middle-content mobile-content" persist-tab-state>
         <div class="container-fluid">
           <div class="row">
             <div class="col-md-12">
-              <uib-tabset>
-                <uib-tab active="selectedTab.sdk" select="setView('view')">
+              <div class="object-tab-title">
+                <h1>
+                  <span class="fa icon {{app.metadata.icon}} card-pf-icon-circle">&nbsp;</span>{{app.name}}
+                  <small class="meta" ng-if="app">created <span am-time-ago="app.metadata.created"></span></small>
+                </h1>
+              </div>
+              <uib-tabset justified=true class="mp-tabsets">
+                <uib-tab active="sdk" select="setView('view')">
                   <uib-tab-heading>SDK</uib-tab-heading>
                   <h3>Core SDK Setup</h3>
                   <p>

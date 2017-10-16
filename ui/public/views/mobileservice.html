@@ -8,172 +8,168 @@
         <div class="container-fluid">
           <breadcrumbs breadcrumbs="breadcrumbs"></breadcrumbs>
           <alerts alerts="alerts"></alerts>
-          <div>
-            <h1>
-              {{service.name}}
-            </h1>
-          </div>
         </div>
       </div>
       <div class="middle-content mobile-content" persist-tab-state>
         <div class="container-fluid">
           <div class="row">
             <div class="col-md-12">
-              <uib-tabset>
-                <uib-tab active="selectedTab.dashboard" ng-if="service">
+              <div class="object-tab-title">
+                <h1>
+                  {{service.name}}
+                </h1>
+              </div>
+              <uib-tabset class="mp-tabsets" justified=true>
+                <uib-tab ng-if="service">
                   <uib-tab-heading>Dashboard</uib-tab-heading>
-                  <h2>Details</h2>
-                  <dl class="dl-horizontal left">
-                    <dt>Description:</dt>
-                    <dd>{{ service.description }}</dd>
-                    <dt>Dashboard URL:</dt>
-                    <dd><a href="{{ service.host }}">{{service.host}}</a></dd>
-                    <dt ng-repeat-start="(key, value) in service.params">{{ key }}</dt>
-                    <dd ng-repeat-end>{{ value }}</dd>
-                  </dl>
+                  <div class="service-dashboard">
+                    <h2 class="dashboard-details">Details</h2>
+                    <dl class="dl-horizontal left">
+                      <dt>Description:</dt>
+                      <dd>{{ service.description }}</dd>
+                      <dt>Dashboard URL:</dt>
+                      <dd><a href="{{ service.host }}">{{service.host}}</a></dd>
+                      <dt ng-repeat-start="(key, value) in service.params">{{ key }}</dt>
+                      <dd ng-repeat-end>{{ value }}</dd>
+                    </dl>
 
-                  <h2>Stats</h2>
-                  <div ng-if="service.name != 'fh-sync-server' && service.name != 'keycloak'" ng-repeat="chart in charts" class="col-xs-12 col-sm-6 col-md-3 mcp-dashboard-chart">
-                    <h3>{{chart.title}}</h3>
-                    <div id="line-chart-{{chart.title}}" class="line-chart-pf"></div>
-                  </div>
-
-                  <div ng-if-start="service.name == 'keycloak'" class="col-xs-6 col-md-6 col-lg-6">
-                    <div class="card-pf card-pf-accented card-pf-aggregate-status">
-                      <h2 class="card-pf-title">
-                        <span class="fa fa-shield"></span><span class="card-pf-aggregate-status-count">{{keycloakMetrics.logins.total}}</span> Logins
-                      </h2>
-                      <div class="card-pf-body">
-                        <p class="card-pf-aggregate-status-notifications">
-                          <span class="card-pf-aggregate-status-notification"><span class="pficon pficon-ok"></span>{{keycloakMetrics.logins.success}}</span>
-                          <span class="card-pf-aggregate-status-notification"><span class="pficon pficon-error-circle-o"></span>{{keycloakMetrics.logins.error}}</span>
-                        </p>
-                      </div>
+                    <h2>Stats</h2>
+                    <div ng-if="service.name != 'fh-sync-server' && service.name != 'keycloak'" ng-repeat="chart in charts" class="col-xs-12 col-sm-6 col-md-3 mcp-dashboard-chart">
+                      <h3>{{chart.title}}</h3>
+                      <div id="line-chart-{{chart.title}}" class="line-chart-pf"></div>
                     </div>
-                  </div>
-                  <div ng-if-end class="col-xs-6 col-md-6 col-lg-6">
-                    <div class="card-pf card-pf-accented card-pf-aggregate-status">
-                      <h2 class="card-pf-title">
-                        <span class="fa fa-shield"></span><span class="card-pf-aggregate-status-count">{{keycloakMetrics.registrations.total}}</span> Registrations
-                      </h2>
-                      <div class="card-pf-body">
-                        <p class="card-pf-aggregate-status-notifications">
-                          <span class="card-pf-aggregate-status-notification"><span class="pficon pficon-ok"></span>{{keycloakMetrics.registrations.success}}</span>
-                          <span class="card-pf-aggregate-status-notification"><span class="pficon pficon-error-circle-o"></span>{{keycloakMetrics.registrations.error}}</span>
-                        </p>
-                      </div>
-                    </div>
-                  </div>
 
-                  <div ng-if="service.name == 'fh-sync-server'" class="col-12">
-
-                    <div class="card-pf card-pf-utilization">
-                      <div class="card-pf-heading">
-                        <p class="card-pf-heading-details">Last 30 readings</p>
+                    <div ng-if-start="service.name == 'keycloak'" class="col-xs-6 col-md-6 col-lg-6">
+                      <div class="card-pf card-pf-accented card-pf-aggregate-status">
                         <h2 class="card-pf-title">
-                          Queues &amp; Workers
+                          <span class="fa fa-shield"></span><span class="card-pf-aggregate-status-count">{{keycloakMetrics.logins.total}}</span> Logins
                         </h2>
-                      </div>
-                      <div class="card-pf-body">
-                        <div class="row">
-                          <div class="col-xs-12 col-sm-4 col-md-4">
-                            <h3 class="card-pf-subtitle">Pending Queue</h3>
-                            <p class="card-pf-utilization-details">
-                              <span class="card-pf-utilization-card-details-count">{{pending_worker_queue_count_total}}</span>
-                              <span class="card-pf-utilization-card-details-line-1"></span>
-                              <span class="card-pf-utilization-card-details-line-2">items processed</span>
-                            </p>
-                            <div class="chart-pf-sparkline" id="chart-pf-pending_worker_queue_count"></div>
-                          </div>
-                          <div class="col-xs-12 col-sm-4 col-md-4">
-                            <h3 class="card-pf-subtitle">Ack Queue</h3>
-                            <p class="card-pf-utilization-details">
-                              <span class="card-pf-utilization-card-details-count">{{ack_worker_queue_count_total}}</span>
-                              <span class="card-pf-utilization-card-details-line-1"></span>
-                              <span class="card-pf-utilization-card-details-line-2">items processed</span>
-                            </p>
-                            <div class="chart-pf-sparkline" id="chart-pf-ack_worker_queue_count"></div>
-                          </div>
-                          <div class="col-xs-12 col-sm-4 col-md-4">
-                            <h3 class="card-pf-subtitle">Sync Queue</h3>
-                            <p class="card-pf-utilization-details">
-                              <span class="card-pf-utilization-card-details-count">{{sync_worker_queue_count_total}}</span>
-                              <span class="card-pf-utilization-card-details-line-1"></span>
-                              <span class="card-pf-utilization-card-details-line-2">items processed</span>
-                            </p>
-                            <div class="chart-pf-sparkline" id="chart-pf-sync_worker_queue_count"></div>
-                          </div>
-                        </div>
-                        <div class="row">
-                          <div class="col-xs-12 col-sm-4 col-md-4">
-                            <h3 class="card-pf-subtitle">Pending Worker</h3>
-                            <p class="card-pf-utilization-details">
-                              <span class="card-pf-utilization-card-details-count">{{pending_worker_process_time_ms_avg}}</span>
-                              <span class="card-pf-utilization-card-details-line-1"></span>
-                              <span class="card-pf-utilization-card-details-line-2">ms avg process time</span>
-                            </p>
-                            <div class="chart-pf-sparkline" id="chart-pf-pending_worker_process_time_ms"></div>
-                          </div>
-                          <div class="col-xs-12 col-sm-4 col-md-4">
-                            <h3 class="card-pf-subtitle">Ack Worker</h3>
-                            <p class="card-pf-utilization-details">
-                              <span class="card-pf-utilization-card-details-count">{{ack_worker_process_time_ms_avg}}</span>
-                              <span class="card-pf-utilization-card-details-line-1"></span>
-                              <span class="card-pf-utilization-card-details-line-2">ms avg process time</span>
-                            </p>
-                            <div class="chart-pf-sparkline" id="chart-pf-ack_worker_process_time_ms"></div>
-                          </div>
-                          <div class="col-xs-12 col-sm-4 col-md-4">
-                            <h3 class="card-pf-subtitle">Sync Worker</h3>
-                            <p class="card-pf-utilization-details">
-                              <span class="card-pf-utilization-card-details-count">{{sync_worker_process_time_ms_avg}}</span>
-                              <span class="card-pf-utilization-card-details-line-1"></span>
-                              <span class="card-pf-utilization-card-details-line-2">ms avg process time</span>
-                            </p>
-                            <div class="chart-pf-sparkline" id="chart-pf-sync_worker_process_time_ms"></div>
-                          </div>
+                        <div class="card-pf-body">
+                          <p class="card-pf-aggregate-status-notifications">
+                            <span class="card-pf-aggregate-status-notification"><span class="pficon pficon-ok"></span>{{keycloakMetrics.logins.success}}</span>
+                            <span class="card-pf-aggregate-status-notification"><span class="pficon pficon-error-circle-o"></span>{{keycloakMetrics.logins.error}}</span>
+                          </p>
                         </div>
                       </div>
                     </div>
-                    
-                    <div class="card-pf card-pf-utilization">
-                      <div class="card-pf-heading">
-                        <p class="card-pf-heading-details">Last 30 readings</p>
+                    <div ng-if-end class="col-xs-6 col-md-6 col-lg-6">
+                      <div class="card-pf card-pf-accented card-pf-aggregate-status">
                         <h2 class="card-pf-title">
-                          Timings (milliseconds)
+                          <span class="fa fa-shield"></span><span class="card-pf-aggregate-status-count">{{keycloakMetrics.registrations.total}}</span> Registrations
                         </h2>
+                        <div class="card-pf-body">
+                          <p class="card-pf-aggregate-status-notifications">
+                            <span class="card-pf-aggregate-status-notification"><span class="pficon pficon-ok"></span>{{keycloakMetrics.registrations.success}}</span>
+                            <span class="card-pf-aggregate-status-notification"><span class="pficon pficon-error-circle-o"></span>{{keycloakMetrics.registrations.error}}</span>
+                          </p>
+                        </div>
                       </div>
-                      <div class="card-pf-body">
-                        <div class="row">
-                          <div class="col-12">
-                            <div class="col-12mcp-dashboard-chart">
-                              <div id="line-chart-timings" class="line-chart-pf"></div>
+                    </div>
+
+                    <div ng-if="service.name == 'fh-sync-server'" class="col-12">
+
+                      <div class="card-pf card-pf-utilization">
+                        <div class="card-pf-heading">
+                          <p class="card-pf-heading-details">Last 30 readings</p>
+                          <h2 class="card-pf-title">
+                            Queues &amp; Workers
+                          </h2>
+                        </div>
+                        <div class="card-pf-body">
+                          <div class="row">
+                            <div class="col-xs-12 col-sm-4 col-md-4">
+                              <h3 class="card-pf-subtitle">Pending Queue</h3>
+                              <p class="card-pf-utilization-details">
+                                <span class="card-pf-utilization-card-details-count">{{pending_worker_queue_count_total}}</span>
+                                <span class="card-pf-utilization-card-details-line-1"></span>
+                                <span class="card-pf-utilization-card-details-line-2">items processed</span>
+                              </p>
+                              <div class="chart-pf-sparkline" id="chart-pf-pending_worker_queue_count"></div>
+                            </div>
+                            <div class="col-xs-12 col-sm-4 col-md-4">
+                              <h3 class="card-pf-subtitle">Ack Queue</h3>
+                              <p class="card-pf-utilization-details">
+                                <span class="card-pf-utilization-card-details-count">{{ack_worker_queue_count_total}}</span>
+                                <span class="card-pf-utilization-card-details-line-1"></span>
+                                <span class="card-pf-utilization-card-details-line-2">items processed</span>
+                              </p>
+                              <div class="chart-pf-sparkline" id="chart-pf-ack_worker_queue_count"></div>
+                            </div>
+                            <div class="col-xs-12 col-sm-4 col-md-4">
+                              <h3 class="card-pf-subtitle">Sync Queue</h3>
+                              <p class="card-pf-utilization-details">
+                                <span class="card-pf-utilization-card-details-count">{{sync_worker_queue_count_total}}</span>
+                                <span class="card-pf-utilization-card-details-line-1"></span>
+                                <span class="card-pf-utilization-card-details-line-2">items processed</span>
+                              </p>
+                              <div class="chart-pf-sparkline" id="chart-pf-sync_worker_queue_count"></div>
+                            </div>
+                          </div>
+                          <div class="row">
+                            <div class="col-xs-12 col-sm-4 col-md-4">
+                              <h3 class="card-pf-subtitle">Pending Worker</h3>
+                              <p class="card-pf-utilization-details">
+                                <span class="card-pf-utilization-card-details-count">{{pending_worker_process_time_ms_avg}}</span>
+                                <span class="card-pf-utilization-card-details-line-1"></span>
+                                <span class="card-pf-utilization-card-details-line-2">ms avg process time</span>
+                              </p>
+                              <div class="chart-pf-sparkline" id="chart-pf-pending_worker_process_time_ms"></div>
+                            </div>
+                            <div class="col-xs-12 col-sm-4 col-md-4">
+                              <h3 class="card-pf-subtitle">Ack Worker</h3>
+                              <p class="card-pf-utilization-details">
+                                <span class="card-pf-utilization-card-details-count">{{ack_worker_process_time_ms_avg}}</span>
+                                <span class="card-pf-utilization-card-details-line-1"></span>
+                                <span class="card-pf-utilization-card-details-line-2">ms avg process time</span>
+                              </p>
+                              <div class="chart-pf-sparkline" id="chart-pf-ack_worker_process_time_ms"></div>
+                            </div>
+                            <div class="col-xs-12 col-sm-4 col-md-4">
+                              <h3 class="card-pf-subtitle">Sync Worker</h3>
+                              <p class="card-pf-utilization-details">
+                                <span class="card-pf-utilization-card-details-count">{{sync_worker_process_time_ms_avg}}</span>
+                                <span class="card-pf-utilization-card-details-line-1"></span>
+                                <span class="card-pf-utilization-card-details-line-2">ms avg process time</span>
+                              </p>
+                              <div class="chart-pf-sparkline" id="chart-pf-sync_worker_process_time_ms"></div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div class="card-pf card-pf-utilization">
+                        <div class="card-pf-heading">
+                          <p class="card-pf-heading-details">Last 30 readings</p>
+                          <h2 class="card-pf-title">
+                            Timings (milliseconds)
+                          </h2>
+                        </div>
+                        <div class="card-pf-body">
+                          <div class="row">
+                            <div class="col-12">
+                              <div class="col-12mcp-dashboard-chart">
+                                <div id="line-chart-timings" class="line-chart-pf"></div>
+                              </div>
                             </div>
                           </div>
                         </div>
                       </div>
                     </div>
-                  </div>
 
-                  <div ng-if="charts.length == 0">
-                    <div class="empty-state-message text-center">
-                      <h2>No Stats currently available for this service</h2>
+                    <div ng-if="charts.length == 0">
+                      <div class="empty-state-message text-center">
+                        <h2>No Stats currently available for this service</h2>
+                      </div>
                     </div>
                   </div>
-
                 </uib-tab>
-                <uib-tab active="selectedTab.integrations" ng-if="service">
-                  <uib-tab-heading>Integrations</uib-tab-heading>
-                  <uib-tabset>
-                    <uib-tab active="">
-                      <uib-tab-heading>Mobile App Integrations</uib-tab-heading>
-                      <ng-include src="'extensions/mcp/views/integration-docs/mobile-app-integration.html'"></ng-include>
-                    </uib-tab>
-                    <uib-tab active="">
-                      <uib-tab-heading>Mobile Service Integrations</uib-tab-heading>
-                      <ng-include src="'extensions/mcp/views/integration-docs/mobile-service-integration.html'"></ng-include>
-                    </uib-tab>
-                  </uib-tabset>
+                <uib-tab>
+                  <uib-tab-heading>App Integrations</uib-tab-heading>
+                  <ng-include src="'extensions/mcp/views/integration-docs/mobile-app-integration.html'"></ng-include>
+                </uib-tab>
+                <uib-tab ng-if="integrations.length">
+                  <uib-tab-heading>Services Integrations</uib-tab-heading>
+                  <ng-include src="'extensions/mcp/views/integration-docs/mobile-service-integration.html'"></ng-include>
                 </uib-tab>
               </uib-tabset>
             </div>
