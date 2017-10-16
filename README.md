@@ -208,7 +208,7 @@ Under `Mobile Service Integrations`, click on `Create Integration` next to `Keyc
 
 Create a cluster pointing at your own docker organisation, this will also copy all the existing APBs in feedhenry to the dockerhub_org:
 ```
-ansible-playbook playbook.yml -e "dockerhub_username=<dockerusername>" -e "dockerhub_password=<dockerpassword>" -e "dockerhub_org=<USE_THIS_VALUE>" --ask-become-pass
+ansible-playbook playbook.yml -e "dockerhub_username=<dockerusername>" -e "dockerhub_password=<dockerpassword>" -e "dockerhub_org=<USE_THIS_VALUE>" -e "apb_sync=true" --ask-become-pass
 ```
 g
 If the APB you wish to develop already exists in the feedhenry organisation, then syncing that APB can be skipped by adding:
