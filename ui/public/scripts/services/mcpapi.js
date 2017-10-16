@@ -232,8 +232,6 @@ angular.module('mobileControlPanelApp').service('mcpApi', [
           '/' +
           params.component +
           '/' +
-          service.name +
-          '/' +
           params.service;
         return $http.delete(url, requestConfig).then(res => {
           return res.data;

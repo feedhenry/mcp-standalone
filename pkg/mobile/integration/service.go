@@ -131,9 +131,37 @@ func filterServices(serviceTypes []string) func(att mobile.Attributer) bool {
 
 func (ms *MobileService) BindService(sccClient mobile.SCCInterface, svcCruder mobile.ServiceCruder, targetServiceName, service string) error {
 	if mobile.ServiceNameKeycloak == service {
-		return sccClient.BindServiceToKeyCloak(targetServiceName, ms.namespace)
+		if err := sccClient.BindServiceToKeyCloak(targetServiceName, ms.namespace); err != nil {
+			return errors.Wrap(err, "Binding Service to keycloak failed")
+		}
+		targetService, err := svcCruder.List(filterServices([]string{targetServiceName}))
+		if err != nil || len(targetService) == 0 {
+			return errors.New("failed to find client service: '" + targetServiceName + "'")
+		}
+		if err := svcCruder.UpdateEnabledIntegrations(targetService[0].ID, map[string]string{service: "true"}); err != nil {
+			return errors.Wrap(err, "updating the enabled integrations for service "+targetServiceName+" failed ")
+		}
+		return nil
 	}
+
 	return errors.New("unknown service type " + service)
+}
+
+func (ms *MobileService) UnBindService(scClient mobile.SCCInterface, svcCruder mobile.ServiceCruder, targetServiceName, service string) error {
+	if mobile.ServiceNameKeycloak == service {
+		if err := scClient.UnBindServiceToKeyCloak(targetServiceName, ms.namespace); err != nil {
+			return errors.Wrap(err, "UnBinding Service from keycloak failed")
+		}
+		targetService, err := svcCruder.List(filterServices([]string{targetServiceName}))
+		if err != nil || len(targetService) == 0 {
+			return errors.New("failed to find client service: '" + targetServiceName + "'")
+		}
+		if err := svcCruder.UpdateEnabledIntegrations(targetService[0].ID, map[string]string{service: "false"}); err != nil {
+			return errors.Wrap(err, "updating the enabled integrations for service "+targetServiceName+" failed ")
+		}
+		return nil
+	}
+	return nil
 }
 
 //MountSecretForComponent will mount secret into component, returning any errors

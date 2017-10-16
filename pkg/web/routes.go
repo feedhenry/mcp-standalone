@@ -78,7 +78,7 @@ func MobileServiceRoute(r *mux.Router, handler *MobileServiceHandler) {
 	r.HandleFunc("/mobileservice/{name}", prometheus.InstrumentHandlerFunc("mobileservice read", handler.Read)).Methods("GET")
 	r.HandleFunc("/mobileservice/{name}", prometheus.InstrumentHandlerFunc("mobileservice delete ", handler.Delete)).Methods("DELETE")
 	r.HandleFunc("/mobileservice/configure/{clientService}/{targetService}", prometheus.InstrumentHandlerFunc("mobileservices configuration", handler.Configure)).Methods("POST")
-	r.HandleFunc("/mobileservice/configure/{componentType}/{componentName}/{secret}", prometheus.InstrumentHandlerFunc("mobileservices remove configuration", handler.Deconfigure)).Methods("DELETE")
+	r.HandleFunc("/mobileservice/configure/{clientService}/{targetService}", prometheus.InstrumentHandlerFunc("mobileservices remove configuration", handler.Deconfigure)).Methods("DELETE")
 	r.HandleFunc("/mobileservice/{name}/metrics", prometheus.InstrumentHandlerFunc("mobileservices get metrics", handler.GetMetrics)).Methods("GET")
 }
 

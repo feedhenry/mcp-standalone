@@ -67,6 +67,7 @@ type SCClientBuilder interface {
 
 type SCCInterface interface {
 	BindServiceToKeyCloak(targetSvcName, namespace string) error
+	UnBindServiceToKeyCloak(targetSvcName, namespace string)error
 }
 
 type OSClientBuilder interface {

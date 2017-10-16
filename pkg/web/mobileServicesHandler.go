@@ -20,7 +20,6 @@ import (
 type MobileServiceHandler struct {
 	logger                   *logrus.Logger
 	mobileIntegrationService *integration.MobileService
-	mounterBuilder           mobile.MounterBuilder
 	serviceRepoBuilder       mobile.ServiceRepoBuilder
 	metricsGetter            mobile.MetricsGetter
 	userRepoBuilder          mobile.UserRepoBuilder
@@ -29,14 +28,13 @@ type MobileServiceHandler struct {
 }
 
 // NewMobileServiceHandler returns a new MobileServiceHandler
-func NewMobileServiceHandler(logger *logrus.Logger, integrationService *integration.MobileService, mounterBuilder mobile.MounterBuilder,
+func NewMobileServiceHandler(logger *logrus.Logger, integrationService *integration.MobileService,
 	mg mobile.MetricsGetter, serviceRepoBuilder mobile.ServiceRepoBuilder, userRepoBuilder mobile.UserRepoBuilder, authCheckerBuilder mobile.AuthCheckerBuilder,
 	sccClientBuilder mobile.SCClientBuilder) *MobileServiceHandler {
 	return &MobileServiceHandler{
 		logger: logger,
 		mobileIntegrationService: integrationService,
 		metricsGetter:            mg,
-		mounterBuilder:           mounterBuilder,
 		serviceRepoBuilder:       serviceRepoBuilder,
 		userRepoBuilder:          userRepoBuilder,
 		authCheckerBuilder:       authCheckerBuilder,
@@ -175,42 +173,36 @@ func (msh *MobileServiceHandler) Configure(rw http.ResponseWriter, req *http.Req
 func (msh *MobileServiceHandler) Deconfigure(rw http.ResponseWriter, req *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 	token := headers.DefaultTokenRetriever(req.Header)
-
 	params := mux.Vars(req)
-	componentType := strings.ToLower(params["componentType"])
-	componentName := strings.ToLower(params["componentName"])
-	secret := params["secret"]
-	if len(componentType) == 0 {
-		handleCommonErrorCases(errors.New("web.msh.Configure -> provided componentType must not be empty"), rw, msh.logger)
+	clientServiceName := strings.ToLower(params["clientService"])
+	serviceName := strings.ToLower(params["targetService"])
+	if len(serviceName) == 0 {
+		handleCommonErrorCases(errors.New("web.msh.Configure: provided targetService must not be empty"), rw, msh.logger)
 		return
 	}
-	if len(componentName) == 0 {
-		handleCommonErrorCases(errors.New("web.msh.Configure -> provided componentName must not be empty"), rw, msh.logger)
+	if len(clientServiceName) == 0 {
+		handleCommonErrorCases(errors.New("web.msh.Configure: provided clientServiceName must not be empty"), rw, msh.logger)
 		return
 	}
-	if len(secret) == 0 {
-		handleCommonErrorCases(errors.New("web.msh.Configure -> provided secret must not be empty"), rw, msh.logger)
+
+	scClient, err := msh.sccClientBuilder.WithToken(token).Build()
+	if err != nil {
+		err = errors.Wrap(err, "web.msh.Configure: failed to create the service catalog client")
+		handleCommonErrorCases(err, rw, msh.logger)
 		return
 	}
 
 	serviceCruder, err := msh.serviceRepoBuilder.WithToken(token).Build()
 	if err != nil {
-		handleCommonErrorCases(errors.Wrap(err, "web.msh.Deconfigure -> could not create service cruder"), rw, msh.logger)
+		handleCommonErrorCases(errors.Wrap(err, "web.msh.Configure: could not create service cruder"), rw, msh.logger)
 		return
 	}
 
-	unmounter, err := msh.mounterBuilder.WithToken(token).Build()
+	err = msh.mobileIntegrationService.UnBindService(scClient, serviceCruder, clientServiceName, serviceName)
 	if err != nil {
-		handleCommonErrorCases(errors.Wrap(err, "web.msh.Deconfigure -> could not create volume unmounter"), rw, msh.logger)
+		handleCommonErrorCases(errors.Wrap(err, "web.msh.Deconfigure: could not unbind: '"+clientServiceName+"' from "+serviceName), rw, msh.logger)
 		return
 	}
-
-	err = msh.mobileIntegrationService.UnmountSecretInComponent(serviceCruder, unmounter, componentType, componentName, secret)
-	if err != nil {
-		handleCommonErrorCases(errors.Wrap(err, "web.msh.Deconfigure -> could not unmount secret: '"+secret+"' from component: '"+componentType+":"+componentName+"'"), rw, msh.logger)
-		return
-	}
-	return
 }
 
 func (msh *MobileServiceHandler) Delete(rw http.ResponseWriter, req *http.Request) {

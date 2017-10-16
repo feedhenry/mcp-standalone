@@ -14,11 +14,13 @@ import (
 	"io/ioutil"
 
 	"crypto/tls"
+	"encoding/json"
+
+	"bytes"
 
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
 	"github.com/pkg/errors"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/util/json"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/pkg/api/v1"
 	v1alpha1 "k8s.io/client-go/pkg/apis/settings/v1alpha1"
@@ -28,6 +30,7 @@ var (
 	bindURL         = "%s/apis/servicecatalog.k8s.io/v1alpha1/namespaces/%s/bindings"
 	instanceURL     = "%s/apis/servicecatalog.k8s.io/v1alpha1/namespaces/%s/instances"
 	serviceClassURL = "%s/apis/servicecatalog.k8s.io/v1alpha1/serviceclasses"
+	bindingURL      = "%s/apis/servicecatalog.k8s.io/v1alpha1/namespaces/%s/bindings/%s"
 )
 
 type ServiceCatalogClientBuilder struct {
@@ -109,6 +112,22 @@ type ServiceClassList struct {
 type ServiceInstanceList struct {
 	Items []ServiceInstance `json:"items"`
 }
+type Binding struct {
+	meta_v1.TypeMeta `json:",inline"`
+	// Standard object's metadata.
+	// More info: http://releases.k8s.io/HEAD/docs/devel/api-conventions.md#metadata
+	// +optional
+	meta_v1.ObjectMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
+	Spec               struct {
+		InstanceRef struct {
+			Name string `json:"name"`
+		} `json:"instanceRef"`
+		Parameters struct {
+			Test string `json:"test"`
+		} `json:"parameters"`
+		SecretName string `json:"secretName"`
+	} `json:"spec"`
+}
 
 //TODO this is fragile and should be changed to use the real types and client https://github.com/kubernetes-incubator/service-catalog/issues/1367
 func createBindingObject(instance string, params map[string]string, secretName string) (string, error) {
@@ -169,8 +188,9 @@ func (sc *serviceCatalogClient) podPreset(objectName, svcName, targetSvcName, na
 // finds the first service instances of keycloak
 // creates a binding via service catalog which kicks of the keycloak apb
 // finally creates a pod preset for sync pods to pick up as a volume mount
+// TODO perhaps the pod preset could be created as part of the bind API in the apb (would need to pass parameters)
 func (sc *serviceCatalogClient) BindServiceToKeyCloak(targetSvcName, namespace string) error {
-	objectName := "keycloak-" + targetSvcName
+	objectName := mobile.ServiceNameKeycloak + "-" + targetSvcName
 	keyCloakServiceClass, err := sc.serviceClassByServiceName(mobile.ServiceNameKeycloak, sc.token)
 	if err != nil {
 		return err
@@ -200,6 +220,10 @@ func (sc *serviceCatalogClient) BindServiceToKeyCloak(targetSvcName, namespace s
 	if res.StatusCode != http.StatusCreated {
 		return errors.New("unexpected status code from service catalog: " + res.Status)
 	}
+	bindingResp := &Binding{}
+	if err := json.NewDecoder(res.Body).Decode(bindingResp); err != nil {
+		return errors.WithStack(err)
+	}
 	if err := sc.podPreset(objectName, mobile.ServiceNameKeycloak, targetSvcName, namespace); err != nil {
 		return errors.WithStack(err)
 	}
@@ -208,7 +232,9 @@ func (sc *serviceCatalogClient) BindServiceToKeyCloak(targetSvcName, namespace s
 	if err != nil {
 		return errors.Wrap(err, "failed to get deployment for service "+targetSvcName)
 	}
+
 	dep.Spec.Template.Labels[mobile.ServiceNameKeycloak] = "enabled"
+	dep.Spec.Template.Labels[mobile.ServiceNameKeycloak+"-binding"] = bindingResp.Name
 	if _, err := sc.k8client.AppsV1beta1().Deployments(namespace).Update(dep); err != nil {
 		return errors.Wrap(err, "failed up update deployment for "+targetSvcName)
 	}
@@ -216,7 +242,51 @@ func (sc *serviceCatalogClient) BindServiceToKeyCloak(targetSvcName, namespace s
 }
 
 //UnBindServiceToKeyCloak will Delete the binding, the pod preset and the update the deployment
+// TODO again deleting the pod preset may be better done in the asb ubind handler
 func (sc *serviceCatalogClient) UnBindServiceToKeyCloak(targetSvcName, namespace string) error {
+	objectName := mobile.ServiceNameKeycloak + "-" + targetSvcName
+	dep, err := sc.k8client.AppsV1beta1().Deployments(namespace).Get(targetSvcName, meta_v1.GetOptions{})
+	if err != nil {
+		return errors.Wrap(err, "failed to get deployment for service "+targetSvcName)
+	}
+	bindingID, ok := dep.Spec.Template.Labels[mobile.ServiceNameKeycloak+"-binding"]
+	delete(dep.Spec.Template.Labels, mobile.ServiceNameKeycloak+"-binding")
+	delete(dep.Spec.Template.Labels, mobile.ServiceNameKeycloak)
+	if !ok {
+		return errors.New("no binding id found for service " + targetSvcName)
+	}
+	unbindURL := fmt.Sprintf(bindingURL, sc.k8host, namespace, bindingID)
+	body := meta_v1.DeleteOptions{
+		TypeMeta: meta_v1.TypeMeta{
+			APIVersion: "v1",
+			Kind:       "DeleteOptions",
+		},
+	}
+	data, err := json.Marshal(body)
+	if err != nil {
+		return errors.Wrap(err, "failed to decode delete options")
+	}
+	req, err := http.NewRequest("DELETE", unbindURL, bytes.NewReader(data))
+	if err != nil {
+		return errors.Wrap(err, "failed to create delete request for binding ")
+	}
+	req.Header.Set("Authorization", "Bearer "+sc.token)
+	res, err := sc.externalRequester.Do(req)
+
+	if err != nil {
+		return errors.Wrap(err, "failed to do delete request against the service catalog to delete bindiing "+bindingID)
+	}
+	defer res.Body.Close()
+	if res.StatusCode != 200 {
+		return errors.New("unexpected response code from service catalog " + res.Status)
+	}
+	// binding deleted we will remove the pod preset and update deployment
+	if err := sc.k8client.SettingsV1alpha1().PodPresets(namespace).Delete(objectName, meta_v1.NewDeleteOptions(0)); err != nil {
+		return errors.Wrap(err, "unbinding keycloak and sync failed to delete pod preset")
+	}
+	if _, err := sc.k8client.AppsV1beta1().Deployments(namespace).Update(dep); err != nil {
+		return errors.Wrap(err, "failed to update the deployment after unbinding keycloak")
+	}
 	return nil
 }
 
