@@ -6,9 +6,11 @@
  * @description
  * # modal
  */
-angular.module('mobileControlPanelApp').directive('modal', function($timeout) {
-  return {
-    template: `<button class="btn launch" ng-class={{ngClass}}>{{launch}}</button>
+angular.module('mobileControlPanelApp').directive('modal', [
+  '$timeout',
+  function($timeout) {
+    return {
+      template: `<button class="btn launch" ng-class={{ngClass}}>{{launch}}</button>
               <div class="modal container" tabindex="-1" role="dialog" aria-labelledby="" aria-hidden="true">
                 <div class="modal-dialog">
                   <div class="modal-content">
@@ -28,84 +30,85 @@ angular.module('mobileControlPanelApp').directive('modal', function($timeout) {
                   </div>
                 </div>
               </div>`,
-    scope: {
-      displayControls: '=?',
-      modalOpen: '=?',
-      launch: '=?',
-      modalTitle: '=?',
-      cancel: '&?',
-      ok: '&?',
-      ngClass: '=?',
-      modalClass: '=?'
-    },
-    transclude: true,
-    link: function(scope, element, attrs) {
-      element.removeClass();
+      scope: {
+        displayControls: '=?',
+        modalOpen: '=?',
+        launch: '=?',
+        modalTitle: '=?',
+        cancel: '&?',
+        ok: '&?',
+        ngClass: '=?',
+        modalClass: '=?'
+      },
+      transclude: true,
+      link: function(scope, element, attrs) {
+        element.removeClass();
 
-      const modalContainer = $('.modal.container', element);
-      modalContainer.addClass(scope.modalClass);
-      scope.modal = modalContainer.modal({
-        show: false,
-        keyboard: true
-      });
+        const modalContainer = $('.modal.container', element);
+        modalContainer.addClass(scope.modalClass);
+        scope.modal = modalContainer.modal({
+          show: false,
+          keyboard: true
+        });
 
-      scope.modalOpen = scope.modalOpen || false;
+        scope.modalOpen = scope.modalOpen || false;
 
-      $timeout(() => {
-        const launchButton = $('.launch', element);
-        const okButton = $('.ok', modalContainer);
-        const cancelButton = $('.cancel', modalContainer);
-        const closeIcon = $('.close', modalContainer);
+        $timeout(() => {
+          const launchButton = $('.launch', element);
+          const okButton = $('.ok', modalContainer);
+          const cancelButton = $('.cancel', modalContainer);
+          const closeIcon = $('.close', modalContainer);
 
-        modalContainer.detach();
+          modalContainer.detach();
 
-        launchButton.addClass(attrs.class);
-        launchButton.on('click', () => {
-          $timeout(() => {
-            scope.modalOpen = true;
+          launchButton.addClass(attrs.class);
+          launchButton.on('click', () => {
+            $timeout(() => {
+              scope.modalOpen = true;
+            });
+          });
+
+          okButton.on('click', () => {
+            $timeout(() => {
+              scope.ok && scope.ok()();
+              scope.modalOpen = false;
+            });
+          });
+
+          cancelButton.on('click', () => {
+            $timeout(() => {
+              scope.cancel && scope.cancel()();
+              scope.modalOpen = false;
+            });
+          });
+
+          closeIcon.on('click', () => {
+            $timeout(() => {
+              scope.cancel && scope.cancel()();
+              scope.modalOpen = false;
+            });
+          });
+
+          scope.modal.on('hidden.bs.modal', () => {
+            if (!scope.modalOpen) {
+              return;
+            }
+
+            $timeout(() => {
+              scope.modalOpen = false;
+            });
+          });
+
+          scope.$watch('modalOpen', value => {
+            if (value) {
+              scope.modal.modal('show');
+            } else {
+              scope.modal.modal('hide');
+              $('.modal-backdrop').remove();
+            }
           });
         });
-
-        okButton.on('click', () => {
-          $timeout(() => {
-            scope.ok && scope.ok()();
-            scope.modalOpen = false;
-          });
-        });
-
-        cancelButton.on('click', () => {
-          $timeout(() => {
-            scope.cancel && scope.cancel()();
-            scope.modalOpen = false;
-          });
-        });
-
-        closeIcon.on('click', () => {
-          $timeout(() => {
-            scope.cancel && scope.cancel()();
-            scope.modalOpen = false;
-          });
-        });
-
-        scope.modal.on('hidden.bs.modal', () => {
-          if (!scope.modalOpen) {
-            return;
-          }
-
-          $timeout(() => {
-            scope.modalOpen = false;
-          });
-        });
-
-        scope.$watch('modalOpen', value => {
-          if (value) {
-            scope.modal.modal('show');
-          } else {
-            scope.modal.modal('hide');
-            $('.modal-backdrop').remove();
-          }
-        });
-      });
-    }
-  };
-});
+      }
+    };
+  }
+]);
