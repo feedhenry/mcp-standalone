@@ -203,27 +203,3 @@ Wait for all the pods to have come up, before proceeding (this can take a few mi
 
 Log in to the web console for Openshift and click into the `localmcp` project, then select `Mobile`. Under `Mobile Enabled Services` select `fh-sync-server` and click `Integrations`. 
 Under `Mobile Service Integrations`, click on `Create Integration` next to `Keycloak`.
-
-### Developing APBs Locally
-
-Create a cluster pointing at your own docker organisation, this will also copy all the existing APBs in feedhenry to the dockerhub_org:
-```
-ansible-playbook playbook.yml -e "dockerhub_username=<dockerusername>" -e "dockerhub_password=<dockerpassword>" -e "dockerhub_org=<USE_THIS_VALUE>" -e "apb_sync=true" --ask-become-pass
-```
-g
-If the APB you wish to develop already exists in the feedhenry organisation, then syncing that APB can be skipped by adding:
-```
--e "skip_apb=<apb-name>"
-```
-
-Make your changes locally, and change the image name in the `apb.yml` file to match your organisation name. Then run:
-```
-make DOCKERORG=<your-org-name> DOCKERHOST=<docker-host-defaults-to-docker.io>
-```
-
-As the `apb.yml` has been updated, you will need to do a push, run:
-```
-apb push --broker=<asb-broker-route>
-```
-
-The APB is now in the catalog and ready to be tested.
