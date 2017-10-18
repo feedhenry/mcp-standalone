@@ -3,18 +3,19 @@ package integration_test
 import (
 	"testing"
 
+	"io/ioutil"
+	"net/http"
+	"strings"
+
 	"github.com/feedhenry/mcp-standalone/pkg/data"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile/integration"
 	"github.com/feedhenry/mcp-standalone/pkg/mock"
-	"io/ioutil"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes/fake"
 	v1 "k8s.io/client-go/pkg/api/v1"
 	ktesting "k8s.io/client-go/testing"
-	"net/http"
-	"strings"
 )
 
 type mockAuthChecker struct {
@@ -103,6 +104,38 @@ func TestMobileServiceDiscovery(t *testing.T) {
 				t.Fatalf("did not expect and err but got one %v", err)
 			}
 			tc.Validate(svcs, t)
+		})
+	}
+}
+
+func TestMobileServiceBindService(t *testing.T) {
+	cases := []struct {
+		Name string
+	}{
+		{
+			Name: "test bind ok",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.Name, func(t *testing.T) {
+
+		})
+	}
+}
+
+func TestMobileServiceUnBindService(t *testing.T) {
+	cases := []struct {
+		Name string
+	}{
+		{
+			Name: "test unbind ok",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.Name, func(t *testing.T) {
+
 		})
 	}
 }

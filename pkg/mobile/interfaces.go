@@ -24,7 +24,7 @@ type AppCruder interface {
 
 type ServiceCruder interface {
 	List(AttrFilterFunc) ([]*Service, error)
-	Read(name string) (*Service, error)
+	Read(id string) (*Service, error)
 	ListConfigs(AttrFilterFunc) ([]*ServiceConfig, error)
 	UpdateEnabledIntegrations(svcName string, integrations map[string]string) error
 	Create(ms *Service) error
@@ -66,8 +66,10 @@ type SCClientBuilder interface {
 }
 
 type SCCInterface interface {
-	BindServiceToKeyCloak(targetSvcName, namespace string) error
-	UnBindServiceToKeyCloak(targetSvcName, namespace string)error
+	BindToService(bindableService, targetSvcName, namespace string) error
+	UnBindFromService(bindableService, targetSvcName, namespace string) error
+	AddMobileApiKeys(targetSvcName, namespace string) error
+	RemoveMobileApiKeys(targetSvcName, namespace string) error
 }
 
 type OSClientBuilder interface {

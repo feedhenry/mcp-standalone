@@ -18,6 +18,7 @@ import (
 // MobileServiceHandler handles endpoints associated with mobile enabled services. It will list services in the namespace that
 // it knows about so that they can be rendered in the MCP
 type MobileServiceHandler struct {
+	namespace                string
 	logger                   *logrus.Logger
 	mobileIntegrationService *integration.MobileService
 	serviceRepoBuilder       mobile.ServiceRepoBuilder
@@ -30,7 +31,7 @@ type MobileServiceHandler struct {
 // NewMobileServiceHandler returns a new MobileServiceHandler
 func NewMobileServiceHandler(logger *logrus.Logger, integrationService *integration.MobileService,
 	mg mobile.MetricsGetter, serviceRepoBuilder mobile.ServiceRepoBuilder, userRepoBuilder mobile.UserRepoBuilder, authCheckerBuilder mobile.AuthCheckerBuilder,
-	sccClientBuilder mobile.SCClientBuilder) *MobileServiceHandler {
+	sccClientBuilder mobile.SCClientBuilder, namespace string) *MobileServiceHandler {
 	return &MobileServiceHandler{
 		logger: logger,
 		mobileIntegrationService: integrationService,
@@ -39,6 +40,7 @@ func NewMobileServiceHandler(logger *logrus.Logger, integrationService *integrat
 		userRepoBuilder:          userRepoBuilder,
 		authCheckerBuilder:       authCheckerBuilder,
 		sccClientBuilder:         sccClientBuilder,
+		namespace:                namespace,
 	}
 }
 
@@ -126,6 +128,7 @@ func (msh *MobileServiceHandler) Create(rw http.ResponseWriter, req *http.Reques
 		handleCommonErrorCases(err, rw, msh.logger)
 		return
 	}
+	ms.External = msh.namespace == ms.Namespace
 	if err := serviceCruder.Create(ms); err != nil {
 		err = errors.Wrap(err, "failed to create mobile app")
 		handleCommonErrorCases(err, rw, msh.logger)

@@ -144,7 +144,7 @@ func createBindingObject(instance string, params map[string]string, secretName s
 	}`, nil
 }
 
-func (sc *serviceCatalogClient) podPreset(objectName, svcName, targetSvcName, namespace string) error {
+func (sc *serviceCatalogClient) podPreset(objectName, secretName, svcName, targetSvcName, namespace string) error {
 	podPreset := v1alpha1.PodPreset{
 		ObjectMeta: meta_v1.ObjectMeta{
 			Name: objectName,
@@ -156,7 +156,8 @@ func (sc *serviceCatalogClient) podPreset(objectName, svcName, targetSvcName, na
 		Spec: v1alpha1.PodPresetSpec{
 			Selector: meta_v1.LabelSelector{
 				MatchLabels: map[string]string{
-					"run": targetSvcName,
+					"run":   targetSvcName,
+					svcName: "enabled",
 				},
 			},
 			Volumes: []v1.Volume{
@@ -164,7 +165,7 @@ func (sc *serviceCatalogClient) podPreset(objectName, svcName, targetSvcName, na
 					Name: svcName,
 					VolumeSource: v1.VolumeSource{
 						Secret: &v1.SecretVolumeSource{
-							SecretName: objectName,
+							SecretName: secretName,
 						},
 					},
 				},
@@ -183,30 +184,34 @@ func (sc *serviceCatalogClient) podPreset(objectName, svcName, targetSvcName, na
 	return nil
 }
 
-// BindServiceToKeyCloak will create a binding and pod preset
-// finds the service class based on the service name label (keycloak in this case)
-// finds the first service instances of keycloak
-// creates a binding via service catalog which kicks of the keycloak apb
+// BindToService will create a binding and pod preset
+// finds the service class based on the service name
+// finds the first service instances
+// creates a binding via service catalog which kicks of the bind apb for the service
 // finally creates a pod preset for sync pods to pick up as a volume mount
 // TODO perhaps the pod preset could be created as part of the bind API in the apb (would need to pass parameters)
-func (sc *serviceCatalogClient) BindServiceToKeyCloak(targetSvcName, namespace string) error {
-	objectName := mobile.ServiceNameKeycloak + "-" + targetSvcName
-	keyCloakServiceClass, err := sc.serviceClassByServiceName(mobile.ServiceNameKeycloak, sc.token)
+func (sc *serviceCatalogClient) BindToService(bindableService, targetSvcName, namespace string) error {
+	objectName := bindableService + "-" + targetSvcName
+	bindableServiceClass, err := sc.serviceClassByServiceName(bindableService, sc.token)
 	if err != nil {
 		return err
 	}
-	keycloakInstList, err := sc.serviceInstancesForServiceClass(sc.token, keyCloakServiceClass.Name, namespace)
+	if nil == bindableServiceClass {
+		return errors.New("failed to find service class for service " + bindableService)
+	}
+
+	fmt.Println("got service class ", bindableServiceClass)
+	svcInstList, err := sc.serviceInstancesForServiceClass(sc.token, bindableServiceClass.Name, namespace)
 	if err != nil {
 		return err
 	}
-	if len(keycloakInstList.Items) == 0 {
-		return errors.New("no instances of keycloak found")
+	if len(svcInstList.Items) == 0 {
+		return errors.New("no instances of " + bindableService + " found")
 	}
 
 	// only care about the first one as there only should ever be one.
-	keycloakInst := keycloakInstList.Items[0]
-
-	pbody, _ := createBindingObject(keycloakInst.Name, map[string]string{"service": targetSvcName}, objectName)
+	svcInst := svcInstList.Items[0]
+	pbody, _ := createBindingObject(svcInst.Name, map[string]string{"service": targetSvcName}, objectName)
 	req, err := http.NewRequest("POST", fmt.Sprintf(bindURL, sc.k8host, namespace), strings.NewReader(pbody))
 	if err != nil {
 		fmt.Println("failed to create request ", err)
@@ -224,7 +229,7 @@ func (sc *serviceCatalogClient) BindServiceToKeyCloak(targetSvcName, namespace s
 	if err := json.NewDecoder(res.Body).Decode(bindingResp); err != nil {
 		return errors.WithStack(err)
 	}
-	if err := sc.podPreset(objectName, mobile.ServiceNameKeycloak, targetSvcName, namespace); err != nil {
+	if err := sc.podPreset(objectName, objectName, bindableService, targetSvcName, namespace); err != nil {
 		return errors.WithStack(err)
 	}
 	//update the deployment with an annotation
@@ -233,28 +238,64 @@ func (sc *serviceCatalogClient) BindServiceToKeyCloak(targetSvcName, namespace s
 		return errors.Wrap(err, "failed to get deployment for service "+targetSvcName)
 	}
 
-	dep.Spec.Template.Labels[mobile.ServiceNameKeycloak] = "enabled"
-	dep.Spec.Template.Labels[mobile.ServiceNameKeycloak+"-binding"] = bindingResp.Name
+	dep.Spec.Template.Labels[bindableService] = "enabled"
+	dep.Spec.Template.Labels[bindableService+"-binding"] = bindingResp.Name
 	if _, err := sc.k8client.AppsV1beta1().Deployments(namespace).Update(dep); err != nil {
 		return errors.Wrap(err, "failed up update deployment for "+targetSvcName)
 	}
 	return nil
 }
 
-//UnBindServiceToKeyCloak will Delete the binding, the pod preset and the update the deployment
+// create pod preset with apikeys secret, update deployment with label
+func (sc *serviceCatalogClient) AddMobileApiKeys(targetSvcName, namespace string) error {
+	objectName := mobile.IntegrationAPIKeys + "-" + targetSvcName
+	if err := sc.podPreset(objectName, mobile.IntegrationAPIKeys, mobile.IntegrationAPIKeys, targetSvcName, namespace); err != nil {
+		return errors.WithStack(err)
+	}
+	dep, err := sc.k8client.AppsV1beta1().Deployments(namespace).Get(targetSvcName, meta_v1.GetOptions{})
+	if err != nil {
+		return errors.Wrap(err, "failed to get deployment for service "+targetSvcName+" cannot redeploy.")
+	}
+	dep.Spec.Template.Labels[mobile.IntegrationAPIKeys] = "enabled"
+	if _, err := sc.k8client.AppsV1beta1().Deployments(namespace).Update(dep); err != nil {
+		return errors.Wrap(err, "failed up update deployment for "+targetSvcName)
+	}
+	return nil
+}
+
+// create pod preset with apikeys secret, update deployment with label
+func (sc *serviceCatalogClient) RemoveMobileApiKeys(targetSvcName, namespace string) error {
+	objectName := mobile.IntegrationAPIKeys + "-" + targetSvcName
+	if err := sc.k8client.SettingsV1alpha1().PodPresets(namespace).Delete(objectName, meta_v1.NewDeleteOptions(0)); err != nil {
+		return errors.Wrap(err, "removing api keys failed to delete pod preset")
+	}
+	dep, err := sc.k8client.AppsV1beta1().Deployments(namespace).Get(targetSvcName, meta_v1.GetOptions{})
+	if err != nil {
+		return errors.Wrap(err, "failed to get deployment for service "+targetSvcName+" cannot redeploy.")
+	}
+
+	delete(dep.Spec.Template.Labels, mobile.IntegrationAPIKeys)
+	if _, err := sc.k8client.AppsV1beta1().Deployments(namespace).Update(dep); err != nil {
+		return errors.Wrap(err, "failed up update deployment for "+targetSvcName)
+	}
+	return nil
+}
+
+//UnBindFromService will Delete the binding, the pod preset and the update the deployment
 // TODO again deleting the pod preset may be better done in the asb ubind handler
-func (sc *serviceCatalogClient) UnBindServiceToKeyCloak(targetSvcName, namespace string) error {
-	objectName := mobile.ServiceNameKeycloak + "-" + targetSvcName
+func (sc *serviceCatalogClient) UnBindFromService(bindableService, targetSvcName, namespace string) error {
+	objectName := bindableService + "-" + targetSvcName
 	dep, err := sc.k8client.AppsV1beta1().Deployments(namespace).Get(targetSvcName, meta_v1.GetOptions{})
 	if err != nil {
 		return errors.Wrap(err, "failed to get deployment for service "+targetSvcName)
 	}
-	bindingID, ok := dep.Spec.Template.Labels[mobile.ServiceNameKeycloak+"-binding"]
-	delete(dep.Spec.Template.Labels, mobile.ServiceNameKeycloak+"-binding")
-	delete(dep.Spec.Template.Labels, mobile.ServiceNameKeycloak)
+	bindingID, ok := dep.Spec.Template.Labels[bindableService+"-binding"]
 	if !ok {
 		return errors.New("no binding id found for service " + targetSvcName)
 	}
+	delete(dep.Spec.Template.Labels, bindableService+"-binding")
+	delete(dep.Spec.Template.Labels, bindableService)
+
 	unbindURL := fmt.Sprintf(bindingURL, sc.k8host, namespace, bindingID)
 	body := meta_v1.DeleteOptions{
 		TypeMeta: meta_v1.TypeMeta{
@@ -272,9 +313,8 @@ func (sc *serviceCatalogClient) UnBindServiceToKeyCloak(targetSvcName, namespace
 	}
 	req.Header.Set("Authorization", "Bearer "+sc.token)
 	res, err := sc.externalRequester.Do(req)
-
 	if err != nil {
-		return errors.Wrap(err, "failed to do delete request against the service catalog to delete bindiing "+bindingID)
+		return errors.Wrap(err, "failed to do delete request against the service catalog to delete binding "+bindingID)
 	}
 	defer res.Body.Close()
 	if res.StatusCode != 200 {
@@ -282,10 +322,10 @@ func (sc *serviceCatalogClient) UnBindServiceToKeyCloak(targetSvcName, namespace
 	}
 	// binding deleted we will remove the pod preset and update deployment
 	if err := sc.k8client.SettingsV1alpha1().PodPresets(namespace).Delete(objectName, meta_v1.NewDeleteOptions(0)); err != nil {
-		return errors.Wrap(err, "unbinding keycloak and sync failed to delete pod preset")
+		return errors.Wrap(err, "unbinding "+bindableService+" and "+targetSvcName+" failed to delete pod preset")
 	}
 	if _, err := sc.k8client.AppsV1beta1().Deployments(namespace).Update(dep); err != nil {
-		return errors.Wrap(err, "failed to update the deployment after unbinding keycloak")
+		return errors.Wrap(err, "failed to update the deployment for "+targetSvcName+" after unbinding "+bindableService)
 	}
 	return nil
 }
@@ -333,8 +373,6 @@ func (sc *serviceCatalogClient) serviceClasses(token, ns string) ([]ServiceClass
 		fmt.Println("error making service class request ", err)
 		return nil, err
 	}
-	fmt.Println("service classes ", scs)
-
 	return scs.Items, nil
 
 }
@@ -355,7 +393,6 @@ func (sc *serviceCatalogClient) serviceClassByServiceName(name, token string) (*
 
 func (sc *serviceCatalogClient) serviceInstancesForServiceClass(token, serviceClass string, ns string) (*ServiceInstanceList, error) {
 	si, err := sc.getInstances(token, ns)
-	fmt.Println(si)
 	if err != nil {
 		return nil, err
 	}
