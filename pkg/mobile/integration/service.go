@@ -2,6 +2,7 @@ package integration
 
 import (
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
+	"github.com/pborman/uuid"
 	"github.com/pkg/errors"
 )
 
@@ -127,22 +128,47 @@ func filterServices(serviceTypes []string) func(att mobile.Attributer) bool {
 	}
 }
 
+func buildBindParams(from *mobile.Service, to *mobile.Service) (map[string]string, error) {
+	var p map[string]string
+	if from.Name == mobile.ServiceNameThreeScale {
+		p = map[string]string{
+			"apicast_route": from.Host,
+			"service_route": to.Host,
+			"service_name":  to.Name,
+			"app_key":       uuid.New(),
+		}
+	} else if from.Name == mobile.ServiceNameKeycloak {
+		p = map[string]string{
+			"service_name": to.Name,
+		}
+	}
+
+	return p, nil
+}
+
 // BindService will find the mobile service backed by a secret. It will use the values here to perform the binding
 func (ms *MobileService) BindService(sccClient mobile.SCCInterface, svcCruder mobile.ServiceCruder, targetServiceName, service string) error {
 	mobileService, err := svcCruder.Read(service)
 	if err != nil {
 		return errors.Wrap(err, "failed to read mobile service "+service)
 	}
+	targetService, err := svcCruder.Read(targetServiceName)
+	if err != nil {
+		return errors.Wrap(err, "failed to read target mobile service "+targetServiceName)
+	}
 	var namespace = ms.namespace
 	if mobileService.Namespace != "" {
 		namespace = mobileService.Namespace
 	}
-
+	bindParams, err := buildBindParams(mobileService, targetService)
+	if err != nil {
+		return errors.Wrap(err, "failed to build bind params for "+service)
+	}
 	if mobile.IntegrationAPIKeys == service {
 		if err := sccClient.AddMobileApiKeys(targetServiceName, namespace); err != nil {
 			return errors.Wrap(err, "failed to add mobile API Keys to service "+targetServiceName)
 		}
-	} else if err := sccClient.BindToService(mobileService.Name, targetServiceName, namespace); err != nil {
+	} else if err := sccClient.BindToService(mobileService.Name, targetService.Name, bindParams, namespace); err != nil {
 		return errors.Wrap(err, "Binding "+service+" to "+targetServiceName+" failed")
 	}
 	if err := svcCruder.UpdateEnabledIntegrations(mobileService.ID, map[string]string{service: "true"}); err != nil {

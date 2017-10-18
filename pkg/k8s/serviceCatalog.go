@@ -190,7 +190,7 @@ func (sc *serviceCatalogClient) podPreset(objectName, secretName, svcName, targe
 // creates a binding via service catalog which kicks of the bind apb for the service
 // finally creates a pod preset for sync pods to pick up as a volume mount
 // TODO perhaps the pod preset could be created as part of the bind API in the apb (would need to pass parameters)
-func (sc *serviceCatalogClient) BindToService(bindableService, targetSvcName, namespace string) error {
+func (sc *serviceCatalogClient) BindToService(bindableService, targetSvcName string, params map[string]string, namespace string) error {
 	objectName := bindableService + "-" + targetSvcName
 	bindableServiceClass, err := sc.serviceClassByServiceName(bindableService, sc.token)
 	if err != nil {
@@ -211,7 +211,7 @@ func (sc *serviceCatalogClient) BindToService(bindableService, targetSvcName, na
 
 	// only care about the first one as there only should ever be one.
 	svcInst := svcInstList.Items[0]
-	pbody, _ := createBindingObject(svcInst.Name, map[string]string{"service": targetSvcName}, objectName)
+	pbody, _ := createBindingObject(svcInst.Name, params, objectName)
 	req, err := http.NewRequest("POST", fmt.Sprintf(bindURL, sc.k8host, namespace), strings.NewReader(pbody))
 	if err != nil {
 		fmt.Println("failed to create request ", err)

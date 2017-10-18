@@ -66,7 +66,7 @@ type SCClientBuilder interface {
 }
 
 type SCCInterface interface {
-	BindToService(bindableService, targetSvcName, namespace string) error
+	BindToService(bindableService, targetSvcName string, bindingParams map[string]string, namespace string) error
 	UnBindFromService(bindableService, targetSvcName, namespace string) error
 	AddMobileApiKeys(targetSvcName, namespace string) error
 	RemoveMobileApiKeys(targetSvcName, namespace string) error
