@@ -7,7 +7,6 @@ services:
 go:
   - 1.8.x
   - 1.9.x
-  - master
 
 script:
   - cd $HOME/gopath/src/github.com/feedhenry/mcp-standalone && make check-gofmt build build_cli
