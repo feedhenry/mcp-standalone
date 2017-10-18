@@ -14,8 +14,8 @@ Prerequisites
 See link:../../README.adoc#walkthroughs[MCP walkthroughs] for
 install/setup & other walkthroughs.
 
-[[provisoin-data-sync]]
-Provisoin Data Sync
+[[provision-data-sync]]
+Provision Data Sync
 ~~~~~~~~~~~~~~~~~~~
 
 Data Sync can be provisioned from the Service Catalog. It creates a

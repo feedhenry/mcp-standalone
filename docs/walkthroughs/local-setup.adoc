@@ -61,7 +61,9 @@ Firewall setup
 ^^^^^^^^^^^^^^
 
 Next we need to configure Docker registry _and_ ports required as part
-of the cluster setup: * Linux: Follow steps 2 _and_ 3
+of the cluster setup: 
+
+* Linux: Follow steps 2 _and_ 3
 https://github.com/openshift/origin/blob/master/docs/cluster_up_down.md#linux[here]
 * Mac: Follow steps 2 _and_ 3
 https://github.com/openshift/origin/blob/master/docs/cluster_up_down.md#macos-with-docker-for-mac[here]
@@ -107,14 +109,19 @@ as part of your `ansible-playbook` command.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 For local development, you can run the MCP server locally instead of in
-OpenShift. This allows for faster development feedback. To compile the
+OpenShift. This allows for faster development feedback. To compile & run the
 MCP Server execute the following in the root directory of the repo:
 
 [source,sh]
 ----
 cd ..
-make run_server NAMESPACE=localmcp
+make run_server NAMESPACE=myproject
 ----
+
+As we're running the MCP Server outside of OpenShift, it won't know which project the user is in.
+The MCP Server needs to know which project so it can look for resources by namespace.
+Specifying the `NAMESPACE` var will tell MCP what project to expect resources to be in, and create a service account in that project to access resources.
+When using the MCP UI, it is important to stay within this project to avoid unusual behaviour.
 
 In another terminal, bundle the MCP UI extension for OpenShift, watching
 for changes. This is required to produce the mcp extension files
