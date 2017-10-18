@@ -23,7 +23,7 @@ git clone git@github.com:feedhenry/mcp-standalone.git
 
 2) Install the required ansible dependencies: 
 ```sh
-sudo ansible-galaxy install -r ./installer/requirements.yml
+ansible-galaxy install -r ./installer/requirements.yml
 ```
 
 3) Run the ansible installer. This installer sets up your OpenShift environment with the service catalog and the ansible service broker. 
