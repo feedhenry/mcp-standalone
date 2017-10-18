@@ -1,0 +1,187 @@
+[[data-sync-and-keycloak-in-the-mcp]]
+Data Sync and Keycloak in the MCP
+---------------------------------
+
+[[prerequisites]]
+Prerequisites
+~~~~~~~~~~~~~
+
+* An OpenShift Cluster with:
+** the MCP UI extension enabled
+** Mobile Services available in the Service Catalog
+** a Project containing the MCP Server
+
+See link:../../README.adoc#walkthroughs[MCP walkthroughs] for
+install/setup & other walkthroughs.
+
+[[provisoin-data-sync]]
+Provisoin Data Sync
+~~~~~~~~~~~~~~~~~~~
+
+Data Sync can be provisioned from the Service Catalog. It creates a
+Deployment for MongoDB, Redis and the Node.js sync server. A route is
+exposed for the Node.js sync server. This is what the Mobile App will
+talk to. The MCP UI can be accessed from the `Mobile' item in the
+Project left navigation. When provisioned, the Data Sync service appears
+on the Mobile Overview screen as a Mobile Enabled Service.
+
+[[integrate-data-sync-with-a-mobile-app]]
+Integrate Data Sync with a Mobile App
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To integrate Data Sync with a Mobile App, the
+https://github.com/feedhenry/fh-sync-js[fh-sync-js] client will be used.
+The Mobile App will be a Cordova App. Back in the Service Catalog,
+choose a Cordova App from the `Mobile > Apps' sub-category. This will
+create a representation of an App in the MCP UI.
+
+The MCP UI helps by providing sample code for the Cordova client. The
+goal is to configure the Mobile App where the Data Sync service is. This
+is split into 2 parts. 1, get the config. And 2, set the config.
+
+The first part can be done by using the
+https://www.npmjs.com/package/@akeating-redhat/fh-mobile-core[Mobile
+Core] library. The Mobile Core library allows retrieval of configuration
+for all Mobile Enabled services the MCP knows about. The MCP UI provides
+an example Mobile Core config to drop into the Mobile App. This config
+is the location of the MCP server, our App ID and an API Key. e.g.
+
+[source,json]
+----
+{
+  "host":"https://127.0.0.1:3001",
+  "appID":"myapp-1508169992",
+  "apiKey":"3ac24f15-022b-4be1-b5a4-03eafe9349f3"
+}
+----
+
+The Mobile Core library can be initialised using this config:
+
+[source,js]
+----
+const mobileCore = require('fh-mobile-core');
+const mcpConfig = require('../mcpConfig.json');
+
+mobileCore.configure(mcpConfig).then((config) => {
+  // Initialise the rest of your app.
+});
+----
+
+When the Mobile Core library gets initialized with this config, it makes
+a call to the MCP server. The server responds with the Data Sync
+configuration. This configuration can be passed into the Sync client to
+initialize it.
+
+[source,js]
+----
+mobileCore.configure(mcpConfig).then((config) => {
+  const syncConfig = config.getConfigFor('fh-sync-server');
+  sync.init({
+    cloudUrl: syncConfig.uri,
+    storage_strategy: 'dom'
+  });
+  sync.manage('myDataset', null, {}, {}, () => {
+    // Initialise the rest of your app.
+  });
+});
+----
+
+Now we can use the Sync client API throughout our Mobile App to create,
+read, update and delete data, knowing that the data will be synchronized
+to the server. A bonus feature of the MCP UI for integrated services is
+Stats. For the Data Sync service, various Sync related stats are
+available from the Data Sync Dashboard in the MCP UI.
+
+[[adding-authentication-and-authorization-to-the-mobile-app]]
+Adding Authentication and Authorization to the Mobile App
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+We can build on the Data Sync integration to provide authentication (via
+http://www.keycloak.org[Keycloak]) in our Mobile App. We can also use
+the token that Keycloak gives to authenticated users for authorization.
+First, the Keycloak service in the Service Catalog should be
+provisioned. This will create the Keycloak Deployment, Service and
+Route. It will also creates a Realm and Client in Keycloak.
+
+We can use this Realm & Client for the Data Sync Integration. However,
+we will need to enabled the `Implicit Flow' for the Client in the
+Keycloak UI (one time only). The MCP UI will show possible integrations
+between Mobile Enabled Services. In the Data Sync service `Integrations'
+tab, there is an option to enable the Keycloak integration. Enable this
+so the MCP Server will include Keycloak client details in the config
+that gets sent to the Mobile App. A secret will also get mounted into
+the Data Sync pod with details of the Keycloak realm and client.
+
+The MCP UI gives an example of configuring the
+https://github.com/keycloak/keycloak-js-bower[keycloak-js adapter] in
+our Cordova app.
+
+[source,js]
+----
+const keycloakAuth = new Keycloak(keycloakConfig);
+
+keycloakAuth.init({ onLoad: 'login-required', flow: 'implicit' }).success(() => {
+  // initialise rest of app
+}).error((err) => {
+  // init failed
+});
+----
+
+This will pop up a login page as soon as the App starts
+
+Back in OpenShift, the Data Sync service looks for the mounted Keycloak
+Secret, and changes its behaviour if found. It will check for an
+authorization header in each Data Sync request from the Mobile App. It
+then calls to Keycloak (using the credentials from the Secret) to check
+if the user has access (read/write) to the data. To read data, a user
+should have the `sync_read' Realm Role. To write data, the user should
+have the `sync_write' Realm Role. Users and Roles can be managed as
+needed directly through the Keycloak UI.
+
+You can get the Route for the Keycloak UI from the Keycloak Service
+Dashboard in the MCP UI, or by executing the following:
+
+[source,bash]
+----
+oc get route keycloak
+----
+
+In the Mobile App, the keycloak-js adapter takes care of popping up a
+login screen. To ensure the token is sent with every request to the Data
+Sync service, the Sync handler should be overwritten to add the extra
+Authorization header:
+
+[source,js]
+----
+const syncCloudUrl = syncConfig.uri + '/sync/';
+const syncCloudHandler = buildSyncCloudHandler(syncCloudUrl, {
+  headers: {
+    'Authorization': 'Bearer ' + keycloakAuth.token
+  }
+});
+Sync.setCloudHandler(syncCloudHandler);
+----
+
+To improve user feedback in the App, we can check the User’s roles ahead
+of time. For example, if the User only has the `sync_read' Role, the UI
+should *not* show the Create/Update options for data. This will avoid
+unnecessary calls to the Data Sync service when we know they are going
+to fail.
+
+[source,js]
+----
+function canWrite() {
+  if (keycloakAuth.hasRealmRole('sync_write')) {
+    return true
+  }
+  return false;
+}
+----
+
+[[next-steps]]
+Next Steps
+~~~~~~~~~~
+
+* An example Cordova App that integrates with Data Sync & Keycloak is available at https://github.com/aidenkeating/cordova-sync-app.
+* To contribute to MCP, check out the link:../../README.adoc#contributing[Contributing] section of the README.
+* Various link:../../README.adoc#walkthroughs[MCP walkthroughs] are also available.
