@@ -1,0 +1,104 @@
+[[keycloak-in-the-mcp]]
+Keycloak in the MCP
+-------------------
+
+This guide will walk you through provisioning the Keycloak service from the
+OpenShift service catalog and using it with an app using the Mobile Control
+Panel (MCP).
+
+Prerequisites
+~~~~~~~~~~~~~
+
+* An OpenShift Cluster with:
+** the MCP UI extension enabled
+** Mobile Services available in the Service Catalog
+** a Project containing the MCP Server
+
+See link:../../README.adoc#walkthroughs[MCP walkthroughs] for
+install/setup & other walkthroughs.
+
+Provision Keycloak
+~~~~~~~~~~~~~~~~~~
+
+Keycloak can be provisioned from the OpenShift service catalog.
+
+Navigate to the Service Catalog -> Mobile -> Services -> Keycloak.
+
+Create the Keycloak service.
+
+A number of tasks will be performed while provisioning:
+
+* Create a Keycloak instance
+* Create a realm in Keycloak with the same name as the OpenShift project
+* Create two clients in the realm, one for a client and one for a server
+
+Configuring Keycloak
+~~~~~~~~~~~~~~~~~~~~
+
+Once keycloak has successfully provisioned it can be configured by going to the
+Keycloak route. `oc get route keycloak -o jsonpath="{.spec.host}"`.
+
+The Keycloak that is provisioned is a normal Keycloak instance, meaning it can
+be configured in the same way as any other.
+
+When other services integrate with Keycloak they will use the realm named after
+the OpenShift project and the two clients that are created within it. When
+trying to add new users, roles or authentication flows to, for example a
+FeedHenry Sync integration, that realm should be modified.
+
+Integrate Keycloak with a Mobile Service
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Once Keycloak has provisioned it can be integrated with another Mobile Service
+e.g. FeedHenry Sync Server. The Keycloak service is not available to all other
+Mobile Services.
+
+To integrate Keycloak with the FeedHenry Sync Server navigate to the MCP and
+then to the Mobile Enabled Service that will be integrated with Keycloak.
+In the Service Integrations tab click Create Integration for Keycloak.
+
+Creating an integration will mount the secret named after a service, in this
+case `keycloak`, into the Mobile Enabled Service. The contents of the secret
+will then be available in the file system of the service. The files that are
+created will be in the directory `/etc/secrets/{service-name}`. For Keycloak
+this will be `/etc/secrets/keycloak`.
+
+When, for example, the FeedHenry Sync service integrates with Keycloak it will
+restart and detect that keycloak has been integrated by looking for whether the
+mounted files exist. If they do then the service will protect itself using
+Keycloak.
+
+Integrate Keycloak with a Mobile App
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Once the Keycloak service is successfully provisioned it will be available to
+mobile apps using the Mobile Core Library. This library can be used to obtain
+configuration for all the services available to an app.
+
+The keycloak configuration can be retrieved in an app using the `getConfigFor`
+function. The configuration from this call can be used to initialise the
+JavaScript keycloak adapter
+
+[source,js]
+----
+const mobileCore = require('fh-mobile-core');
+const mcpConfig = require('../mcpConfig.json');
+
+mobileCore.configure(mcpConfig).then((config) => {
+  const keycloakConfig = config.getConfigFor('keycloak');
+  const keycloakAuth = new Keycloak(keycloakConfig);
+  keycloakAuth.init({ onLoad: 'login-required', flow: 'implicit' }).success(() => {
+    // Initialise the rest of the app
+  });
+});
+----
+
+[[next-steps]]
+Next Steps
+~~~~~~~~~~
+
+* An example Cordova App showing a Keycloak integration with FeedHenry Sync
+https://github.com/aidenkeating/cordova-sync-app.
+* To contribute to MCP, check out the link:../../README.adoc#contributing[Contributing]
+section of the README.
+* Various link:../../README.adoc#walkthroughs[MCP walkthroughs] are also available.
