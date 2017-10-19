@@ -49,9 +49,8 @@ FeedHenry Sync integration, that realm should be modified.
 Integrate Keycloak with a Mobile Service
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Once Keycloak has provisioned it can be integrated with another Mobile Service
-e.g. FeedHenry Sync Server. The Keycloak service is not available to all other
-Mobile Services.
+Only a number of services can be integrated with Keycloak e.g. FeedHenry Sync.
+The Keycloak integration will not be visible for other services.
 
 To integrate Keycloak with the FeedHenry Sync Server navigate to the MCP and
 then to the Mobile Enabled Service that will be integrated with Keycloak.
@@ -59,21 +58,25 @@ In the Service Integrations tab click Create Integration for Keycloak.
 
 Creating an integration will mount the secret named after a service, in this
 case `keycloak`, into the Mobile Enabled Service. The contents of the secret
-will then be available in the file system of the service. The files that are
-created will be in the directory `/etc/secrets/{service-name}`. For Keycloak
-this will be `/etc/secrets/keycloak`.
+will then be available in the file system of the service container.
+The files that are created will be in the `/etc/secrets/{service-name}`
+directory of the service container. For example, when integration Keycloak into
+the FeedHenry Sync service, a `/etc/secrets/keycloak` directory will be created
+in the sync service container.
 
-When, for example, the FeedHenry Sync service integrates with Keycloak it will
-restart and detect that keycloak has been integrated by looking for whether the
-mounted files exist. If they do then the service will protect itself using
-Keycloak.
+Services will detect that new integrations have been made. When, for example,
+the FeedHenry Sync service integrates with Keycloak it will restart and detect
+that keycloak has been integrated by looking for whether the mounted files
+exist. If they do then the service will protect itself using Keycloak.
 
 Integrate Keycloak with a Mobile App
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Once the Keycloak service is successfully provisioned it will be available to
-mobile apps using the Mobile Core Library. This library can be used to obtain
-configuration for all the services available to an app.
+mobile apps using the
+link:https://github.com/feedhenry/fh-mobile-core-js[Mobile Core Library].
+This library can be used to obtain configuration for all the services available
+to an app.
 
 The keycloak configuration can be retrieved in an app using the `getConfigFor`
 function. The configuration from this call can be used to initialise the
