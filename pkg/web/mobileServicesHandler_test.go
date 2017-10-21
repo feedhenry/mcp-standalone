@@ -41,10 +41,10 @@ func setupMobileServiceHandler(kclient kubernetes.Interface) http.Handler {
 		Fakeclient: kclient,
 	}
 	serviceCruder := data.NewServiceRepoBuilder(cb, "test", "test")
-	mountBuilder := k8s.NewMounterBuilder(cb, "test", "test")
 	userRepoBuilder := openshift.NewUserRepoBuilder("test", true)
 	authCheckerBuilder := openshift.NewAuthCheckerBuilder("test")
-	handler := web.NewMobileServiceHandler(logger, ms, mountBuilder, metricGetter, serviceCruder, userRepoBuilder, authCheckerBuilder)
+	sccClientBuilder := k8s.NewServiceCatalogClientBuilder(cb, nil, "token", "test", "https://localk8.com")
+	handler := web.NewMobileServiceHandler(logger, ms, metricGetter, serviceCruder, userRepoBuilder, authCheckerBuilder, sccClientBuilder, "test")
 	web.MobileServiceRoute(r, handler)
 	return web.BuildHTTPHandler(r, nil)
 }
@@ -208,7 +208,7 @@ func TestConfigure(t *testing.T) {
 			handler := setupMobileServiceHandler(tc.Client())
 			server := httptest.NewServer(handler)
 			defer server.Close()
-			res, err := http.Post(server.URL+"/mobileservice/configure/fh-sync-server/fh-sync-arinky-dink/keycloak-public-client", "text/plain", strings.NewReader(""))
+			res, err := http.Post(server.URL+"/mobileservice/configure/fh-sync-arinky-dink/keycloak-public-client", "text/plain", strings.NewReader(""))
 			if err != nil {
 				t.Fatal("did not expect an error requesting mobile services ", err)
 			}
@@ -325,7 +325,7 @@ func TestDeconfigure(t *testing.T) {
 			handler := setupMobileServiceHandler(tc.Client())
 			server := httptest.NewServer(handler)
 			defer server.Close()
-			req, err := http.NewRequest("DELETE", server.URL+"/mobileservice/configure/fh-sync-server/fh-sync-arinky-dink/keycloak-public-client", strings.NewReader(""))
+			req, err := http.NewRequest("DELETE", server.URL+"/mobileservice/configure/fh-sync-arinky-dink/keycloak-public-client", strings.NewReader(""))
 			if err != nil {
 				t.Fatal("did not expect an error creating a http requets", err)
 			}

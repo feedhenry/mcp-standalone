@@ -166,7 +166,7 @@ func (msh *MobileServiceHandler) Configure(rw http.ResponseWriter, req *http.Req
 		return
 	}
 
-	if err := msh.mobileIntegrationService.BindService(scClient, serviceCruder, clientServiceName, serviceName); err != nil {
+	if err := msh.mobileIntegrationService.BindMobileServices(scClient, serviceCruder, clientServiceName, serviceName); err != nil {
 		handleCommonErrorCases(errors.Wrap(err, "web.msh.Configure: could not create binding for service : '"+serviceName+"' for target: '"+clientServiceName), rw, msh.logger)
 		return
 	}
@@ -201,7 +201,7 @@ func (msh *MobileServiceHandler) Deconfigure(rw http.ResponseWriter, req *http.R
 		return
 	}
 
-	err = msh.mobileIntegrationService.UnBindService(scClient, serviceCruder, clientServiceName, serviceName)
+	err = msh.mobileIntegrationService.UnBindMobileServices(scClient, serviceCruder, clientServiceName, serviceName)
 	if err != nil {
 		handleCommonErrorCases(errors.Wrap(err, "web.msh.Deconfigure: could not unbind: '"+clientServiceName+"' from "+serviceName), rw, msh.logger)
 		return

@@ -190,7 +190,7 @@ func (sc *serviceCatalogClient) podPreset(objectName, secretName, svcName, targe
 // creates a binding via service catalog which kicks of the bind apb for the service
 // finally creates a pod preset for sync pods to pick up as a volume mount
 // TODO perhaps the pod preset could be created as part of the bind API in the apb (would need to pass parameters)
-func (sc *serviceCatalogClient) BindToService(bindableService, targetSvcName string, params map[string]string, namespace string) error {
+func (sc *serviceCatalogClient) BindToService(bindableService, targetSvcName string, params map[string]string, bindableSvcNamespace, targetSvcNamespace string) error {
 	objectName := bindableService + "-" + targetSvcName
 	bindableServiceClass, err := sc.serviceClassByServiceName(bindableService, sc.token)
 	if err != nil {
@@ -200,19 +200,18 @@ func (sc *serviceCatalogClient) BindToService(bindableService, targetSvcName str
 		return errors.New("failed to find service class for service " + bindableService)
 	}
 
-	fmt.Println("got service class ", bindableServiceClass)
-	svcInstList, err := sc.serviceInstancesForServiceClass(sc.token, bindableServiceClass.Name, namespace)
+	svcInstList, err := sc.serviceInstancesForServiceClass(sc.token, bindableServiceClass.Name, targetSvcNamespace)
 	if err != nil {
 		return err
 	}
 	if len(svcInstList.Items) == 0 {
-		return errors.New("no instances of " + bindableService + " found")
+		return errors.New("no service instance of " + bindableService + " found in ns " + targetSvcNamespace)
 	}
 
 	// only care about the first one as there only should ever be one.
 	svcInst := svcInstList.Items[0]
 	pbody, _ := createBindingObject(svcInst.Name, params, objectName)
-	req, err := http.NewRequest("POST", fmt.Sprintf(bindURL, sc.k8host, namespace), strings.NewReader(pbody))
+	req, err := http.NewRequest("POST", fmt.Sprintf(bindURL, sc.k8host, targetSvcNamespace), strings.NewReader(pbody))
 	if err != nil {
 		fmt.Println("failed to create request ", err)
 	}
@@ -229,19 +228,68 @@ func (sc *serviceCatalogClient) BindToService(bindableService, targetSvcName str
 	if err := json.NewDecoder(res.Body).Decode(bindingResp); err != nil {
 		return errors.WithStack(err)
 	}
-	if err := sc.podPreset(objectName, objectName, bindableService, targetSvcName, namespace); err != nil {
+	if err := sc.podPreset(objectName, objectName, bindableService, targetSvcName, targetSvcNamespace); err != nil {
 		return errors.WithStack(err)
 	}
 	//update the deployment with an annotation
-	dep, err := sc.k8client.AppsV1beta1().Deployments(namespace).Get(targetSvcName, meta_v1.GetOptions{})
+	dep, err := sc.k8client.AppsV1beta1().Deployments(targetSvcNamespace).Get(targetSvcName, meta_v1.GetOptions{})
 	if err != nil {
 		return errors.Wrap(err, "failed to get deployment for service "+targetSvcName)
 	}
 
 	dep.Spec.Template.Labels[bindableService] = "enabled"
 	dep.Spec.Template.Labels[bindableService+"-binding"] = bindingResp.Name
-	if _, err := sc.k8client.AppsV1beta1().Deployments(namespace).Update(dep); err != nil {
+	if _, err := sc.k8client.AppsV1beta1().Deployments(targetSvcNamespace).Update(dep); err != nil {
 		return errors.Wrap(err, "failed up update deployment for "+targetSvcName)
+	}
+	return nil
+}
+
+//UnBindFromService will Delete the binding, the pod preset and the update the deployment
+// TODO again deleting the pod preset may be better done in the asb ubind handler
+func (sc *serviceCatalogClient) UnBindFromService(bindableService, targetSvcName, targetSvcNamespace string) error {
+	objectName := bindableService + "-" + targetSvcName
+	dep, err := sc.k8client.AppsV1beta1().Deployments(targetSvcNamespace).Get(targetSvcName, meta_v1.GetOptions{})
+	if err != nil {
+		return errors.Wrap(err, "failed to get deployment for service "+targetSvcName)
+	}
+	bindingID, ok := dep.Spec.Template.Labels[bindableService+"-binding"]
+	if !ok {
+		return errors.New("no binding id found for service " + targetSvcName)
+	}
+	delete(dep.Spec.Template.Labels, bindableService+"-binding")
+	delete(dep.Spec.Template.Labels, bindableService)
+
+	unbindURL := fmt.Sprintf(bindingURL, sc.k8host, targetSvcNamespace, bindingID)
+	body := meta_v1.DeleteOptions{
+		TypeMeta: meta_v1.TypeMeta{
+			APIVersion: "v1",
+			Kind:       "DeleteOptions",
+		},
+	}
+	data, err := json.Marshal(body)
+	if err != nil {
+		return errors.Wrap(err, "failed to decode delete options")
+	}
+	req, err := http.NewRequest("DELETE", unbindURL, bytes.NewReader(data))
+	if err != nil {
+		return errors.Wrap(err, "failed to create delete request for binding ")
+	}
+	req.Header.Set("Authorization", "Bearer "+sc.token)
+	res, err := sc.externalRequester.Do(req)
+	if err != nil {
+		return errors.Wrap(err, "failed to do delete request against the service catalog to delete binding "+bindingID)
+	}
+	defer res.Body.Close()
+	if res.StatusCode != 200 {
+		return errors.New("unexpected response code from service catalog " + res.Status)
+	}
+	// binding deleted we will remove the pod preset and update deployment
+	if err := sc.k8client.SettingsV1alpha1().PodPresets(targetSvcNamespace).Delete(objectName, meta_v1.NewDeleteOptions(0)); err != nil {
+		return errors.Wrap(err, "unbinding "+bindableService+" and "+targetSvcName+" failed to delete pod preset")
+	}
+	if _, err := sc.k8client.AppsV1beta1().Deployments(targetSvcNamespace).Update(dep); err != nil {
+		return errors.Wrap(err, "failed to update the deployment for "+targetSvcName+" after unbinding "+bindableService)
 	}
 	return nil
 }
@@ -277,55 +325,6 @@ func (sc *serviceCatalogClient) RemoveMobileApiKeys(targetSvcName, namespace str
 	delete(dep.Spec.Template.Labels, mobile.IntegrationAPIKeys)
 	if _, err := sc.k8client.AppsV1beta1().Deployments(namespace).Update(dep); err != nil {
 		return errors.Wrap(err, "failed up update deployment for "+targetSvcName)
-	}
-	return nil
-}
-
-//UnBindFromService will Delete the binding, the pod preset and the update the deployment
-// TODO again deleting the pod preset may be better done in the asb ubind handler
-func (sc *serviceCatalogClient) UnBindFromService(bindableService, targetSvcName, namespace string) error {
-	objectName := bindableService + "-" + targetSvcName
-	dep, err := sc.k8client.AppsV1beta1().Deployments(namespace).Get(targetSvcName, meta_v1.GetOptions{})
-	if err != nil {
-		return errors.Wrap(err, "failed to get deployment for service "+targetSvcName)
-	}
-	bindingID, ok := dep.Spec.Template.Labels[bindableService+"-binding"]
-	if !ok {
-		return errors.New("no binding id found for service " + targetSvcName)
-	}
-	delete(dep.Spec.Template.Labels, bindableService+"-binding")
-	delete(dep.Spec.Template.Labels, bindableService)
-
-	unbindURL := fmt.Sprintf(bindingURL, sc.k8host, namespace, bindingID)
-	body := meta_v1.DeleteOptions{
-		TypeMeta: meta_v1.TypeMeta{
-			APIVersion: "v1",
-			Kind:       "DeleteOptions",
-		},
-	}
-	data, err := json.Marshal(body)
-	if err != nil {
-		return errors.Wrap(err, "failed to decode delete options")
-	}
-	req, err := http.NewRequest("DELETE", unbindURL, bytes.NewReader(data))
-	if err != nil {
-		return errors.Wrap(err, "failed to create delete request for binding ")
-	}
-	req.Header.Set("Authorization", "Bearer "+sc.token)
-	res, err := sc.externalRequester.Do(req)
-	if err != nil {
-		return errors.Wrap(err, "failed to do delete request against the service catalog to delete binding "+bindingID)
-	}
-	defer res.Body.Close()
-	if res.StatusCode != 200 {
-		return errors.New("unexpected response code from service catalog " + res.Status)
-	}
-	// binding deleted we will remove the pod preset and update deployment
-	if err := sc.k8client.SettingsV1alpha1().PodPresets(namespace).Delete(objectName, meta_v1.NewDeleteOptions(0)); err != nil {
-		return errors.Wrap(err, "unbinding "+bindableService+" and "+targetSvcName+" failed to delete pod preset")
-	}
-	if _, err := sc.k8client.AppsV1beta1().Deployments(namespace).Update(dep); err != nil {
-		return errors.Wrap(err, "failed to update the deployment for "+targetSvcName+" after unbinding "+bindableService)
 	}
 	return nil
 }

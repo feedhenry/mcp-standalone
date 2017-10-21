@@ -143,57 +143,64 @@ func buildBindParams(from *mobile.Service, to *mobile.Service) map[string]string
 	return p
 }
 
-// BindService will find the mobile service backed by a secret. It will use the values here to perform the binding
-func (ms *MobileService) BindService(sccClient mobile.SCCInterface, svcCruder mobile.ServiceCruder, targetServiceID, bindableService string) error {
-	targetService, err := svcCruder.Read(targetServiceID)
+// BindMobileServices will find the mobile service backed by a secret. It will use the values here to perform the binding
+func (ms *MobileService) BindMobileServices(sccClient mobile.SCCInterface, svcCruder mobile.ServiceCruder, targetMobileServiceID, bindableMobileServiceID string) error {
+	targetService, err := svcCruder.Read(targetMobileServiceID)
 	if err != nil {
-		return errors.Wrap(err, "failed to read target mobile bindableService "+targetServiceID)
+		return errors.Wrap(err, "failed to read target mobile bindableMobileServiceID "+targetMobileServiceID)
 	}
-	mobileService, err := svcCruder.Read(bindableService)
+	mobileService, err := svcCruder.Read(bindableMobileServiceID)
 	if err != nil {
-		return errors.Wrap(err, "failed to read mobile bindableService "+bindableService)
+		return errors.Wrap(err, "failed to read mobile bindableMobileServiceID "+bindableMobileServiceID)
 	}
-	var namespace = ms.namespace
+	var targetSvcNamespace = ms.namespace
+	var bindableSvcNamespace = ms.namespace
 	if targetService.Namespace != "" {
-		namespace = targetService.Namespace
+		targetSvcNamespace = targetService.Namespace
+	}
+	if mobileService.Namespace != "" {
+		bindableSvcNamespace = mobileService.Namespace
 	}
 	bindParams := buildBindParams(mobileService, targetService)
 
-	if mobile.IntegrationAPIKeys == bindableService {
-		if err := sccClient.AddMobileApiKeys(targetService.Name, namespace); err != nil {
-			return errors.Wrap(err, "failed to add mobile API Keys to bindableService "+targetServiceID)
+	if mobile.IntegrationAPIKeys == bindableMobileServiceID {
+		if err := sccClient.AddMobileApiKeys(targetService.Name, targetSvcNamespace); err != nil {
+			return errors.Wrap(err, "failed to add mobile API Keys to bindableMobileServiceID "+targetMobileServiceID)
 		}
-	} else if err := sccClient.BindToService(mobileService.Name, targetService.Name, bindParams, namespace); err != nil {
-		return errors.Wrap(err, "Binding "+bindableService+" to "+targetServiceID+" failed")
+	} else {
+		// ensure service instance provisioned in the namespace
+		if err := sccClient.BindToService(mobileService.Name, targetService.Name, bindParams, bindableSvcNamespace, targetSvcNamespace); err != nil {
+			return errors.Wrap(err, "Binding "+bindableMobileServiceID+" to "+targetMobileServiceID+" failed")
+		}
 	}
-	if err := svcCruder.UpdateEnabledIntegrations(targetServiceID, map[string]string{mobileService.Name: "true"}); err != nil {
-		return errors.Wrap(err, "updating the enabled integrations for bindableService "+targetServiceID+" failed ")
+	if err := svcCruder.UpdateEnabledIntegrations(targetMobileServiceID, map[string]string{mobileService.Name: "true"}); err != nil {
+		return errors.Wrap(err, "updating the enabled integrations for bindableMobileServiceID "+targetMobileServiceID+" failed ")
 	}
 	return nil
 }
 
-func (ms *MobileService) UnBindService(scClient mobile.SCCInterface, svcCruder mobile.ServiceCruder, targetServiceID, bindableService string) error {
-	targetService, err := svcCruder.Read(targetServiceID)
+func (ms *MobileService) UnBindMobileServices(scClient mobile.SCCInterface, svcCruder mobile.ServiceCruder, targetMobileServiceID, bindableMobileServiceID string) error {
+	targetService, err := svcCruder.Read(targetMobileServiceID)
 	if err != nil {
-		return errors.Wrap(err, "failed to read target mobile service "+targetServiceID)
+		return errors.Wrap(err, "failed to read target mobile service "+targetMobileServiceID)
 	}
-	var namespace = ms.namespace
+	mobileService, err := svcCruder.Read(bindableMobileServiceID)
+	if err != nil {
+		return errors.Wrap(err, "failed to read mobile bindableMobileServiceID "+bindableMobileServiceID)
+	}
+	var targetSvcNamespace = ms.namespace
 	if targetService.Namespace != "" {
-		namespace = targetService.Namespace
+		targetSvcNamespace = targetService.Namespace
 	}
-	mobileService, err := svcCruder.Read(bindableService)
-	if err != nil {
-		return errors.Wrap(err, "failed to read mobile bindableService "+bindableService)
-	}
-	if mobile.IntegrationAPIKeys == bindableService {
-		if err := scClient.RemoveMobileApiKeys(targetService.Name, namespace); err != nil {
-			return errors.Wrap(err, "failed to remove mobile API Keys from service "+targetServiceID)
+	if mobile.IntegrationAPIKeys == bindableMobileServiceID {
+		if err := scClient.RemoveMobileApiKeys(targetService.Name, targetSvcNamespace); err != nil {
+			return errors.Wrap(err, "failed to remove mobile API Keys from service "+targetMobileServiceID)
 		}
-	} else if err := scClient.UnBindFromService(mobileService.Name, targetService.Name, namespace); err != nil {
+	} else if err := scClient.UnBindFromService(mobileService.Name, targetService.Name, targetSvcNamespace); err != nil {
 		return errors.Wrap(err, "UnBinding Service from "+mobileService.Name+" failed")
 	}
-	if err := svcCruder.UpdateEnabledIntegrations(targetServiceID, map[string]string{mobileService.Name: "false"}); err != nil {
-		return errors.Wrap(err, "updating the enabled integrations for service "+targetServiceID+" failed ")
+	if err := svcCruder.UpdateEnabledIntegrations(targetMobileServiceID, map[string]string{mobileService.Name: "false"}); err != nil {
+		return errors.Wrap(err, "updating the enabled integrations for service "+targetMobileServiceID+" failed ")
 	}
 	return nil
 }
