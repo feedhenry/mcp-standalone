@@ -80,4 +80,5 @@ Walkthroughs
 * link:./docs/walkthroughs/local-setup.adoc[Local Setup]
 * link:./docs/walkthroughs/developing-apbs-locally.adoc[Developing APBs Locally]
 * link:./docs/walkthroughs/sync-and-keycloak.adoc[Data Sync & Keycloak Walkthough]
+* link:./docs/walkthroughs/keycloak.adoc[Keycloak Walkthrough]
 * link:./docs/walkthroughs/mobile-ci-cd.adoc[Mobile CI/CD Walkthough]
