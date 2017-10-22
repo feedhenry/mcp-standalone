@@ -232,3 +232,11 @@ The APB is now in the catalog and ready to be tested.
 ### Doing a development release
 
 [Release](./docs/Release.md)
+
+### Installing from a development release
+
+Effectively all you need to do is add the dockerhub_tag to your install command. An example is show below. Note it is important that the image version exists in dockerhub.
+```bash
+make clean
+ansible-playbook playbook.yml -e "dockerhub_username=$DOCKERHUB_USERNAME" -e "dockerhub_tag=${TAG} -e "dockerhub_password=$DOCKERHUB_PASSWORD" -e "dockerhub_org=$DOCKERHUB_APBS_ORG" -e "skip_apb=keycloak-apb" --ask-become-pass
+```
