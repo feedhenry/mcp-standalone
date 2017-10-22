@@ -227,3 +227,8 @@ apb push --broker=<asb-broker-route>
 ```
 
 The APB is now in the catalog and ready to be tested.
+
+
+### Doing a development release
+
+[Release](./docs/Release.md)
