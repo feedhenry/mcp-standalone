@@ -1,0 +1,96 @@
+[[mobile-control-panel-mcp]]
+Mobile Control Panel (MCP)
+--------------------------
+
+The Mobile Control Panel is PoC for a `per namespace' service that helps
+developers discover, create and integrate Mobile Apps and Services on
+OpenShift.
+
+* Mobile SDKs are developed and maintained in their respective repos
+* The Backend is a Golang server in this repo
+* The Frontend is a set of AngularJS services, controllers, views etc…
+in this repo that extend the OpenShift Web Console UI (via extensions)
+* Services are developeed and maintained in their respective repos. They
+leverage the Service Catalog and various brokers to help provision them
+
+The MCP brings all of these componments together to create a unified
+Mobile developer experience on top of OpenShift.
+
+[[contributing]]
+Contributing
+~~~~~~~~~~~~
+
+You can develop link:./docs/walkthroughs/local-setup.adoc[locally on your
+host]. Please include as much info as possible in Issues and Pull
+Requests. Merging to master requires approval from a reviewer and a
+passing CI build.
+
+[[communication]]
+Communication
+~~~~~~~~~~~~~
+
+Daily communication happens on #feedhenry on
+https://webchat.freenode.net/[freenode IRC]. The
+http://feedhenry-dev.2363497.n4.nabble.com/[feedhenry-dev@redhat.com
+mailing list] is also used for team-wide & community comms. Issues are
+tracked in both
+https://issues.jboss.org/secure/RapidBoard.jspa?rapidView=4143&view=planning.nodetail[Jira]
+and Github Issues. Where issues are duplicates, they should be linked so
+that only 1 source of info exists (automation would be nice here).
+Typically the core Red Hat team will create and work from Jira Issues.
+
+[[onboarding-resources]]
+Onboarding Resources
+~~~~~~~~~~~~~~~~~~~~
+
+* Mobile SDKs
+** https://github.com/feedhenry/fh-sync-android[Android Sync SDK]
+** https://github.com/feedhenry/fh-sync-js[Cordova/Browser Sync SDK]
+** https://www.aerogear.org/docs/specs/#push[Push SDKs]
+** https://www.npmjs.com/package/keycloak-js[Keycloak JS Adapter]
+* Backend Resources
+** https://tour.golang.org/welcome/1[Tour of Go]
+* Frontend Resources
+** https://github.com/feedhenry/mcp-standalone/tree/master/ui[UI src]
+** https://docs.angularjs.org/tutorial[AngularJS PhoneCat Tutorial]
+** https://docs.angularjs.org/api[AngularJS API Docs]
+** http://www.patternfly.org/[Patternfly]
+** https://github.com/openshift/origin-web-console[OpenShift Web Console]
+** https://docs.openshift.com/container-platform/3.6/install_config/web_console_customization.html[Customising
+the OpenShift Web Console (Extensions]
+** https://github.com/openshift/origin-web-catalog[Service
+Catalog/OpenShift Mall UI]
+* Catalog/Mall, Brokers & Services
+** https://docs.openshift.com/container-platform/3.6/architecture/service_catalog/index.html[Service
+Catalog]
+** https://docs.openshift.com/container-platform/3.6/architecture/service_catalog/ansible_service_broker.html[Ansible
+Service Broker (ASB) & Ansbile Playbook Bundles (APB)]
+** https://docs.openshift.com/container-platform/3.6/architecture/service_catalog/template_service_broker.html[Template
+Service Broker]
+** https://github.com/feedhenry/fh-sync-server[fh-sync-server]
+** https://github.com/feedhenry/fh-sync-server/blob/master/fh-sync-server-DEVELOPMENT.yaml[fh-sync-server
+Template]
+** https://github.com/keycloak/keycloak[Keycloak]
+** https://github.com/feedhenry/keycloak-apb[Keycloak APB]
+
+[[walkthroughs]]
+Walkthroughs
+~~~~~~~~~~~~
+
+* link:./docs/walkthroughs/local-setup.adoc[Local Setup]
+* link:./docs/walkthroughs/developing-apbs-locally.adoc[Developing APBs Locally]
+* link:./docs/walkthroughs/sync-and-keycloak.adoc[Data Sync & Keycloak Walkthough]
+* link:./docs/walkthroughs/keycloak.adoc[Keycloak Walkthrough]
+* link:./docs/walkthroughs/mobile-ci-cd.adoc[Mobile CI/CD Walkthough]
+
+[[Doing a development release]]
+
+link:./docs/Release.md[Release]
+
+[[Installing from a development release]]
+
+Effectively all you need to do is add the dockerhub_tag to your install command. An example is show below. Note it is important that the image version exists in dockerhub.
+```bash
+make clean
+ansible-playbook playbook.yml -e "dockerhub_username=$DOCKERHUB_USERNAME" -e "dockerhub_tag=${TAG} -e "dockerhub_password=$DOCKERHUB_PASSWORD" -e "dockerhub_org=$DOCKERHUB_APBS_ORG" -e "skip_apb=keycloak-apb" --ask-become-pass
+```

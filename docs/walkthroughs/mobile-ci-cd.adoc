@@ -1,0 +1,81 @@
+[[mobile-ci-cd-in-the-mcp]]
+Mobile CI/CD in the MCP
+-----------------------
+
+This guide will walk you through provisioning the Mobile CI/CD service from the
+OpenShift service catalog and building an Android application using the Mobile
+Control Panel (MCP). The Mobile CI/CD service uses OpenShift Build Pipelines
+and Jenkins to build Android apps.
+
+NOTE: The Mobile CI/CD service can currently only perform Android debug builds.
+This includes Android builds of Cordova apps. The Mobile CI/CD service cannot
+perform any iOS builds.
+
+Prerequisites
+~~~~~~~~~~~~~
+
+* An OpenShift Cluster with:
+** the MCP UI extension enabled
+** Mobile Services available in the Service Catalog
+** a Project containing the MCP Server
+
+See link:../../README.adoc#walkthroughs[MCP walkthroughs] for
+install/setup & other walkthroughs.
+
+[[provision-mobile-ci-cd]]
+Provision Mobile CI/CD
+~~~~~~~~~~~~~~~~~~~~~~
+
+Mobile CI/CD can be provisioned from the OpenShift Service catalog.
+
+Navigate to the Service Catalog -> Mobile -> Services -> Mobile CI/CD.
+
+The Android SDK Licence Agreement must be accepted before provisioning the
+service.
+
+A number of tasks will be performed while provisioning:
+
+* Create a persistent Jenkins instance if one does not already exist
+* Configures the Kubernetes Slave plugin in Jenkins to use Android slaves
+* Installs an Android SDK into a persistent volume for the Jenkins Android
+slaves to use
+
+[[create-build-config]]
+Create a Build Config
+~~~~~~~~~~~~~~~~~~~~~
+
+Once the Mobile CI/CD service has finished provisioning a Build Config can be
+created for a mobile app. To create a Build Config go to the MCP using the
+Mobile Tab on the left-hand side of the project. Select the app to build or
+create a new app. Once on the Mobile App screen select the Build Config tab.
+
+Enter the required information on the Build Config screen and select Create.
+Once the Build Config is created there will be a Build button visible. Click
+the Build button, a build will begin. The current progress of the build can be
+seen in the Build History tab.
+
+The first build will take longer than subsequent builds as the image of the
+Jenkins Android slave will need to be pulled along with dependencies not being
+cached.
+
+[[installing-app-on-device]]
+Installing built app on a device
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Once the app has successfully built a button will appear below the build in the
+Build History tab. When the button is selected two pieces of information will
+appear:
+
+* QR Code Button - Can be scanned by a device to install the application
+* Download URL - Can be accessed by browser on device to install the
+application
+
+[[next-steps]]
+Next Steps
+~~~~~~~~~~
+
+* An example Cordova App that can be built with the Mobile CI/CD service
+https://github.com/aidenkeating/cordova-sync-app.
+* To contribute to MCP, check out the link:../../README.adoc#contributing[Contributing]
+section of the README.
+* Various link:../../README.adoc#walkthroughs[MCP walkthroughs] are also available.
