@@ -13,7 +13,6 @@ import (
 
 	"io/ioutil"
 
-	"crypto/tls"
 	"encoding/json"
 
 	"bytes"
@@ -333,11 +332,7 @@ func (sc *serviceCatalogClient) getInstances(token, ns string) (*ServiceInstance
 	u := fmt.Sprintf(instanceURL, sc.k8host, ns)
 	req, _ := http.NewRequest("GET", u, nil)
 	req.Header.Set("Authorization", "Bearer "+token)
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
-	httpClient := &http.Client{Transport: tr}
-	res, err := httpClient.Do(req)
+	res, err := sc.externalRequester.Do(req)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to make request to get service instances")
 	}
@@ -356,11 +351,7 @@ func (sc *serviceCatalogClient) getInstances(token, ns string) (*ServiceInstance
 func (sc *serviceCatalogClient) serviceClasses(token, ns string) ([]ServiceClass, error) {
 	req, _ := http.NewRequest("GET", fmt.Sprintf(serviceClassURL, sc.k8host), nil)
 	req.Header.Set("Authorization", "Bearer "+token)
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
-	httpClient := &http.Client{Transport: tr}
-	res, err := httpClient.Do(req)
+	res, err := sc.externalRequester.Do(req)
 	if err != nil {
 		fmt.Println("error making service class request ", err)
 		return nil, err

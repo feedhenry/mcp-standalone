@@ -66,3 +66,37 @@ func (cb *OCClientBuilder) BuildClient() (client.Interface, error) {
 	return testclient.NewClient(cb.host, cb.namespace, cb.token, cb.Fake), nil
 
 }
+
+type SCClientBuilder struct {
+	Client mobile.SCCInterface
+}
+
+func (scc *SCClientBuilder) WithToken(token string) mobile.SCClientBuilder {
+	return scc
+}
+func (scc *SCClientBuilder) WithHost(host string) mobile.SCClientBuilder {
+	return scc
+}
+func (scc *SCClientBuilder) UseDefaultSAToken() mobile.SCClientBuilder {
+	return scc
+}
+func (scc *SCClientBuilder) Build() (mobile.SCCInterface, error) {
+	return scc.Client, nil
+}
+
+type SCClient struct {
+	Err error
+}
+
+func (sc *SCClient) BindToService(bindableService, targetSvcName string, bindingParams map[string]string, bindableServiceNamespace, targetSvcNamespace string) error {
+	return sc.Err
+}
+func (sc *SCClient) UnBindFromService(bindableService, targetSvcName, bindableServiceNamespace string) error {
+	return sc.Err
+}
+func (sc *SCClient) AddMobileApiKeys(targetSvcName, namespace string) error {
+	return sc.Err
+}
+func (sc *SCClient) RemoveMobileApiKeys(targetSvcName, namespace string) error {
+	return sc.Err
+}
