@@ -8,6 +8,7 @@ SHELL = /bin/bash
 #CHANGE this if using a different url for openshift
 OSCP = https://192.168.37.1:8443
 NAMESPACE =project2
+TAG=0.0.4
 
 .PHONY: check-gofmt
 check-gofmt:
@@ -31,7 +32,7 @@ image: build
 	mkdir -p tmp
 	cp ./mcp-api tmp
 	cp artifacts/Dockerfile tmp
-	cd tmp && docker build -t feedhenry/mcp-standalone:latest .
+	cd tmp && docker build -t feedhenry/mcp-standalone:$(TAG) .
 	rm -rf tmp
 
 run_server:
@@ -39,7 +40,7 @@ run_server:
 	time go build ./cmd/mcp-api
 	oc login -u developer -panything
 	oc new-project $(NAMESPACE) | true
-	oc create -f install/openshift/sa.local.json -n  $(NAMESPACE) | true
+	oc create -f artifacts/openshift/sa.local.json -n  $(NAMESPACE) | true
 	oc policy add-role-to-user edit system:serviceaccount:$(NAMESPACE):mcp-standalone -n  $(NAMESPACE) | true
 	oc sa get-token mcp-standalone -n  $(NAMESPACE) > token
 	./mcp-api -namespace=$(NAMESPACE) -k8-host=$(OSCP) -satoken-path=./token -log-level=debug -insecure=true
@@ -53,12 +54,12 @@ test-unit:
 	  $(addprefix $(PKG)/,$(TEST_DIRS))
 
 apbs:
-	cp install/openshift/template.json cmd/android-apb/roles/provision-android-app/templates
-	cp install/openshift/template.json cmd/cordova-apb/roles/provision-cordova-apb/templates	
-	cp install/openshift/template.json cmd/ios-apb/roles/provision-ios-apb/templates
-	cd cmd/android-apb && make build_and_push 		
-	cd cmd/ios-apb && make build_and_push 		
-	cd cmd/cordova-apb && make build_and_push
+	cp artifacts//openshift/template.json cmd/android-apb/roles/provision-android-app/templates
+	cp artifacts/openshift/template.json cmd/cordova-apb/roles/provision-cordova-apb/templates
+	cp artifacts/openshift/template.json cmd/ios-apb/roles/provision-ios-apb/templates
+	cd cmd/android-apb && make build_and_push TAG=$(TAG)
+	cd cmd/ios-apb && make build_and_push TAG=$(TAG)
+	cd cmd/cordova-apb && make build_and_push TAG=$(TAG)
 
 clean:
 	./ui/clean.sh
