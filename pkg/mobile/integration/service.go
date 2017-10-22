@@ -2,8 +2,8 @@ package integration
 
 import (
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
-	"github.com/pborman/uuid"
 	"github.com/pkg/errors"
+	"github.com/satori/go.uuid"
 )
 
 // MobileService holds the business logic for dealing with the mobile services and integrations with those services
@@ -134,7 +134,7 @@ func buildBindParams(from *mobile.Service, to *mobile.Service) map[string]string
 		p["apicast_route"] = from.Host
 		p["service_route"] = to.Host
 		p["service_name"] = to.Name
-		p["app_key"] = uuid.New()
+		p["app_key"] = uuid.NewV4().String()
 	} else if from.Name == mobile.ServiceNameKeycloak {
 		p = map[string]string{
 			"service_name": to.Name,
