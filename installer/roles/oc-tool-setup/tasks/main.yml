@@ -1,0 +1,31 @@
+---
+- set_fact:
+    openshift_build_type: "mac"
+    kube_build_type: "darwin"
+    openshift_release_ext: "zip"
+  when: ansible_os_family == "Darwin"
+
+- set_fact:
+    openshift_build_type: "linux-64bit"
+    kube_build_type: "linux"
+    openshift_release_ext: "tar.gz"
+  when: (ansible_os_family == "RedHat") or (ansible_distribution == "Ubuntu")
+
+- name: Retrieve oc archive
+  get_url:
+    url: "{{ oc_url }}"
+    dest: "{{ oc_archive_local_path }}"
+    force: yes
+
+- name: Extract oc binary
+  unarchive:
+    src: "{{ oc_archive_local_path }}"
+    dest: "/tmp/"
+    copy: "no"
+
+- name: Use retrieved oc binary
+  copy:
+    remote_src: yes
+    src: "{{ oc_binary_local_path }}"
+    dest: "{{ oc_binary_install_path }}"
+    mode: 0755

@@ -3,7 +3,9 @@
 - name: Setup OpenShift cluster with Mobile Control Panel and Service Brokers
   hosts: localhost
   roles:
-  - role: openshift-origin-client-tools
+  # - role: openshift-origin-client-tools
+  #   tags: install-oc
+  - role: oc-tool-setup
     tags: install-oc
 
   - role: oc-cluster-up
