@@ -1,3 +1,4 @@
+DOCKERHOST = docker.io
 DOCKERORG = feedhenry
 USER=$(shell id -u)
 PWS=$(shell pwd)
@@ -12,4 +13,4 @@ apb_build:
 
 .PHONY: docker_push
 docker_push:
-	docker push $(DOCKERORG)/android-app-apb:$(TAG)
+	docker push $(DOCKERHOST)/$(DOCKERORG)/android-app-apb:$(TAG)
