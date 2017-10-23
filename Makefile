@@ -8,6 +8,8 @@ SHELL = /bin/bash
 #CHANGE this if using a different url for openshift
 OSCP = https://192.168.37.1:8443
 NAMESPACE =project2
+TAG=latest
+LDFLAGS=-ldflags "-w -s -X main.Version=${TAG}"
 
 .PHONY: check-gofmt
 check-gofmt:
@@ -25,7 +27,7 @@ build_cli:
 	go build -o mcp ./cmd/mcp-cli
 
 build: test-unit
-	export GOOS=linux && go build ./cmd/mcp-api
+	export GOOS=linux && go build ${LDFLAGS} ./cmd/mcp-api
 
 image: build
 	mkdir -p tmp
@@ -36,7 +38,7 @@ image: build
 
 run_server:
 	@echo Running Server
-	time go build ./cmd/mcp-api
+	time go build ${LDFLAGS} ./cmd/mcp-api
 	oc login -u developer -panything
 	oc new-project $(NAMESPACE) | true
 	oc create -f install/openshift/sa.local.json -n  $(NAMESPACE) | true

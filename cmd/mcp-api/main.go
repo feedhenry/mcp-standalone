@@ -27,6 +27,11 @@ import (
 	"github.com/pkg/errors"
 )
 
+var (
+	// Version is set at build time using ldflags see the Makefile for reference
+	Version string
+)
+
 func main() {
 	var (
 		k8host             string
@@ -182,7 +187,7 @@ func main() {
 		Handler:           httpHandler,
 	}
 
-	logger.Info("starting server on port "+*port, " using key ", *key, " and cert ", *cert, "target namespace is ", *namespace)
+	logger.Info("starting server on port "+*port, " using key ", *key, " and cert ", *cert, "target namespace is ", *namespace, ". Version is: "+Version)
 	go func() {
 		if err := server.ListenAndServeTLS(*cert, *key); err != nil {
 			logger.Fatal("failed to listen and server https ", err)
