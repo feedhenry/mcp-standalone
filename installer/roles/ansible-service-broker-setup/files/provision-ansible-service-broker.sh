@@ -35,7 +35,8 @@ oc process -f "${TEMPLATE_LOCAL}" \
 -p SANDBOX_ROLE="admin" \
 -p ROUTING_SUFFIX="192.168.37.1.nip.io" \
 -p TAG="${TAG:-latest}" \
--p LAUNCH_APB_ON_BIND="${LAUNCH_APB_ON_BIND}" | oc create -f -
+-p LAUNCH_APB_ON_BIND="${LAUNCH_APB_ON_BIND}" \
+${TEMPLATE_VARS} | oc create -f -
 
 if [ "${?}" -ne 0 ]; then
 	echo "Error processing template and creating deployment"
