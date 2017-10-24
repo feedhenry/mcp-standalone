@@ -13,7 +13,6 @@ Run the following command in each of the above repos:
 ```bash
 TAG=0.0.4 #example version
 git checkout $(TAG)
-make build_and_push TAG=$(TAG)
 
 ```
 
@@ -26,10 +25,11 @@ make image TAG=$(TAG)
 
 Next update the main template in ```artifacts/openshift/template.json``` change the IMAGE_TAG parameter
 to match the the TAG you have just created.
-
+```bash
 docker push feedhenry/mcp-standalone:$(TAG)
 # builds the 3 different apbs for mcp (android, cordova, iOS) copying over the main template
 make apbs TAG=$(TAG)
 ```
+
 
 
