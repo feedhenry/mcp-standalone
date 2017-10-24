@@ -18,7 +18,7 @@ angular.module('mobileControlPanelApp').component('objectCard', {
                 </h2>
                 <p class="card-pf-info text-center"> {{$ctrl.object.description}}</p>
               </div>
-              <div ng-if=ojectIsService>
+              <div ng-if=objectIsService>
                 <p>
                   <span >id: {{$ctrl.object.id}}</span>
                 </p>
@@ -35,7 +35,7 @@ angular.module('mobileControlPanelApp').component('objectCard', {
   controller: [
     '$scope',
     function($scope) {
-      $scope.ojectIsService = !!$scope.$ctrl.object.integrations;
+      $scope.objectIsService = !!$scope.$ctrl.object.integrations;
       const actions = ['Delete'];
       $scope.actions = actions.map(action => ({
         label: action,
@@ -51,8 +51,8 @@ angular.module('mobileControlPanelApp').component('objectCard', {
       };
 
       $scope.getIcon = function(object) {
-        const ojectIsService = !!object.integrations;
-        if (ojectIsService) {
+        const objectIsService = !!object.integrations;
+        if (objectIsService) {
           for (var serviceId in $scope.$ctrl.serviceClasses) {
             var serviceClass = $scope.$ctrl.serviceClasses[serviceId];
             var serviceName = serviceClass.spec.externalMetadata.serviceName;
