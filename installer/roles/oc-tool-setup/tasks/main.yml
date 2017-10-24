@@ -3,12 +3,14 @@
     download_url: "{{ oc_macos_url }}"
     local_archive_path: "{{ oc_macos_archive }}"
     oc_binary_local_path: "{{ oc_binary_macos_local_path }}"
+    binary_needs_become: no
   when: ansible_os_family == "Darwin"
 
 - set_fact:
     download_url: "{{ oc_linux_url }}"
     local_archive_path: "{{ oc_linux_archive }}"
     oc_binary_local_path: "{{ oc_binary_linux_local_path }}"
+    binary_needs_become: yes
   when: (ansible_os_family == "RedHat") or (ansible_distribution == "Ubuntu")
 
 - fail:
@@ -19,7 +21,6 @@
   get_url:
     url: "{{ download_url }}"
     dest: "{{ local_archive_path }}"
-    force: yes
 
 - name: Extract oc binary
   unarchive:
@@ -33,4 +34,4 @@
     src: "{{ oc_binary_local_path }}"
     dest: "{{ oc_binary_install_path }}"
     mode: 0755
-  become: yes
+  become: "{{ binary_needs_become }}"
