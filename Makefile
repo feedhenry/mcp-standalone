@@ -32,7 +32,7 @@ image: build
 	mkdir -p tmp
 	cp ./mcp-api tmp
 	cp artifacts/Dockerfile tmp
-	cd tmp && docker build -t feedhenry/mcp-standalone:$(TAG) .
+	cd tmp && docker build -t docker.io/feedhenry/mcp-standalone:$(TAG) .
 	rm -rf tmp
 
 run_server:
