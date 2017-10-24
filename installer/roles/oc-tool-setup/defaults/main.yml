@@ -6,5 +6,6 @@ oc_linux_url: https://apb-oc.s3.amazonaws.com/apb-oc/oc-linux-64bit.tar.gz
 oc_macos_archive: /tmp/oc.tar.gz
 oc_linux_archive: /tmp/oc.zip
 
-oc_binary_local_path: /tmp/oc-mac/oc
+oc_binary_macos_local_path: /tmp/oc-mac/oc
+oc_binary_linux_local_path: /tmp/oc-linux-64bit/oc
 oc_binary_install_path: /usr/local/bin/oc
