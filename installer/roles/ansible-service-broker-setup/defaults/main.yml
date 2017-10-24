@@ -1,6 +1,7 @@
 ---
 # defaults file for ansible-service-broker-setup
 dockerhub_org: feedhenry
+dockerhub_tag: latest
 dockerhost: docker.io
 launch_apb_on_bind: true
 skip_apb: 

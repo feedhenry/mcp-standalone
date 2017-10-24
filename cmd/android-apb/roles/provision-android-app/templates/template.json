@@ -57,7 +57,7 @@
                         "containers": [
                             {
                                 "name": "mcp-standalone",
-                                "image": "feedhenry/mcp-standalone",
+                                "image": "feedhenry/mcp-standalone:${IMAGE_TAG}",
                                 "command": [
                                     "./mcp-api",
                                     "-cert=/etc/tls/tls.crt",
@@ -212,6 +212,10 @@
             "description":"This flag is passed to the logger to set the log level (info, debug, error)",
             "name":"LOG_LEVEL",
             "value":"error"
+        },
+        {
+            "name":"IMAGE_TAG",
+            "value":"0.0.4"
         }
     ]
 }
