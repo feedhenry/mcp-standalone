@@ -4,16 +4,6 @@
 
 # tasks file for ansible-service-broker-setup
 
-## TODO: ansible-service-broker should be service now
-
-# - name: Check if Ansible Service Broker already exists
-#   shell: oc get broker ansible-service-broker
-#   register: oc_get_broker
-#   changed_when: false
-#   failed_when:
-#   - oc_get_broker.rc != 0
-#   - oc_get_broker.stderr.find('NotFound') == -1
-
 - block:
   - name: Ensure Ansible Service Broker install script is on host
     copy:
