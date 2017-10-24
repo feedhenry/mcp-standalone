@@ -26,10 +26,10 @@ import (
 )
 
 var (
-	bindURL         = "%s/apis/servicecatalog.k8s.io/v1alpha1/namespaces/%s/bindings"
-	instanceURL     = "%s/apis/servicecatalog.k8s.io/v1alpha1/namespaces/%s/instances"
-	serviceClassURL = "%s/apis/servicecatalog.k8s.io/v1alpha1/serviceclasses"
-	bindingURL      = "%s/apis/servicecatalog.k8s.io/v1alpha1/namespaces/%s/bindings/%s"
+	bindURL         = "%s/apis/servicecatalog.k8s.io/v1alpha1/namespaces/%s/servicebindings"
+	instanceURL     = "%s/apis/servicecatalog.k8s.io/v1alpha1/namespaces/%s/serviceinstances"
+	serviceClassURL = "%s/apis/servicecatalog.k8s.io/v1alpha1/clusterserviceclasses"
+	bindingURL      = "%s/apis/servicecatalog.k8s.io/v1alpha1/namespaces/%s/servicebinding/%s"
 )
 
 type ServiceCatalogClientBuilder struct {
