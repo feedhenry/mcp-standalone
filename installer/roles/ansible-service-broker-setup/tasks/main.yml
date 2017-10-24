@@ -16,7 +16,7 @@
       mode: u+x
 
   - name: Execute Ansible Service Broker provision script
-    shell: bash /tmp/provision-ansible-service-broker.sh "{{ dockerhub_username }}" "{{ dockerhub_password }}" "{{ dockerhub_org }}" "{{ launch_apb_on_bind }}" "{{dockerhub_tag}}"
+    shell: bash -e /tmp/provision-ansible-service-broker.sh "{{ dockerhub_username }}" "{{ dockerhub_password }}" "{{ dockerhub_org }}" "{{ launch_apb_on_bind }}" "{{dockerhub_tag}}"
   when:
   - dockerhub_tag is defined
   - dockerhub_tag != ''
