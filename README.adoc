@@ -82,3 +82,20 @@ Walkthroughs
 * link:./docs/walkthroughs/sync-and-keycloak.adoc[Data Sync & Keycloak Walkthough]
 * link:./docs/walkthroughs/keycloak.adoc[Keycloak Walkthrough]
 * link:./docs/walkthroughs/mobile-ci-cd.adoc[Mobile CI/CD Walkthough]
+
+[[doing-a-development-release]]
+Development Release
+~~~~~~~~~~~~~~~~~~~
+
+link:./docs/Release.md[Release]
+
+[[installing-from-a-development-release]]
+Installing from a development release
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Effectively all you need to do is add the dockerhub_tag to your install command. An example is show below. Note it is important that the image version exists in dockerhub.
+
+....
+make clean
+ansible-playbook playbook.yml -e "dockerhub_username=$DOCKERHUB_USERNAME" -e "dockerhub_tag=${TAG} -e "dockerhub_password=$DOCKERHUB_PASSWORD" -e "dockerhub_org=$DOCKERHUB_APBS_ORG" -e "skip_apb=keycloak-apb" --ask-become-pass
+....
