@@ -129,7 +129,7 @@ type Binding struct {
 }
 
 //TODO this is fragile and should be changed to use the real types and client https://github.com/kubernetes-incubator/service-catalog/issues/1367
-func createBindingObject(instance string, params map[string]string, secretName string) (string, error) {
+func createBindingObject(instance string, params map[string]interface{}, secretName string) (string, error) {
 	pdata, err := json.Marshal(params)
 	if err != nil {
 		return "", err
@@ -189,7 +189,7 @@ func (sc *serviceCatalogClient) podPreset(objectName, secretName, svcName, targe
 // creates a binding via service catalog which kicks of the bind apb for the service
 // finally creates a pod preset for sync pods to pick up as a volume mount
 // TODO perhaps the pod preset could be created as part of the bind API in the apb (would need to pass parameters)
-func (sc *serviceCatalogClient) BindToService(bindableService, targetSvcName string, params map[string]string, bindableSvcNamespace, targetSvcNamespace string) error {
+func (sc *serviceCatalogClient) BindToService(bindableService, targetSvcName string, params map[string]interface{}, bindableSvcNamespace, targetSvcNamespace string) error {
 	objectName := bindableService + "-" + targetSvcName
 	bindableServiceClass, err := sc.serviceClassByServiceName(bindableService, sc.token)
 	if err != nil {
