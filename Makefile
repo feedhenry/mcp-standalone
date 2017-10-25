@@ -58,6 +58,7 @@ apbs:
 	cp artifacts//openshift/template.json cmd/android-apb/roles/provision-android-app/templates
 	cp artifacts/openshift/template.json cmd/cordova-apb/roles/provision-cordova-apb/templates
 	cp artifacts/openshift/template.json cmd/ios-apb/roles/provision-ios-apb/templates
+	git commit -m "[make apbs script] updating Openshift template for APBs" cmd/
 	cd cmd/android-apb && make build_and_push TAG=$(TAG)
 	cd cmd/ios-apb && make build_and_push TAG=$(TAG)
 	cd cmd/cordova-apb && make build_and_push TAG=$(TAG)
