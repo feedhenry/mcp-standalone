@@ -37,14 +37,15 @@ As the service integration is to an external service, the service instance will 
 -  We already have an option for adding an external service and specifying which namespace it is in. If the user adds the required credentials here, these can be used as part of the 
 integration process to create the service instance and the binding. In theory, we could offer a "import from namespace" option, that would look at a specified namespace and import and of the 
 known service secrets into the current namespace. 
+
 This process would work as follows:
-- User adds external service via the UI add the required credentials
+- User adds external service via the UI and imports or adds the required credentials
 - User chooses to integrate a service in the same namespace as MCP with this external service
 - MCP sees this is an external service in another namespace
 - MCP reads the credentials created when the external service was added
 - MCP creates a provision service instance request passing the credentials as parameters to the service catalog (there is support for this already)
-- Service APB provison, when it sees these credentials follows a different flow, no longer creating pods etc but perhaps reading some data from the service and creating any 
+- In the service APB provision, when it sees these credentials will follow a different flow, no longer creating pods etc but perhaps reading some data from the service and creating any 
 required objects that are not new pods services routes etc
-- MCP next makes a binding call to service catalog, as per the broker spec, the provision credentials will be passed on by the broker to the binding. The binding does what is needed
-except now it is making requests against a service in a different namespace. The end result is any required info from the binding is setup as a new secret in the MCP namespace ready to be consumed.
+- MCP next makes a binding call to service catalog, and, as per the broker spec, the provision credentials will be passed on by the broker as part of the the binding params. 
+The binding does what is needed except now it is making requests against a service in a different namespace. The end result is any required info from the binding is setup as a new secret in the MCP namespace ready to be consumed.
  
