@@ -38,20 +38,29 @@
     when:
     - service_catalog is defined
 
+  - name: Obtain host config directory with allowed format
+    shell: "cd {{ host_config_dir }} && pwd"
+    register: host_config_dir_pwd
+
   - set_fact:
-      cluster_up_command: "{{ cluster_up_command }} --host-config-dir={{ host_config_dir }}"
+      host_config_abs_dir: "{{ host_config_dir_pwd.stdout }}"
+
+  - debug: msg="Host config dir is {{ host_config_abs_dir }}"
+
+  - set_fact:
+      cluster_up_command: "{{ cluster_up_command }} --host-config-dir={{ host_config_abs_dir }}"
     when:
     - host_config_dir is defined
     - host_config_dir != ''
 
   - set_fact:
-      cluster_up_command: "{{ cluster_up_command }} --host-data-dir={{ host_config_dir }}/openshift-data"
+      cluster_up_command: "{{ cluster_up_command }} --host-data-dir={{ host_config_abs_dir }}/openshift-data"
 
   - set_fact:
-      cluster_up_command: "{{ cluster_up_command }} --host-pv-dir={{ host_config_dir }}/openshift-pvs"
+      cluster_up_command: "{{ cluster_up_command }} --host-pv-dir={{ host_config_abs_dir }}/openshift-pvs"
 
   - set_fact:
-      cluster_up_command: "{{ cluster_up_command }} --host-volumes-dir={{ host_config_dir }}/openshift-volumes"
+      cluster_up_command: "{{ cluster_up_command }} --host-volumes-dir={{ host_config_abs_dir }}/openshift-volumes"
 
   - set_fact:
       cluster_up_command: "{{ cluster_up_command }} --use-existing-config={{ use_existing_config }}"

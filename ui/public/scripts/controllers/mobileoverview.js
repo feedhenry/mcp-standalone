@@ -115,7 +115,7 @@ angular.module('mobileControlPanelApp').controller('MobileOverviewController', [
           DataService.list(
             {
               group: 'servicecatalog.k8s.io',
-              resource: 'serviceclasses'
+              resource: 'clusterserviceclasses'
             },
             $scope.projectContext
           )

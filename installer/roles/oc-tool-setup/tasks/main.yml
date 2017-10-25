@@ -1,0 +1,37 @@
+---
+- set_fact:
+    download_url: "{{ oc_macos_url }}"
+    local_archive_path: "{{ oc_macos_archive }}"
+    oc_binary_local_path: "{{ oc_binary_macos_local_path }}"
+    binary_needs_become: no
+  when: ansible_os_family == "Darwin"
+
+- set_fact:
+    download_url: "{{ oc_linux_url }}"
+    local_archive_path: "{{ oc_linux_archive }}"
+    oc_binary_local_path: "{{ oc_binary_linux_local_path }}"
+    binary_needs_become: yes
+  when: (ansible_os_family == "RedHat") or (ansible_distribution == "Ubuntu")
+
+- fail:
+    msg: "Unknown os_family {{ ansible_os_family }}"
+  when: (oc_binary_local_path is undefined) or (oc_binary_local_path == '')
+
+- name: Retrieve oc archive
+  get_url:
+    url: "{{ download_url }}"
+    dest: "{{ local_archive_path }}"
+
+- name: Extract oc binary
+  unarchive:
+    src: "{{ local_archive_path }}"
+    dest: "/tmp/"
+    copy: "no"
+
+- name: Use retrieved oc binary
+  copy:
+    remote_src: yes
+    src: "{{ oc_binary_local_path }}"
+    dest: "{{ oc_binary_install_path }}"
+    mode: 0755
+  become: "{{ binary_needs_become }}"
