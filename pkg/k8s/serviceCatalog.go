@@ -26,10 +26,10 @@ import (
 )
 
 var (
-	bindURL         = "%s/apis/servicecatalog.k8s.io/v1alpha1/namespaces/%s/servicebindings"
-	instanceURL     = "%s/apis/servicecatalog.k8s.io/v1alpha1/namespaces/%s/serviceinstances"
-	serviceClassURL = "%s/apis/servicecatalog.k8s.io/v1alpha1/clusterserviceclasses"
-	bindingURL      = "%s/apis/servicecatalog.k8s.io/v1alpha1/namespaces/%s/servicebinding/%s"
+	bindURL         = "%s/apis/servicecatalog.k8s.io/v1beta1/namespaces/%s/servicebindings"
+	instanceURL     = "%s/apis/servicecatalog.k8s.io/v1beta1/namespaces/%s/serviceinstances"
+	serviceClassURL = "%s/apis/servicecatalog.k8s.io/v1beta1/clusterserviceclasses"
+	bindingURL      = "%s/apis/servicecatalog.k8s.io/v1beta1/namespaces/%s/servicebindings/%s"
 )
 
 type ServiceCatalogClientBuilder struct {
@@ -90,7 +90,10 @@ type ServiceClass struct {
 	// +optional
 	meta_v1.ObjectMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
 
-	ExternalMetadata map[string]string `json:"externalMetadata"`
+	Spec struct {
+		ExternalMetadata map[string]string `json:"externalMetadata"`
+		ExternalName     string            `json:"externalName"`
+	} `json:"spec"`
 }
 
 type ServiceInstance struct {
@@ -100,7 +103,7 @@ type ServiceInstance struct {
 	// +optional
 	meta_v1.ObjectMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
 	Spec               struct {
-		ServiceClassName string `json:"serviceClassName"`
+		ServiceClassName string `json:"externalClusterServiceClassName"`
 	} `json:"spec"`
 }
 
@@ -134,7 +137,7 @@ func createBindingObject(instance string, params map[string]interface{}, secretN
 	if err != nil {
 		return "", err
 	}
-	return `{"kind":"Binding","apiVersion":"servicecatalog.k8s.io/v1alpha1","metadata":{"generateName":"` + instance + `-"},
+	return `{"kind":"ServiceBinding","apiVersion":"servicecatalog.k8s.io/v1beta1","metadata":{"generateName":"` + instance + `-"},
 	 "spec":{
 	     "instanceRef":{"name":"` + instance + `"},
 	     "secretName":"` + secretName + `",
@@ -199,7 +202,7 @@ func (sc *serviceCatalogClient) BindToService(bindableService, targetSvcName str
 		return errors.New("failed to find service class for service " + bindableService)
 	}
 
-	svcInstList, err := sc.serviceInstancesForServiceClass(sc.token, bindableServiceClass.Name, targetSvcNamespace)
+	svcInstList, err := sc.serviceInstancesForServiceClass(sc.token, bindableServiceClass.Spec.ExternalName, targetSvcNamespace)
 	if err != nil {
 		return err
 	}
@@ -357,6 +360,9 @@ func (sc *serviceCatalogClient) serviceClasses(token, ns string) ([]ServiceClass
 		return nil, err
 	}
 	defer res.Body.Close()
+	if res.StatusCode != 200 {
+		return nil, errors.New("Unexpected response code from Service Catalog " + res.Status)
+	}
 	data, _ := ioutil.ReadAll(res.Body)
 	scs := &ServiceClassList{}
 	if err := json.Unmarshal(data, &scs); err != nil {
@@ -374,7 +380,7 @@ func (sc *serviceCatalogClient) serviceClassByServiceName(name, token string) (*
 	}
 
 	for _, sc := range serviceClasses {
-		if v, ok := sc.ExternalMetadata["serviceName"]; ok && v == name {
+		if v, ok := sc.Spec.ExternalMetadata["serviceName"]; ok && v == name {
 			return &sc, nil
 		}
 	}
