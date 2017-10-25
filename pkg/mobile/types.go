@@ -174,6 +174,14 @@ type KeycloakConfig struct {
 	} `json:"credentials"`
 }
 
+type SyncConfig struct {
+	URI string `json:"uri"`
+	Headers struct {
+		AppKey string `json:"app_key"`
+		AppID string `json:"app_id"`
+	} `json:"headers"`
+}
+
 type AttrFilterFunc func(attrs Attributer) bool
 
 //AppTypes are the valid app types

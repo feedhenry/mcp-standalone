@@ -55,6 +55,26 @@ func (ksc keycloakSecretConvertor) Convert(s v1.Secret) (*mobile.ServiceConfig, 
 	}, nil
 }
 
+type syncSecretConvertor struct{}
+
+//Convert a kubernetes Sync Server secret into a keycloak mobile.ServiceConfig
+func (scc syncSecretConvertor) Convert(s v1.Secret) (*mobile.ServiceConfig, error) {
+	sc := &mobile.SyncConfig{
+		URI: string(s.Data["uri"]),
+	}
+
+	if threeScaleExists, ok := s.Labels["3scale"]; ok && threeScaleExists == "true" {
+		sc.Headers.AppID = string(s.Data["apicast_app_id"])
+		sc.Headers.AppKey = string(s.Data["apicast_app_key"])
+		sc.URI = string(s.Data["apicast_route"])
+	}
+
+	return &mobile.ServiceConfig{
+		Config: sc,
+		Name: string(s.Data["name"]),
+	}, nil
+}
+
 type secretAttributer struct {
 	*v1.Secret
 }
@@ -85,6 +105,7 @@ func NewMobileServiceRepo(client corev1.SecretInterface) *MobileServiceRepo {
 		// if a secret needs a special convertor it is added here otherwise the default convertor will be used
 		convertors: map[string]SecretConvertor{
 			"keycloak": keycloakSecretConvertor{},
+			"fh-sync-server": syncSecretConvertor{},
 		},
 		logger:    logrus.StandardLogger(),
 		validator: DefaultMobileServiceValidator{},
