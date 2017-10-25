@@ -128,15 +128,18 @@ func filterServices(serviceTypes []string) func(att mobile.Attributer) bool {
 	}
 }
 
-func buildBindParams(from *mobile.Service, to *mobile.Service) map[string]string {
-	var p = map[string]string{}
+func buildBindParams(from *mobile.Service, to *mobile.Service) map[string]interface{} {
+	var p = map[string]interface{}{}
 	if from.Name == mobile.ServiceNameThreeScale {
+		//p["credentials"] = map[string]string{"apicast_route": from.Host}
 		p["apicast_route"] = from.Host
 		p["service_route"] = to.Host
 		p["service_name"] = to.Name
 		p["app_key"] = uuid.NewV4().String()
+		p["service_secret"] = to.ID
 	} else if from.Name == mobile.ServiceNameKeycloak {
-		p = map[string]string{
+		p = map[string]interface{}{
+
 			"service_name": to.Name,
 		}
 	}
