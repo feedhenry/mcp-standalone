@@ -88,7 +88,7 @@ type SCClient struct {
 	Err error
 }
 
-func (sc *SCClient) BindToService(bindableService, targetSvcName string, bindingParams map[string]string, bindableServiceNamespace, targetSvcNamespace string) error {
+func (sc *SCClient) BindToService(bindableService, targetSvcName string, bindingParams map[string]interface{}, bindableServiceNamespace, targetSvcNamespace string) error {
 	return sc.Err
 }
 func (sc *SCClient) UnBindFromService(bindableService, targetSvcName, bindableServiceNamespace string) error {
