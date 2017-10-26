@@ -3,7 +3,6 @@ package integration_test
 import (
 	"testing"
 
-	"fmt"
 	"github.com/feedhenry/mcp-standalone/pkg/data"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile/integration"
