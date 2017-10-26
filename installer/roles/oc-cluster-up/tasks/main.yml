@@ -80,7 +80,7 @@
     - public_hostname != ''
 
   - set_fact:
-      cluster_up_command: "{{ cluster_up_command }} --version={{ cluster_version }}"
+      cluster_up_command: "{{ cluster_up_command }} --version={{ cluster_version }} --image={{ cluster_image }}"
     when:
     - cluster_version is defined
     - cluster_version != ''
