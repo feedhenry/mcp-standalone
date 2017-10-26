@@ -178,6 +178,36 @@ server.
 * Back in your Project, click the `Mobile` tab on the left nav. You
 should now see the Mobile Overview screen and your Android App.
 
+[[useful-bash-function]]
+Useful Bash Function
+~~~~~~~~~~~~~~~~~~~~
+The following bash function will allow you to do 
+....
+mcp up
+mcp down
+....
+
+Add the following to your bash_profile
+
+....
+export DOCKERHUB_PASSWORD="supersecret"
+export DOCKERHUB_USERNAME="user"
+export DOCKERHUB_APBS_ORG="feedhenry"
+export TAG=latest
+
+function mcp(){
+        if [ "$1" == "up" ]; then
+          echo "mcp up"
+          cd $GOPATH/src/github.com/feedhenry/mcp-standalone/installer/ && ansible-playbook playbook.yml -e "dockerhub_username=$DOCKERHUB_USERNAME" -e "dockerhub_tag=${TAG:-latest}" -e "dockerhub_password=$DOCKERHUB_PASSWORD" -e "dockerhub_org=$DOCKERHUB_APBS_ORG" --ask-become-pass
+       fi
+       if [ "$1" == "down" ]; then
+         cd $GOPATH/src/github.com/feedhenry/mcp-standalone && make clean
+       fi
+
+}
+....
+
+
 [[next-steps]]
 Next Steps
 ~~~~~~~~~~
