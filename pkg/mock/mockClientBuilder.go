@@ -66,3 +66,49 @@ func (cb *OCClientBuilder) BuildClient() (client.Interface, error) {
 	return testclient.NewClient(cb.host, cb.namespace, cb.token, cb.Fake), nil
 
 }
+
+type SCClientBuilder struct {
+	Client mobile.SCCInterface
+}
+
+func (scc *SCClientBuilder) WithToken(token string) mobile.SCClientBuilder {
+	return scc
+}
+func (scc *SCClientBuilder) WithHost(host string) mobile.SCClientBuilder {
+	return scc
+}
+func (scc *SCClientBuilder) UseDefaultSAToken() mobile.SCClientBuilder {
+	return scc
+}
+func (scc *SCClientBuilder) Build() (mobile.SCCInterface, error) {
+	return scc.Client, nil
+}
+
+func NewSCClient() *SCClient {
+	return &SCClient{Calls: map[string]int{}}
+}
+
+type SCClient struct {
+	Err   error
+	Calls map[string]int
+}
+
+func (sc *SCClient) BindToService(bindableService, targetSvcName string, bindingParams map[string]interface{}, bindableServiceNamespace, targetSvcNamespace string) error {
+	sc.Calls["BindToService"]++
+	return sc.Err
+}
+func (sc *SCClient) UnBindFromService(bindableService, targetSvcName, bindableServiceNamespace string) error {
+	sc.Calls["UnBindFromService"]++
+	return sc.Err
+}
+func (sc *SCClient) AddMobileApiKeys(targetSvcName, namespace string) error {
+	sc.Calls["AddMobileApiKeys"]++
+	return sc.Err
+}
+func (sc *SCClient) RemoveMobileApiKeys(targetSvcName, namespace string) error {
+	sc.Calls["RemoveMobileApiKeys"]++
+	return sc.Err
+}
+func (sc *SCClient) Called(f string) int {
+	return sc.Calls[f]
+}

@@ -212,9 +212,7 @@ angular.module('mobileControlPanelApp').service('mcpApi', [
           getMobileServicesURL() +
           '/configure' +
           '/' +
-          params.component +
-          '/' +
-          service.name +
+          params.componentSecret +
           '/' +
           params.service;
         return $http.post(url, {}, requestConfig).then(res => {
@@ -232,9 +230,7 @@ angular.module('mobileControlPanelApp').service('mcpApi', [
           getMobileServicesURL() +
           '/configure' +
           '/' +
-          params.component +
-          '/' +
-          service.name +
+          params.componentSecret +
           '/' +
           params.service;
         return $http.delete(url, requestConfig).then(res => {
