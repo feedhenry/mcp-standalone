@@ -63,7 +63,9 @@ type syncSecretConvertor struct{}
 
 //Convert a kubernetes Sync Server secret into a keycloak mobile.ServiceConfig
 func (scc syncSecretConvertor) Convert(s v1.Secret) (*mobile.ServiceConfig, error) {
-	config := map[string]interface{}{}
+	config := map[string]interface{}{
+		"uri": string(s.Data["uri"]),
+	}
 	headers := map[string]string{}
 
 	acAppID, acAppIDExists := s.Data["apicast_app_id"]
