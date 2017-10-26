@@ -3,6 +3,7 @@ package integration_test
 import (
 	"testing"
 
+	"fmt"
 	"github.com/feedhenry/mcp-standalone/pkg/data"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile/integration"
@@ -22,7 +23,7 @@ func TestSDKService_GenerateMobileServiceConfigs(t *testing.T) {
 		ExpectError bool
 	}{
 		{
-			Name: "test generate service configs ok",
+			Name: "test generate generic service configs ok",
 			Client: func() mobile.ServiceCruder {
 				client := &fake.Clientset{}
 				client.AddReactor("list", "secrets", func(a ktesting.Action) (bool, runtime.Object, error) {
@@ -33,9 +34,9 @@ func TestSDKService_GenerateMobileServiceConfigs(t *testing.T) {
 									Labels: map[string]string{"group": "mobileapp"},
 								},
 								Data: map[string][]byte{
-									"uri":  []byte("http://fh-sync.com"),
-									"name": []byte("fh-sync-server"),
-									"type": []byte("fh-sync-server"),
+									"uri":  []byte("http://generic-service.com"),
+									"name": []byte("3scale"),
+									"type": []byte("3scale"),
 								},
 							},
 							{
@@ -53,13 +54,13 @@ func TestSDKService_GenerateMobileServiceConfigs(t *testing.T) {
 				if nil == sdkConfigs {
 					t.Fatal("expected sdk configs but got none")
 				}
-				if v, ok := sdkConfigs["fh-sync-server"]; ok {
+				if v, ok := sdkConfigs["3scale"]; ok {
 					configValues := v.Config.(map[string]string)
 					if _, ok := configValues["uri"]; !ok {
 						t.Fatalf("expected a uri in the service config")
 					}
 				} else {
-					t.Fatal("expected fh-sync-server to be in the config response")
+					t.Fatal("expected 3scale to be in the config response")
 				}
 			},
 		},

@@ -71,7 +71,7 @@ func (scc syncSecretConvertor) Convert(s v1.Secret) (*mobile.ServiceConfig, erro
 
 	return &mobile.ServiceConfig{
 		Config: sc,
-		Name: string(s.Data["name"]),
+		Name:   string(s.Data["name"]),
 	}, nil
 }
 
@@ -104,7 +104,7 @@ func NewMobileServiceRepo(client corev1.SecretInterface) *MobileServiceRepo {
 		client: client,
 		// if a secret needs a special convertor it is added here otherwise the default convertor will be used
 		convertors: map[string]SecretConvertor{
-			"keycloak": keycloakSecretConvertor{},
+			"keycloak":       keycloakSecretConvertor{},
 			"fh-sync-server": syncSecretConvertor{},
 		},
 		logger:    logrus.StandardLogger(),

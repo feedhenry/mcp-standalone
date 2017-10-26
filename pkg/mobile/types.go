@@ -175,10 +175,10 @@ type KeycloakConfig struct {
 }
 
 type SyncConfig struct {
-	URI string `json:"uri"`
+	URI     string `json:"uri"`
 	Headers struct {
 		AppKey string `json:"app_key"`
-		AppID string `json:"app_id"`
+		AppID  string `json:"app_id"`
 	} `json:"headers"`
 }
 
