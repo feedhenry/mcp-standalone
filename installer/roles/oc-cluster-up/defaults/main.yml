@@ -7,6 +7,8 @@ hawkular_metrics: "false"
 
 host_config_dir: "{{playbook_dir}}/../ui"
 
-cluster_version: latest
+cluster_image: feedhenry/origin
+
+cluster_version: 3.7
 
 cluster_public_hostname: "192.168.37.1"
