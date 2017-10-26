@@ -160,13 +160,13 @@ type ServiceIntegration struct {
 type ConfigParams map[string]interface{}
 
 type GenericClientConfig struct {
-	ConfigParams `json:"params"`
-	Headers      map[string]string `json:"headers"`
+	ConfigParams
+	Headers map[string]string `json:"headers"`
 }
 
 type ServiceConfig struct {
-	Config *GenericClientConfig `json:"config"`
-	Name   string               `json:"name"`
+	Config map[string]interface{} `json:"config"`
+	Name   string                 `json:"name"`
 }
 
 type AttrFilterFunc func(attrs Attributer) bool
