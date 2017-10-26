@@ -48,7 +48,7 @@ var capabilities = map[string]map[string][]string{
 	},
 	"custom": map[string][]string{
 		"capabilities": {""},
-		"integrations": {""},
+		"integrations": {mobile.ServiceNameThreeScale, mobile.ServiceNameThreeScale, mobile.ServiceNameKeycloak},
 	},
 }
 
