@@ -180,11 +180,11 @@ func (msh *MobileServiceHandler) Deconfigure(rw http.ResponseWriter, req *http.R
 	clientServiceName := strings.ToLower(params["clientService"])
 	serviceName := strings.ToLower(params["targetService"])
 	if len(serviceName) == 0 {
-		handleCommonErrorCases(errors.New("web.msh.Configure: provided targetService must not be empty"), rw, msh.logger)
+		handleCommonErrorCases(errors.New("web.msh.Deconfigure: provided targetService must not be empty"), rw, msh.logger)
 		return
 	}
 	if len(clientServiceName) == 0 {
-		handleCommonErrorCases(errors.New("web.msh.Configure: provided clientServiceName must not be empty"), rw, msh.logger)
+		handleCommonErrorCases(errors.New("web.msh.Deconfigure: provided clientServiceName must not be empty"), rw, msh.logger)
 		return
 	}
 
@@ -197,7 +197,7 @@ func (msh *MobileServiceHandler) Deconfigure(rw http.ResponseWriter, req *http.R
 
 	serviceCruder, err := msh.serviceRepoBuilder.WithToken(token).Build()
 	if err != nil {
-		handleCommonErrorCases(errors.Wrap(err, "web.msh.Configure: could not create service cruder"), rw, msh.logger)
+		handleCommonErrorCases(errors.Wrap(err, "web.msh.Deconfigure: could not create service cruder"), rw, msh.logger)
 		return
 	}
 
