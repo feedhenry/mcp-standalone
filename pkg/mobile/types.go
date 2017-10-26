@@ -174,11 +174,6 @@ type KeycloakConfig struct {
 	} `json:"credentials"`
 }
 
-type SyncConfig struct {
-	URI     string            `json:"uri"`
-	Headers map[string]string `json:"headers"`
-}
-
 type AttrFilterFunc func(attrs Attributer) bool
 
 //AppTypes are the valid app types
