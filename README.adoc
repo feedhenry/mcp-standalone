@@ -3,8 +3,8 @@ Mobile Control Panel (MCP)
 --------------------------
 
 image:https://travis-ci.org/feedhenry/mcp-standalone.png[Build Status (Travis CI), link=https://travis-ci.org/feedhenry/mcp-standalone]
-image:https://img.shields.io/docker/stars/feedhenry/mcp-standalone.svg?style=plastic[Docker Stars, link=https://registry.hub.docker.com/v2/repositories/feedhenry/mcp-standalone/stars/count/]
-image:https://img.shields.io/docker/pulls/feedhenry/mcp-standalone.svg?style=plastic[Docker Pulls, link=https://registry.hub.docker.com/v2/repositories/feedhenry/mcp-standalone/]
+image:https://img.shields.io/docker/stars/feedhenry/mcp-standalone.svg[Docker Stars, link=https://registry.hub.docker.com/v2/repositories/feedhenry/mcp-standalone/stars/count/]
+image:https://img.shields.io/docker/pulls/feedhenry/mcp-standalone.svg[Docker Pulls, link=https://registry.hub.docker.com/v2/repositories/feedhenry/mcp-standalone/]
 image:https://img.shields.io/:license-Apache2-blue.svg[License, link=http://www.apache.org/licenses/LICENSE-2.0]
 
 
