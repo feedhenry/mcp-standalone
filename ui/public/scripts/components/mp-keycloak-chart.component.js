@@ -49,8 +49,7 @@ angular.module('mobileControlPanelApp').component('mpKeycloakChart', {
           error: 0
         }
       };
-
-      var loginSuccessChart = _.findWhere($scope.$ctrl.chartData, {
+      var loginSuccessChart = _.find($scope.$ctrl.chartData, {
         title: 'LOGIN'
       });
       if (loginSuccessChart) {
@@ -59,7 +58,7 @@ angular.module('mobileControlPanelApp').component('mpKeycloakChart', {
             loginSuccessChart.data.columns[1].length - 1
           ];
       }
-      var loginErrorChart = _.findWhere($scope.$ctrl.chartData, {
+      var loginErrorChart = _.find($scope.$ctrl.chartData, {
         title: 'LOGIN_ERROR'
       });
       if (loginErrorChart) {
@@ -68,7 +67,7 @@ angular.module('mobileControlPanelApp').component('mpKeycloakChart', {
             loginErrorChart.data.columns[1].length - 1
           ];
       }
-      var registrationSuccessChart = _.findWhere($scope.$ctrl.chartData, {
+      var registrationSuccessChart = _.find($scope.$ctrl.chartData, {
         title: 'REGISTER'
       });
       if (registrationSuccessChart) {
@@ -77,7 +76,7 @@ angular.module('mobileControlPanelApp').component('mpKeycloakChart', {
             registrationSuccessChart.data.columns[1].length - 1
           ];
       }
-      var registrationErrorChart = _.findWhere($scope.$ctrl.chartData, {
+      var registrationErrorChart = _.find($scope.$ctrl.chartData, {
         title: 'REGISTER_ERROR'
       });
       if (registrationErrorChart) {

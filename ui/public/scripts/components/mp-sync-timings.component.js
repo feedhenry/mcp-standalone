@@ -30,11 +30,13 @@ angular.module('mobileControlPanelApp').component('mpSyncTimings', {
       }
 
       $scope.$ctrl.chartData.forEach((chart, index) => {
-        if (metricsToDisplay.indexOf(chart[1][0]) === -1) {
-          return;
-        }
+        metricsToDisplay.forEach(metric => {
+          if (chart[1][0].indexOf(metric) === -1) {
+            return;
+          }
 
-        $scope.chartData.push(chart[1]);
+          $scope.chartData.push(chart[1]);
+        });
       });
     }
   ]
