@@ -30,9 +30,11 @@ type defaultSecretConvertor struct{}
 
 //Convert a kubernetes secret to a mobile.ServiceConfig
 func (dsc defaultSecretConvertor) Convert(s v1.Secret) (*mobile.ServiceConfig, error) {
-	conf := map[string]string{}
+	conf := &mobile.GenericClientConfig{
+		ConfigParams: mobile.ConfigParams{},
+	}
 	for k, v := range s.Data {
-		conf[k] = string(v)
+		conf.ConfigParams[k] = string(v)
 	}
 	return &mobile.ServiceConfig{
 		Config: conf,
@@ -44,13 +46,40 @@ type keycloakSecretConvertor struct{}
 
 //Convert a kubernetes keycloak secret into a keycloak mobile.ServiceConfig
 func (ksc keycloakSecretConvertor) Convert(s v1.Secret) (*mobile.ServiceConfig, error) {
-	kc := &mobile.KeycloakConfig{}
-	err := json.Unmarshal(s.Data["public_installation"], kc)
+	kc := &mobile.GenericClientConfig{
+		ConfigParams: mobile.ConfigParams{},
+		Headers:      make(map[string]string),
+	}
+	err := json.Unmarshal(s.Data["public_installation"], &kc.ConfigParams)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to unmarshall keycloak configuration ")
 	}
 	return &mobile.ServiceConfig{
 		Config: kc,
+		Name:   string(s.Data["name"]),
+	}, nil
+}
+
+type syncSecretConvertor struct{}
+
+//Convert a kubernetes Sync Server secret into a keycloak mobile.ServiceConfig
+func (scc syncSecretConvertor) Convert(s v1.Secret) (*mobile.ServiceConfig, error) {
+	conf := &mobile.GenericClientConfig{
+		Headers:      make(map[string]string),
+		ConfigParams: mobile.ConfigParams{},
+	}
+
+	acAppID, acAppIDExists := s.Data["apicast_app_id"]
+	acAppKey, acAppKeyExists := s.Data["apicast_app_key"]
+	acRoute, acRouteExists := s.Data["apicast_route"]
+	if acAppIDExists && acAppKeyExists && acRouteExists {
+		conf.Headers["app_id"] = string(acAppID)
+		conf.Headers["app_key"] = string(acAppKey)
+		conf.ConfigParams["uri"] = string(acRoute)
+	}
+
+	return &mobile.ServiceConfig{
+		Config: conf,
 		Name:   string(s.Data["name"]),
 	}, nil
 }
