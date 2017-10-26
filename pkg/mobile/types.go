@@ -157,21 +157,16 @@ type ServiceIntegration struct {
 	DisplayName     string `json:"displayName"`
 }
 
-type ServiceConfig struct {
-	Config interface{} `json:"config"`
-	Name   string      `json:"name"`
+type ConfigParams map[string]interface{}
+
+type GenericClientConfig struct {
+	ConfigParams `json:"params"`
+	Headers      map[string]string `json:"headers"`
 }
 
-type KeycloakConfig struct {
-	SSLRequired   string `json:"ssl-required"`
-	AuthServerURL string `json:"auth-server-url"`
-	Realm         string `json:"realm"`
-	Resource      string `json:"resource"`
-	ClientID      string `json:"clientId"`
-	URL           string `json:"url"`
-	Credentials   struct {
-		Secret string `json:"secret"`
-	} `json:"credentials"`
+type ServiceConfig struct {
+	Config *GenericClientConfig `json:"config"`
+	Name   string               `json:"name"`
 }
 
 type AttrFilterFunc func(attrs Attributer) bool
