@@ -54,8 +54,7 @@ func TestSDKService_GenerateMobileServiceConfigs(t *testing.T) {
 					t.Fatal("expected sdk configs but got none")
 				}
 				if v, ok := sdkConfigs["fh-sync-server"]; ok {
-					configValues := v.Config.(map[string]string)
-					if _, ok := configValues["uri"]; !ok {
+					if _, ok := v.Config["uri"]; !ok {
 						t.Fatalf("expected a uri in the service config")
 					}
 				} else {

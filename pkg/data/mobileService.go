@@ -30,12 +30,14 @@ type defaultSecretConvertor struct{}
 
 //Convert a kubernetes secret to a mobile.ServiceConfig
 func (dsc defaultSecretConvertor) Convert(s v1.Secret) (*mobile.ServiceConfig, error) {
-	conf := map[string]string{}
+	config := map[string]interface{}{}
+	headers := map[string]string{}
 	for k, v := range s.Data {
-		conf[k] = string(v)
+		config[k] = string(v)
 	}
+	config["headers"] = headers
 	return &mobile.ServiceConfig{
-		Config: conf,
+		Config: config,
 		Name:   string(s.Data["name"]),
 	}, nil
 }
@@ -44,13 +46,40 @@ type keycloakSecretConvertor struct{}
 
 //Convert a kubernetes keycloak secret into a keycloak mobile.ServiceConfig
 func (ksc keycloakSecretConvertor) Convert(s v1.Secret) (*mobile.ServiceConfig, error) {
-	kc := &mobile.KeycloakConfig{}
-	err := json.Unmarshal(s.Data["public_installation"], kc)
+	config := map[string]interface{}{}
+	headers := map[string]string{}
+	err := json.Unmarshal(s.Data["public_installation"], &config)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to unmarshall keycloak configuration ")
 	}
+	config["headers"] = headers
 	return &mobile.ServiceConfig{
-		Config: kc,
+		Config: config,
+		Name:   string(s.Data["name"]),
+	}, nil
+}
+
+type syncSecretConvertor struct{}
+
+//Convert a kubernetes Sync Server secret into a keycloak mobile.ServiceConfig
+func (scc syncSecretConvertor) Convert(s v1.Secret) (*mobile.ServiceConfig, error) {
+	config := map[string]interface{}{
+		"uri": string(s.Data["uri"]),
+	}
+	headers := map[string]string{}
+
+	acAppID, acAppIDExists := s.Data["apicast_app_id"]
+	acAppKey, acAppKeyExists := s.Data["apicast_app_key"]
+	acRoute, acRouteExists := s.Data["apicast_route"]
+	if acAppIDExists && acAppKeyExists && acRouteExists {
+		headers["app_id"] = string(acAppID)
+		headers["app_key"] = string(acAppKey)
+		config["uri"] = string(acRoute)
+	}
+	config["headers"] = headers
+
+	return &mobile.ServiceConfig{
+		Config: config,
 		Name:   string(s.Data["name"]),
 	}, nil
 }
@@ -84,7 +113,8 @@ func NewMobileServiceRepo(client corev1.SecretInterface) *MobileServiceRepo {
 		client: client,
 		// if a secret needs a special convertor it is added here otherwise the default convertor will be used
 		convertors: map[string]SecretConvertor{
-			"keycloak": keycloakSecretConvertor{},
+			"keycloak":       keycloakSecretConvertor{},
+			"fh-sync-server": syncSecretConvertor{},
 		},
 		logger:    logrus.StandardLogger(),
 		validator: DefaultMobileServiceValidator{},
