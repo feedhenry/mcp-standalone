@@ -213,6 +213,7 @@ func (st ServiceTypes) Contains(service string) bool {
 }
 
 var ValidServiceTypes = ServiceTypes{ServiceNameKeycloak, ServiceNameThreeScale, ServiceNameSync, ServiceNameMobileCICD, ServiceNameCustom}
+var ValidClientConfigServices = ServiceTypes{ServiceNameKeycloak, ServiceNameSync, ServiceNameCustom}
 var ValidServicesAndIntegrations = ServiceTypes{ServiceNameKeycloak, ServiceNameThreeScale, ServiceNameSync, ServiceNameMobileCICD, ServiceNameCustom, IntegrationAPIKeys}
 
 const (

@@ -10,7 +10,7 @@ type SDKService struct{}
 
 // GenerateMobileServiceConfigs will return a map of services and their mobile configs
 func (ms *SDKService) GenerateMobileServiceConfigs(serviceCruder mobile.ServiceCruder) (map[string]*mobile.ServiceConfig, error) {
-	svcConfigs, err := serviceCruder.ListConfigs(filterServices(mobile.ValidServiceTypes))
+	svcConfigs, err := serviceCruder.ListConfigs(filterServices(mobile.ValidClientConfigServices))
 	if err != nil {
 		return nil, errors.Wrap(err, "GenerateMobileServiceConfigs failed during a list of configs")
 	}
