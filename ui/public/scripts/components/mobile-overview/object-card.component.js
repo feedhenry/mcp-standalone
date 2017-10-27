@@ -53,19 +53,21 @@ angular.module('mobileControlPanelApp').component('objectCard', {
       $scope.getIcon = function(object) {
         const ojectIsService = !!object.integrations;
         if (ojectIsService) {
-          for (var serviceName in $scope.$ctrl.serviceClasses) {
-            var serviceClass = $scope.$ctrl.serviceClasses[serviceName];
+          for (var serviceId in $scope.$ctrl.serviceClasses) {
+            var serviceClass = $scope.$ctrl.serviceClasses[serviceId];
+            var serviceName = serviceClass.spec.externalMetadata.serviceName;
             if (
               serviceName === object.name ||
-              serviceName.toLowerCase().indexOf(object.name) >= 0
+              (serviceName &&
+                serviceName.toLowerCase().indexOf(object.name) >= 0)
             ) {
               if (
-                typeof serviceClass.externalMetadata[
+                typeof serviceClass.spec.externalMetadata[
                   'console.openshift.io/iconClass'
                 ] !== 'undefined'
               ) {
                 return formatIconClasses(
-                  serviceClass.externalMetadata[
+                  serviceClass.spec.externalMetadata[
                     'console.openshift.io/iconClass'
                   ]
                 );
