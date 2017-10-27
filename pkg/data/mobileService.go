@@ -28,12 +28,27 @@ type MobileServiceValidator interface {
 // defaultSecretConvertor will provide a default secret to config conversion
 type defaultSecretConvertor struct{}
 
+type ignoredFields []string
+
+func (i ignoredFields) Contains(field string) bool {
+	for _, f := range i {
+		if field == f {
+			return true
+		}
+	}
+	return false
+}
+
+var ignored = ignoredFields{"password", "token"}
+
 //Convert a kubernetes secret to a mobile.ServiceConfig
 func (dsc defaultSecretConvertor) Convert(s v1.Secret) (*mobile.ServiceConfig, error) {
 	config := map[string]interface{}{}
 	headers := map[string]string{}
 	for k, v := range s.Data {
-		config[k] = string(v)
+		if !ignored.Contains(k) {
+			config[k] = string(v)
+		}
 	}
 	config["headers"] = headers
 	return &mobile.ServiceConfig{
