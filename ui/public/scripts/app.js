@@ -71,37 +71,31 @@ var resolveMCPRoute = {
   ]
 };
 
-angular
-  .module('mobileControlPanelApp', [
-    'openshiftConsole',
-    'patternfly.charts',
-    'patternfly.card'
-  ])
-  .config([
-    '$routeProvider',
-    function($routeProvider) {
-      $routeProvider
-        .when('/project/:project/create-mobileapp', {
-          templateUrl: 'extensions/mcp/views/create-mobileapp.html',
-          controller: 'CreateMobileappController',
-          resolve: resolveMCPRoute
-        })
-        .when('/project/:project/browse/mobileoverview', {
-          templateUrl: 'extensions/mcp/views/mobileoverview.html',
-          controller: 'MobileOverviewController',
-          reloadOnSearch: false,
-          resolve: resolveMCPRoute
-        })
-        .when('/project/:project/browse/mobileapps/:mobileapp', {
-          templateUrl: 'extensions/mcp/views/mobileapp.html',
-          controller: 'MobileAppController',
-          reloadOnSearch: false,
-          resolve: resolveMCPRoute
-        })
-        .when('/project/:project/browse/mobileservices/:service', {
-          templateUrl: 'extensions/mcp/views/mobileservice.html',
-          controller: 'MobileServiceController',
-          resolve: resolveMCPRoute
-        });
-    }
-  ]);
+angular.module('mobileControlPanelApp', ['openshiftConsole']).config([
+  '$routeProvider',
+  function($routeProvider) {
+    $routeProvider
+      .when('/project/:project/create-mobileapp', {
+        templateUrl: 'extensions/mcp/views/create-mobileapp.html',
+        controller: 'CreateMobileappController',
+        resolve: resolveMCPRoute
+      })
+      .when('/project/:project/browse/mobileoverview', {
+        templateUrl: 'extensions/mcp/views/mobileoverview.html',
+        controller: 'MobileOverviewController',
+        reloadOnSearch: false,
+        resolve: resolveMCPRoute
+      })
+      .when('/project/:project/browse/mobileapps/:mobileapp', {
+        templateUrl: 'extensions/mcp/views/mobileapp.html',
+        controller: 'MobileAppController',
+        reloadOnSearch: false,
+        resolve: resolveMCPRoute
+      })
+      .when('/project/:project/browse/mobileservices/:service', {
+        templateUrl: 'extensions/mcp/views/mobileservice.html',
+        controller: 'MobileServiceController',
+        resolve: resolveMCPRoute
+      });
+  }
+]);

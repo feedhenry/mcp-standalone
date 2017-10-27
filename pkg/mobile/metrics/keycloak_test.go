@@ -45,7 +45,7 @@ func TestKeycloak_Gather(t *testing.T) {
 								Data: map[string][]byte{
 									"admin_password": []byte("admin"),
 									"admin_username": []byte("admin"),
-									"uri":            []byte("keycloak-project2.192.168.37.1.nip.io"),
+									"uri":            []byte("http://keycloak-project2.192.168.37.1.nip.io"),
 									"realm":          []byte("test"),
 									"name":           []byte("keycloak"),
 									"type":           []byte("keycloak"),
@@ -141,7 +141,7 @@ func TestKeycloak_Gather(t *testing.T) {
 								Data: map[string][]byte{
 									"admin_password": []byte("admin"),
 									"admin_username": []byte("admin"),
-									"uri":            []byte("keycloak-project2.192.168.37.1.nip.io"),
+									"uri":            []byte("http://keycloak-project2.192.168.37.1.nip.io"),
 									"realm":          []byte("test"),
 									"name":           []byte("keycloak"),
 									"type":           []byte("keycloak"),
