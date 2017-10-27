@@ -14,6 +14,7 @@ angular.module('mobileControlPanelApp').controller('MobileAppController', [
   '$filter',
   'ProjectsService',
   'mcpApi',
+  'ServiceClassService',
   'DataService',
   'BuildsService',
   function(
@@ -23,6 +24,7 @@ angular.module('mobileControlPanelApp').controller('MobileAppController', [
     $filter,
     ProjectsService,
     mcpApi,
+    ServiceClassService,
     DataService,
     BuildsService
   ) {
@@ -132,6 +134,13 @@ angular.module('mobileControlPanelApp').controller('MobileAppController', [
           DataService.list('buildconfigs', projectContext),
           DataService.list('builds', projectContext),
           DataService.list('secrets', projectContext),
+          DataService.list(
+            {
+              group: 'servicecatalog.k8s.io',
+              resource: 'clusterserviceclasses'
+            },
+            $scope.projectContext
+          ),
           mcpApi.mobileApp($routeParams.mobileapp),
           mcpApi.mobileServices()
         ]);
@@ -141,9 +150,12 @@ angular.module('mobileControlPanelApp').controller('MobileAppController', [
           buildConfigs = {},
           builds = {},
           secrets = {},
+          serviceClasses,
           app = {},
           services = []
         ] = viewData;
+
+        $scope.serviceClasses = serviceClasses['_data'];
 
         const buildData = buildConfigs['_data'];
         $scope.buildConfig = Object.keys(buildData)
@@ -211,5 +223,24 @@ angular.module('mobileControlPanelApp').controller('MobileAppController', [
     $scope.$on('$destroy', function() {
       DataService.unwatchAll(watches);
     });
+
+    $scope.getServiceName = function(service) {
+      const serviceClass = ServiceClassService.retrieveServiceClass(
+        service,
+        $scope.serviceClasses
+      );
+      return ServiceClassService.retrieveDisplayName(
+        serviceClass,
+        service.name
+      );
+    };
+
+    $scope.getServiceIcon = function(service) {
+      const serviceClass = ServiceClassService.retrieveServiceClass(
+        service,
+        $scope.serviceClasses
+      );
+      return ServiceClassService.retrieveIcon(serviceClass);
+    };
   }
 ]);
