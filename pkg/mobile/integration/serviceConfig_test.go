@@ -74,7 +74,7 @@ func TestSDKService_GenerateMobileServiceConfigs(t *testing.T) {
 									Labels: map[string]string{"group": "mobileapp"},
 								},
 								Data: map[string][]byte{
-									"uri":  []byte("http://fh-sync.com"),
+									"uri":  []byte("http://3scale.com"),
 									"name": []byte(mobile.ServiceNameThreeScale),
 									"type": []byte(mobile.ServiceNameThreeScale),
 								},
