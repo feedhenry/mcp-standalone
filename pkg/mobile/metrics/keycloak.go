@@ -58,7 +58,7 @@ func (kc *Keycloak) Gather() ([]*metric, error) {
 	}
 	kcService := kcServices[0] //TODO deal with more than one
 	//TODO get protocol from secret
-	host := "http://" + kcService.Host
+	host := kcService.Host
 	username := kcService.Params["admin_username"]
 	pass := kcService.Params["admin_password"]
 	realm := kcService.Params["realm"]
