@@ -3,11 +3,12 @@
 - name: Setup OpenShift cluster with Mobile Control Panel and Service Brokers
   hosts: localhost
   roles:
-  # This role has been replaced temporarily until a new proper release is made.
-  # - role: openshift-origin-client-tools
-  #   tags: install-oc
-  - role: oc-tool-setup
+  # Uses GitHub release
+  - role: openshift-origin-client-tools
     tags: install-oc
+  # Uses Ansible Service Broker S3 binaries
+  # - role: oc-tool-setup
+  #   tags: install-oc
 
   - role: oc-cluster-up
     tags: oc-cluster-up

@@ -1,3 +1,8 @@
 ---
 
 force_oc_link: yes
+oc_ver: v3.7.0-rc.0
+oc_sha: 'e92d5c5'
+oc_checksums:
+  linux-64bit: sha256:e35e53b42a00e4d04305ec55c94b623135d3ac236c999c00765703161da23769
+  mac: sha256:0f1ec8ad4e84a207e54d526c27daa73bd066f75f14d8f735377132da04acb959
