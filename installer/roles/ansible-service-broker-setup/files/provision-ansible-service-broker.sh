@@ -29,7 +29,7 @@ oc process -f "${TEMPLATE_LOCAL}" \
 -p DOCKERHUB_USER="$( echo '${DOCKERHUB_USER}' | base64 )" \
 -p DOCKERHUB_PASS="$( echo '${DOCKERHUB_PASS}' | base64 )" \
 -p DOCKERHUB_ORG="${DOCKERHUB_ORG}" \
--p BROKER_IMAGE="ansibleplaybookbundle/origin-ansible-service-broker:latest" \
+-p BROKER_IMAGE="ansibleplaybookbundle/origin-ansible-service-broker:sprint139.1" \
 -p ENABLE_BASIC_AUTH="false" \
 -p SANDBOX_ROLE="admin" \
 -p ROUTING_SUFFIX="192.168.37.1.nip.io" \
