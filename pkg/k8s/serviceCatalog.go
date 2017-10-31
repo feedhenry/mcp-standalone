@@ -103,7 +103,7 @@ type ServiceInstance struct {
 	// +optional
 	meta_v1.ObjectMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
 	Spec               struct {
-		ServiceClassName string `json:"externalClusterServiceClassName"`
+		ServiceClassName string `json:"clusterServiceClassExternalName"`
 	} `json:"spec"`
 }
 
