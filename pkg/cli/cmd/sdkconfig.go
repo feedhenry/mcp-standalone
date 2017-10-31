@@ -43,7 +43,6 @@ var getsdkconfigCmd = &cobra.Command{
 			log.Fatalf("error parsing mcp host %s ", err)
 		}
 		u.Path = path.Join(u.Path, fmt.Sprintf("/sdk/mobileapp/%s/config", app.ID))
-		fmt.Println("url is ", u.String())
 		req, err := http.NewRequest("GET", u.String(), nil)
 		if err != nil {
 			log.Fatalf("error creating request %s ", err)
