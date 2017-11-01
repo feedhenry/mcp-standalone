@@ -215,7 +215,7 @@
         },
         {
             "name":"IMAGE_TAG",
-            "value":"0.0.4"
+            "value":"latest"
         }
     ]
 }
