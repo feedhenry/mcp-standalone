@@ -13,12 +13,12 @@ angular.module('mobileControlPanelApp').component('mpServiceIntegration', {
                     <h3>{{$ctrl.integration.displayName}}</h3>
                   </div>
                   <div class="actions">
-                    <bootstrap-switch switched=switched disabled=!$ctrl.integration.target.writable checked=$ctrl.integration.enabled></bootstrap-switch>
+                    <mp-switch switched=switched disabled=!$ctrl.integration.target.writable checked=$ctrl.integration.enabled></mp-switch>
                     <span ng-if="!$ctrl.integration.target.writable">{{$ctrl.integration.target.displayName}} is not writeable; this means that it cannot be automatically configured with an integration.</span>
                   </div>
                 </div>
                 <div class="integration-info">
-                  <div ng-include="''extensions/mcp/views/' + $scope.$ctrl.integration.service + '-integration.template.html"></div>
+                  <div ng-include="'extensions/mcp/templates/' + $ctrl.integration.service + '-integration.template.html'"></div>
                 </div>
               </div>`,
   bindings: {
