@@ -133,10 +133,10 @@ angular.module('mobileControlPanelApp').controller('MobileOverviewController', [
       });
 
     $scope.actionSelected = function(object) {
-      const ojectIsService = !!object.integrations;
-      const actionFn = ojectIsService ? 'deleteService' : 'deleteApp';
-      const getFn = ojectIsService ? 'mobileServices' : 'mobileApps';
-      const objectType = ojectIsService ? 'services' : 'apps';
+      const objectIsService = !!object.integrations;
+      const actionFn = objectIsService ? 'deleteService' : 'deleteApp';
+      const getFn = objectIsService ? 'mobileServices' : 'mobileApps';
+      const objectType = objectIsService ? 'services' : 'apps';
       mcpApi[actionFn](object)
         .then(result => {
           return mcpApi[getFn]();
@@ -158,8 +158,8 @@ angular.module('mobileControlPanelApp').controller('MobileOverviewController', [
     };
 
     $scope.objectSelected = function(object) {
-      const ojectIsService = !!object.integrations;
-      if (ojectIsService) {
+      const objectIsService = !!object.integrations;
+      if (objectIsService) {
         $location.path(
           'project/' +
             $routeParams.project +

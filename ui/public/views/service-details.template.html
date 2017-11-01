@@ -1,7 +1,7 @@
 <h2 class="dashboard-details">Details</h2>
 <dl class="dl-horizontal left">
   <dt>Description:</dt>
-  <dd>{{ service.description }}</dd>
+  <dd>{{ getDescription(service) }}</dd>
   <dt>Dashboard URL:</dt>
   <dd><a href="{{ service.host }}">{{service.host}}</a></dd>
   <dt ng-repeat-start="(key, value) in service.params">{{ key }}</dt>
