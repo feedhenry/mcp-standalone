@@ -9,7 +9,7 @@
 
 - name: add-role
   shell: |
-    oc policy add-role-to-user edit system:serviceaccount:{{namespace}}:mcp-standalone
+    oc policy add-role-to-user edit system:serviceaccount:{{namespace}}:mcp-standalone -n {{namespace}}
   when: mobile_route.stdout == ""  
 
 - name: check_exists_again
