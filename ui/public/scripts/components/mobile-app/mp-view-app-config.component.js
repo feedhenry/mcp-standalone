@@ -2,13 +2,13 @@
 
 /**
  * @ngdoc component
- * @name mcp.component:view-app-config
+ * @name mcp.component:mp-view-app-config
  * @description
- * # view-app-config
+ * # mp-view-app-config
  */
-angular.module('mobileControlPanelApp').component('viewAppConfig', {
+angular.module('mobileControlPanelApp').component('mpViewAppConfig', {
   template: `<div>
-              <div class="row app-config">
+              <div class="row mp-app-config">
                 <div class="col-lg-6">
                   <h3>Details</h3>
                   <dl class="dl-horizontal left">

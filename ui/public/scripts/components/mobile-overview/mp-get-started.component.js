@@ -2,11 +2,11 @@
 
 /**
  * @ngdoc component
- * @name mcp.component:get-started
+ * @name mcp.component:mp-get-started
  * @description
- * # get-started
+ * # mp-get-started
  */
-angular.module('mobileControlPanelApp').component('getStarted', {
+angular.module('mobileControlPanelApp').component('mpGetStarted', {
   template: `<div class="blank-slate-pf" id="">
               <div class="blank-slate-pf-icon">
                 <span class="pficon pficon pficon-add-circle-o"></span>
@@ -28,9 +28,9 @@ angular.module('mobileControlPanelApp').component('getStarted', {
               </div>
               <div class="blank-slate-pf-secondary-action">
                 <a ng-href="/" class="btn btn-default">Provision Catalog Service</a>
-                <modal class="btn-default" modal-open=$ctrl.options.modalOpen modal-class="'control-panel'" launch="'Add External Service'" modal-title="'Add External Service'"" display-controls=false>
-                  <div ng-include="'extensions/mcp/views/create-service.html'"></div>
-                </modal>
+                <mp-modal class="btn-default" modal-open=$ctrl.options.modalOpen modal-class="'mp-service-create-modal'" launch="'Add External Service'" modal-title="'Add External Service'"" display-controls=false>
+                  <div ng-include="'extensions/mcp/templates/create-service.template.html'"></div>
+                </mp-modal>
               </div>
             </div>`,
   bindings: {

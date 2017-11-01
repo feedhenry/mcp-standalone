@@ -2,13 +2,13 @@
 
 /**
  * @ngdoc component
- * @name mcp.component:object-card
+ * @name mcp.component:mp-object-card
  * @description
- * # ObjectCard
+ * # mp-object-card
  */
-angular.module('mobileControlPanelApp').component('objectCard', {
-  template: `<div class="card-pf card-pf-view card-pf-view-select card-pf-view-multi-select">
-              <kebab actions=actions action-selected=actionSelected></kebab>
+angular.module('mobileControlPanelApp').component('mpObjectCard', {
+  template: `<div class="mp-object-card card-pf card-pf-view card-pf-view-select card-pf-view-multi-select">
+              <mp-kebab actions=actions action-selected=actionSelected></mp-kebab>
               <div class="card-pf-body">
                 <div class="card-pf-top-element card-icon ng-scope" ng-click="selected($ctrl.object)">
                   <span class="card-pf-icon-circle icon fa {{getIcon($ctrl.object)}}"></span>

@@ -2,11 +2,11 @@
 
 /**
  * @ngdoc component
- * @name mcp.component:enable-mobile-build
+ * @name mcp.component:mp-enable-mobile-build
  * @description
- * # enable-mobile-build
+ * # mp-enable-mobile-build
  */
-angular.module('mobileControlPanelApp').component('enableMobileBuild', {
+angular.module('mobileControlPanelApp').component('mpEnableMobileBuild', {
   template: `<div class="blank-slate-pf" id="">
               <div class="blank-slate-pf-icon">
                 <span class="pficon pficon pficon-add-circle-o"></span>

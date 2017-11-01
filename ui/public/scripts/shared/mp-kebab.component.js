@@ -2,11 +2,11 @@
 
 /**
  * @ngdoc component
- * @name mcp.component:kebab
+ * @name mcp.component:mp-kebab
  * @description
- * # kebab
+ * # mp-kebab
  */
-angular.module('mobileControlPanelApp').component('kebab', {
+angular.module('mobileControlPanelApp').component('mpKebab', {
   template: `<div class="dropdown  dropdown-kebab-pf pull-right">
                 <button class="btn btn-link dropdown-toggle" type="button" id="dropdownKebab" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
                   <span class="fa fa-ellipsis-v"></span>

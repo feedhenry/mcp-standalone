@@ -75,7 +75,8 @@ angular.module('mobileControlPanelApp').controller('MobileOverviewController', [
             {
               label: 'Add External Service',
               modal: true,
-              contentUrl: 'extensions/mcp/views/create-service.html',
+              contentUrl:
+                'extensions/mcp/templates/create-service.template.html',
               action: function(err) {
                 if (err) {
                   return;

@@ -29,10 +29,9 @@ angular
         }
       ];
 
-      $scope.app = { clientType: '' };
-      $scope.createApp = function() {
+      $scope.created = function(app) {
         mcpApi
-          .createMobileApp($scope.app)
+          .createMobileApp(app)
           .then(app => {
             $location.path(
               'project/' + $routeParams.project + '/browse/mobileoverview'
@@ -43,7 +42,7 @@ angular
           });
       };
 
-      $scope.cancelCreateApp = function() {
+      $scope.cancelled = function() {
         $location.path(
           'project/' + $routeParams.project + '/browse/mobileoverview'
         );
