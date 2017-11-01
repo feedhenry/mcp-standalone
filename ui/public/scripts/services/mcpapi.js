@@ -211,8 +211,6 @@ angular.module('mobileControlPanelApp').service('mcpApi', [
           getMobileServicesURL() +
           '/configure' +
           '/' +
-          integration.component +
-          '/' +
           integration.target.name +
           '/' +
           integration.service;
@@ -230,8 +228,6 @@ angular.module('mobileControlPanelApp').service('mcpApi', [
         let url =
           getMobileServicesURL() +
           '/configure' +
-          '/' +
-          integration.component +
           '/' +
           integration.target.name +
           '/' +
