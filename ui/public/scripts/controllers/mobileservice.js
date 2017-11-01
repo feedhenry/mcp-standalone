@@ -61,60 +61,6 @@ angular.module('mobileControlPanelApp').controller('MobileServiceController', [
         }
       );
     });
-
-    Promise.all([
-      mcpApi.mobileService($routeParams.service, 'true').then(s => {
-        $scope.service = s;
-        $scope.service.integrations = Object.keys(s.integrations).map(key => {
-          return Object.assign(s.integrations[key], { target: s });
-        });
-        $scope.integrations = Object.keys(s.integrations);
-      }),
-      mcpApi.mobileApps().then(apps => {
-        $scope.mobileappsCount = apps.length;
-        $scope.mobileapps = {};
-        for (var i = 0; i < apps.length; i++) {
-          let app = apps[i];
-          $scope.mobileapps[app.clientType] = 'true';
-        }
-        $scope.clients = Object.keys($scope.mobileapps);
-        $scope.clientType = $scope.clients[0];
-      })
-    ]).then(() => {
-      // wait for apps & services, and hence the UI being redrawn,
-      // before fetching metrics.
-      // Charts may not initialise if the UI isn't ready with the div placeholders
-      mcpApi.mobileServiceMetrics($routeParams.service).then(data => {
-        var charts = [];
-        var chartConfigs = [];
-        data.forEach(columns => {
-          var c3ChartDefaults = $().c3ChartDefaults();
-          var chartConfig = c3ChartDefaults.getDefaultLineConfig();
-          chartConfig.axis = {
-            x: {
-              type: 'timeseries',
-              tick: {
-                // 11:34:55
-                format: '%H:%M:%S'
-              }
-            }
-          };
-          chartConfig.data = {
-            x: 'x',
-            xFormat: '%Y-%m-%d %H:%M:%S',
-            columns: columns,
-            type: 'line'
-          };
-          var chartName = columns[1][0];
-          chartConfig.bindto = '#line-chart-' + chartName;
-          chartConfig.title = chartName;
-          charts.push(chartConfig);
-        });
-
-        $scope.charts = charts;
-      });
-    });
-
     Promise.all([
       mcpApi.mobileService($routeParams.service, 'true'),
       mcpApi.mobileApps()
@@ -124,8 +70,10 @@ angular.module('mobileControlPanelApp').controller('MobileServiceController', [
 
         $scope.service = service;
         $scope.integrations = Object.keys(service.integrations);
-        $scope.service.integrations = Object.keys(s.integrations).map(key => {
-          return Object.assign(s.integrations[key], { target: s });
+        $scope.service.integrations = Object.keys(
+          service.integrations
+        ).map(key => {
+          return Object.assign(service.integrations[key], { target: service });
         });
 
         $scope.templateName = knownServices.includes(service.name)
