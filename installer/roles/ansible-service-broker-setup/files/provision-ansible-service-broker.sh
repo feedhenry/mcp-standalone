@@ -26,8 +26,8 @@ curl -s ${TEMPLATE_URL} > "${TEMPLATE_LOCAL}"
 
 oc process -f "${TEMPLATE_LOCAL}" \
 -n ansible-service-broker \
--p DOCKERHUB_USER="$( echo '${DOCKERHUB_USER}' | base64 )" \
--p DOCKERHUB_PASS="$( echo '${DOCKERHUB_PASS}' | base64 )" \
+-p DOCKERHUB_USER="$( echo ${DOCKERHUB_USER} | base64 )" \
+-p DOCKERHUB_PASS="$( echo ${DOCKERHUB_PASS} | base64 )" \
 -p DOCKERHUB_ORG="${DOCKERHUB_ORG}" \
 -p BROKER_IMAGE="ansibleplaybookbundle/origin-ansible-service-broker:sprint139.1" \
 -p ENABLE_BASIC_AUTH="false" \
