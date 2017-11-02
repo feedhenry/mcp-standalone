@@ -134,6 +134,10 @@ func buildBindParams(from *mobile.Service, to *mobile.Service) map[string]interf
 		"route":          from.Host,
 		"service_secret": to.ID,
 	}
+
+	for k, v := range from.Params {
+		p[k] = v
+	}
 	if from.Name == mobile.ServiceNameThreeScale {
 		p["apicast_route"] = from.Params["apicast_route"]
 		p["apicast_token"] = from.Params["token"]
@@ -143,9 +147,7 @@ func buildBindParams(from *mobile.Service, to *mobile.Service) map[string]interf
 		p["app_key"] = uuid.NewV4().String()
 		p["service_secret"] = to.ID
 	} else if from.Name == mobile.ServiceNameKeycloak {
-		p = map[string]interface{}{
-			"service_name": to.Name,
-		}
+		p["service_name"] = to.Name
 	}
 	return p
 }
