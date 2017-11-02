@@ -55,18 +55,23 @@ test-unit:
 	  $(addprefix $(PKG)/,$(TEST_DIRS))
 
 apbs:
-
-    ifeq ($(shell git ls-files -m | wc -l),0)
-		@echo "Doing the releae of the FeedHenry MCP APBs"
-		cp artifacts//openshift/template.json cmd/android-apb/roles/provision-android-app/templates
-		cp artifacts/openshift/template.json cmd/cordova-apb/roles/provision-cordova-apb/templates
-		cp artifacts/openshift/template.json cmd/ios-apb/roles/provision-ios-apb/templates
-		git commit -m "[make apbs script] updating Openshift template for APBs" cmd/
-		cd cmd/android-apb && make build_and_push TAG=$(TAG)
-		cd cmd/ios-apb && make build_and_push TAG=$(TAG)
-		cd cmd/cordova-apb && make build_and_push TAG=$(TAG)
+## Evaluate the presence of the TAG, to avoid evaluation of the nested shell script, during the read phase of make
+    ifdef TAG
+	@echo "Preparing $(TAG)"
+        ifeq ($(shell git ls-files -m | wc -l),0)
+			@echo "Doing the releae of the FeedHenry MCP APBs"
+			cp artifacts//openshift/template.json cmd/android-apb/roles/provision-android-app/templates
+			cp artifacts/openshift/template.json cmd/cordova-apb/roles/provision-cordova-apb/templates
+			cp artifacts/openshift/template.json cmd/ios-apb/roles/provision-ios-apb/templates
+			git commit -m "[make apbs script] updating Openshift template for APBs" cmd/
+			cd cmd/android-apb && make build_and_push TAG=$(TAG)
+			cd cmd/ios-apb && make build_and_push TAG=$(TAG)
+			cd cmd/cordova-apb && make build_and_push TAG=$(TAG)
+        else
+	        $(error Aborting release process, since local files are modified)
+        endif
     else
-        $(error Aborting release process, since local files are modified)
+		$(error No VERSION defined!)
     endif
 
 clean:
