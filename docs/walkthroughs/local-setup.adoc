@@ -17,9 +17,10 @@ for more detailed guides.
 >= 2.3.2.0
 * https://hub.docker.com/[Docker Hub account]
 * https://docs.docker.com/engine/installation/[Docker]
-* https://github.com/openshift/origin/releases[oc command line client]
+* https://github.com/openshift/origin/releases[oc command line client] >= 3.7.0-rc0
 * https://nodejs.org/en/[Node.js] >= 6.10.0
 * `libselinux-python` package (Linux only)
+* https://brew.sh[Homebrew] >= 1.3.6 (Mac only)
 
 For local development, you need to set the Go environment :
 
@@ -27,7 +28,7 @@ For local development, you need to set the Go environment :
 +
 [source,sh]
 ----
-export PATH="$PATH:~/go/bin"
+export PATH="$PATH:$GOPATH/bin"
 ----
 
 . Add the path permanently to your `.bashrc` or `.bashprofile`.
@@ -40,17 +41,19 @@ export PATH="$PATH:~/go/bin"
 
 [source,bash]
 ----
-git clone git@github.com:feedhenry/mcp-standalone.git
+mkdir -p $GOPATH/src/github.com/feedhenry
+cd $GOPATH/src/github.com/feedhenry
+git clone https://github.com/feedhenry/mcp-standalone
 ----
 
-*Note:* It is recommended to clone this into a valid $GOPATH, however it
-is not essential.
+*Note:* this clones into your $GOPATH, however it is not essential.
 
 [[install-the-required-ansible-dependencies]]
 === Install the required ansible dependencies:
 
 [source,sh]
 ----
+cd $GOPATH/src/github.com/feedhenry/mcp-standalone
 ansible-galaxy install -r ./installer/requirements.yml
 ----
 *Note (macOS):* If you're using `ansible` installed via `pip`, you may need create 
