@@ -1,0 +1,142 @@
+[[data-sync-and-3scale-in-the-mcp]]
+Data Sync and 3Scale in the MCP
+---------------------------------
+
+This is a guide for provisioning the 3scale service from the OpenShift service
+catalog and integrating it with the FeedHenry Sync service. The 3scale service
+will provision an APIcast API Gateway that can be placed in front of other
+services.
+
+[[prerequisites]]
+Prerequisites
+~~~~~~~~~~~~~
+
+* An OpenShift cluster with:
+** the MCP UI extension enabled
+** Mobile Services available in the Service Catalog
+** a Project containing the MCP Server
+** FeedHenry Sync provisioned in the Project
+
+* A 3scale.net account
+
+[[provision-3scale]]
+Provision 3scale
+~~~~~~~~~~~~~~~~
+
+3scale can be provisioned from the OpenShift Service catalog.
+
+Navigate to the Service Catalog -> Mobile -> Services -> 3scale.
+
+The 3scale service requires you to already have a 3scale account. You will need
+to enter your 3scale admin URL without any protocol (http, https) e.g. example-admin.3scale.com.
+You will also need a 3scale access token, these can be created by following
+link:https://support.3scale.net/docs/accounts/tokens[this guide]. Finally you
+will need the ID for API calls of the 3scale service you'd like to integrate
+with.
+
+A number of tasks will be performed while provisioning:
+
+* A 3scale APIcast pod will be provisioned and configured to use the 3scale
+account provided in the Service Catalog.
+* An App Key will be created. This will be provided along with the App ID to
+the headers object in the Mobile Core SDK.
+
+[[integrate-3scale-with-data-sync]]
+Integrate 3scale with Data Sync
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Once the 3scale service has finished provisioning it will be available as an
+integration in the Service Integrations tab of the FeedHenry Sync Server.
+Enable the integration. This results in the Mobile Control Panel changing the
+URL of the Sync Server to an APIcast URL. It will also provide the App ID and
+App Key headers required to communicate with APIcast. The configuration will
+look like:
+
+[source,json]
+----
+{
+  "fh-sync-server": {
+    "config": {
+      "headers": {
+        "app_id": "exampleid",
+        "app_key": "examplekey"
+      },
+      "uri": "https://apicast-example-url"
+    },
+    "name": "fh-sync-server"
+  }
+}
+----
+
+A Cordova app can use the Mobile Core SDK to retrieve this config and ensure
+sync uses it when available.
+
+[source,js]
+----
+const sync = require('fh-sync-js');
+const mobileCore = require('fh-mobile-core');
+const mcpConfig = require('../mcpConfig.json');
+
+function buildSyncCloudHandler(cloudUrl, options) {
+  return function (params, success, failure) {
+    var url = cloudUrl + params.dataset_id;
+    var headers = (options.headers || {});
+    Request({
+      method: 'POST',
+      uri: url,
+      headers: headers,
+      body: params.req,
+      json: true
+    })
+    .then((res) => {
+      return success(res);
+    })
+    .catch((err) => {
+      return failure(err);
+    });
+  }
+}
+
+mobileCore.configure(mcpConfig).then((config) => {
+  const syncConfig = config.getConfigFor('fh-sync-server');
+  const syncCloudUri = syncConfig.uri + '/sync/';
+
+  // Initialise sync ...
+
+  const syncCloudHandler = buildSyncCloudHandler(syncCloudUri, {
+    // Headers will either contain the App ID and App Key headers or be empty.
+    headers: syncConfig.headers
+  });
+  // Make Sync use syncCloudHandler to make requests and handle responses.
+  sync.setCloudHandler(syncCloudHandler);
+
+  // Intitialise rest of app ...
+});
+----
+
+Before the 3scale integration is made the app will make requests directly to
+the FeedHenry Sync Server without `app_id` and `app_key` headers. Once the
+integration is made the app will start sending requests to APIcast with the
+headers included. This will allow APIcast to send metrics about the apps
+requests to 3scale.
+
+[[viewing-requests-in-3scale]]
+Viewing requests in 3scale
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When the 3scale integration is enabled on the FeedHenry Sync Server. Metrics
+about requests being made to the server will be visible in 3scale. When signed
+in to 3scale an 'Analytics' section will be available for the service. This
+contains metrics about requests being sent to the Sync Server through the
+APIcast service.
+
+[[next-steps]]
+Next Steps
+~~~~~~~~~~
+
+* An example Cordova App that integrates with Data Sync & 3scale https://github.com/aidenkeating/cordova-sync-app.
+* To contribute to MCP, check out the link:../../README.adoc#contributing[Contributing] section of the README.
+* Various link:../../README.adoc#walkthroughs[MCP walkthroughs] are also available.
+
+
+
