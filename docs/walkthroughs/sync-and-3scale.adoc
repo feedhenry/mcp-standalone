@@ -1,6 +1,6 @@
 [[data-sync-and-3scale-in-the-mcp]]
 Data Sync and 3Scale in the MCP
----------------------------------
+-------------------------------
 
 This is a guide for provisioning the 3scale service from the OpenShift service
 catalog and integrating it with the FeedHenry Sync service. The 3scale service
@@ -137,6 +137,7 @@ Next Steps
 * An example Cordova App that integrates with Data Sync & 3scale https://github.com/aidenkeating/cordova-sync-app.
 * To contribute to MCP, check out the link:../../README.adoc#contributing[Contributing] section of the README.
 * Various link:../../README.adoc#walkthroughs[MCP walkthroughs] are also available.
+* link:https://youtu.be/zuJQm9zxSjs[Sync and 3scale Demo Video]
 
 
 
