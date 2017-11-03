@@ -32,5 +32,14 @@ to match the the TAG you have just created.
 make apbs TAG=$(TAG)
 ```
 
+### Tag the sources in Github
 
+The above adds automated commits to your local branch, afterwards go and look for the latest commit, and create a tag and push it to github:
 
+```bash
+git rev-parse HEAD
+
+## use that commit hash when creating the tag 
+git tag -a $(TAG) HASH -m "signing tag"
+git push origin $(TAG)
+```
