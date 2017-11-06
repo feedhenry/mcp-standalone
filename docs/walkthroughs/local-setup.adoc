@@ -97,7 +97,7 @@ Bundles from a Docker Hub organisation (defaults to `feedhenry`).
 This will set up your cluster for you - note that it is possible for
 this to fail on the first attempt, as the cluster up check may fail
 waiting for the images to be pulled - if this happens, run
-`oc cluster down` and execute the playbook again.
+`make clean` in the repo home directory and execute the playbook again.
 
 *Optional*
 
