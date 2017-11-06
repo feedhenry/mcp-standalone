@@ -13,5 +13,10 @@ sudo rm -rf ${SCRIPT_ABSOLUTE_PATH}/master
 sudo rm -rf ${SCRIPT_ABSOLUTE_PATH}/node-localhost
 sudo rm -rf ${SCRIPT_ABSOLUTE_PATH}/openshift-data
 sudo rm -rf ${SCRIPT_ABSOLUTE_PATH}/openshift-pvs
-sudo rm -rf ${SCRIPT_ABSOLUTE_PATH}/openshift-volumes
 
+if [ "$(uname -s)" == "Linux"  ]
+then
+  findmnt -lo TARGET | grep ${SCRIPT_ABSOLUTE_PATH}/openshift-volumes | xargs -r sudo umount
+fi
+
+sudo rm -rf ${SCRIPT_ABSOLUTE_PATH}/openshift-volumes
