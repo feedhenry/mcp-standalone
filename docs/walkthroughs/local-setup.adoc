@@ -1,15 +1,17 @@
 [[local-setup]]
-Local Setup
------------
+= Local Setup
 
-This document will walk you through setting up a locally running Mobile
-Control Panel and a local OpenShift cluster using `oc cluster up`. This
-guide can be followed for _both_ local development and just a local
-installation.
+This document walks you through setting up:
+* a local OpenShift cluster using `oc cluster up`. 
+* a locally running Mobile Control Panel
+You can use this guide for _either_ an installation of Mobile Control Panel or for local development of MCP.
+
+The guide also introduces how to use MCP to create mobile apps. See the other link:../../README.adoc#walkthroughs[MCP walkthroughs]
+for more detailed guides.
+
 
 [[requirements]]
-Requirements
-~~~~~~~~~~~~
+== Requirements
 
 * http://docs.ansible.com/ansible/latest/intro_installation.html[Ansible]
 >= 2.3.2.0
@@ -17,39 +19,35 @@ Requirements
 * https://docs.docker.com/engine/installation/[Docker]
 * https://github.com/openshift/origin/releases[oc command line client]
 * https://nodejs.org/en/[Node.js] >= 6.10.0
+* `libselinux-python` package (Linux only)
 
-*Note:* On Linux you also need to have the `libselinux-python` package
-installed!
+For local development, you need to set the Go environment :
 
-For local development, you will need to have a Go environment setup:
-
+. Include the Go path:
++
 [source,sh]
 ----
 export PATH="$PATH:~/go/bin"
 ----
 
-You will want to add the path permanently to your `.bashrc` or
-`.bashprofile`.
+. Add the path permanently to your `.bashrc` or `.bashprofile`.
 
 [[creating-a-local-cluster]]
-Creating a Local Cluster
-~~~~~~~~~~~~~~~~~~~~~~~~
+== Creating a Local Cluster
 
 [[clone-this-repository]]
-Clone this repository
-^^^^^^^^^^^^^^^^^^^^^
+=== Clone this repository
 
 [source,bash]
 ----
 git clone git@github.com:feedhenry/mcp-standalone.git
 ----
 
-*Note:* it is a good idea to clone this into a valid $GOPATH, however it
+*Note:* It is recommended to clone this into a valid $GOPATH, however it
 is not essential.
 
 [[install-the-required-ansible-dependencies]]
-Install the required ansible dependencies:
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+=== Install the required ansible dependencies:
 
 [source,sh]
 ----
@@ -57,20 +55,19 @@ ansible-galaxy install -r ./installer/requirements.yml
 ----
 
 [[firewall-setup]]
-Firewall setup
-^^^^^^^^^^^^^^
+=== Configure the Firewall
 
-Next we need to configure Docker registry _and_ ports required as part
+. Configure the Docker registry _and_ ports required as part
 of the cluster setup: 
-
++
 * Linux: Follow steps 2 _and_ 3
 https://github.com/openshift/origin/blob/master/docs/cluster_up_down.md#linux[here]
 * Mac: Follow steps 2 _and_ 3
 https://github.com/openshift/origin/blob/master/docs/cluster_up_down.md#macos-with-docker-for-mac[here]
 
-For Linux (Fedora) we also need to add an extra port to the `dockerc`
+. For Linux (Fedora) we also need to add an extra port to the `dockerc`
 zone:
-
++
 [source,sh]
 ----
 firewall-cmd --permanent --zone dockerc --add-port 443/tcp
@@ -78,10 +75,9 @@ firewall-cmd --reload
 ----
 
 [[run-the-ansible-installer]]
-Run the ansible installer
-^^^^^^^^^^^^^^^^^^^^^^^^^
+=== Run the MCP Ansible Installer
 
-This installer sets up your OpenShift environment with the service catalog and the ansible service broker.
+The installer sets up your OpenShift environment with the service catalog and the ansible service broker.
 
 [source,sh]
 ----
@@ -90,14 +86,12 @@ export DOCKERHUB_PASSWORD="<password>"
 cd installer/ && ansible-playbook playbook.yml -e "dockerhub_username=$DOCKERHUB_USERNAME" -e "dockerhub_password=$DOCKERHUB_PASSWORD" --ask-become-pass
 ----
 
-We ask for a DockerHub username and password currently because the
+A DockerHub username and password are currently currently required because the
 Ansible Service Broker calls Docker APIs to read/load Ansible Playbook
 Bundles from a Docker Hub organisation (defaults to `feedhenry`).
 
-This will set up your cluster for you - note that it is possible for
-this to fail on the first attempt, as the cluster up check may fail
-waiting for the images to be pulled - if this happens, run
-`make clean` in the repo home directory and execute the playbook again.
+NOTE: If the installer fails, run
+`make clean` in the repo home directory before running the installer again.
 
 *Optional*
 
@@ -105,11 +99,10 @@ You can enable Hawkular metrics by passing `-e 'hawkular_metrics=true'`
 as part of your `ansible-playbook` command.
 
 [[local-development-only-run-the-mcp-server-locally]]
-(Local Development Only) Run the MCP Server locally
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+== Run the MCP Server locally (Local Development Only)
 
-For local development, you can run the MCP server locally instead of in
-OpenShift. This allows for faster development feedback. To compile & run the
+You can run the MCP server locally instead of on
+OpenShift. This allows for faster development feedback. To compile and run the
 MCP Server execute the following in the root directory of the repo:
 
 [source,sh]
@@ -118,15 +111,16 @@ cd ..
 make run_server NAMESPACE=myproject
 ----
 
-As we're running the MCP Server outside of OpenShift, it won't know which project the user is in.
+When running the MCP Server outside of OpenShift, it won't know which project the user is in.
 The MCP Server needs to know which project so it can look for resources by namespace.
-Specifying the `NAMESPACE` var will tell MCP what project to expect resources to be in, and create a service account in that project to access resources.
+Specifying the `NAMESPACE` var allows MCP to determine which project contains required resources, 
+and to create a service account in that project to access those resources.
 When using the MCP UI, it is important to stay within this project to avoid unusual behaviour.
 
 In another terminal, bundle the MCP UI extension for OpenShift, watching
 for changes. This is required to produce the mcp extension files
 referenced in master-config.yaml, and keep them up to date whenever
-changed during development.
+they are changed.
 
 ....
 cd ui
@@ -148,8 +142,7 @@ looking up a Route names `mcp-standalone` and using that as the MCP
 server host.
 
 [[creating-mobile-apps]]
-Creating Mobile Apps
-~~~~~~~~~~~~~~~~~~~~
+== Creating Mobile Apps
 
 Once the installer is complete you should be able to access OpenShift at
 https://192.168.37.1:8443/console/. You will need to accept the
@@ -160,27 +153,33 @@ You can login using `developer` and any password.
 Once logged in you should be presented with a `catalog` of services.
 To create your first Mobile App:
 
-* Choose the `Mobile` category & `Apps` sub-category.
-* Choose `Android App`
-* Fill in the required information and continue through the wizard.
-** If you are *not* running the MCP Server locally (for local
+. Choose the `Mobile` category & `Apps` sub-category.
+. Choose `Android App`
+. Fill in the required information and continue through the wizard.
++
+NOTE: If you are *not* running the MCP Server locally (for local
 development), this will provision the MCP Server (first time only)
 before creating the Android App.
-* You’ll need to accept the self-signed cert for the MCP Server in your
+
+. Accept the self-signed cert for the MCP Server in your
 Browser. To do this:
-** If running MCP Server locally, go to https://localhost:3001.
-** Otherwise, get the route from OpenShift using:
-*** `oc get route mcp-standalone -n myproject --template "https://{{.spec.host}} "`
-* Visit the route in your browser and accept the cert.
-** The page might give a message like `no token provided access denied'.
++
+* If running MCP Server locally, go to https://localhost:3001.  
+* Otherwise, get the route from OpenShift using:
++
+`oc get route mcp-standalone -n myproject --template "https://{{.spec.host}} "`
+
+. Visit the route in your browser and accept the cert.
++
+NOTE: The page might give a message like `no token provided access denied'.
 This is OK as it show’s the cert is now trusted and we’re hitting the
 server.
-* Back in your Project, click the `Mobile` tab on the left nav. You
+. Back in your Project, click the `Mobile` tab on the left nav. You
 should now see the Mobile Overview screen and your Android App.
 
 [[useful-bash-function]]
-Useful Bash Function
-~~~~~~~~~~~~~~~~~~~~
+== Useful Bash Function
+
 The following bash function will allow you to do 
 ....
 mcp up
@@ -209,8 +208,7 @@ function mcp(){
 
 
 [[next-steps]]
-Next Steps
-~~~~~~~~~~
+== Next Steps
 
 * To contribute to MCP, check out the link:../../README.adoc#contributing[Contributing] section of the README.
-* Various link:../../README.adoc#walkthroughs[MCP walkthroughs] are also available.
+* See the other link:../../README.adoc#walkthroughs[MCP walkthroughs].
