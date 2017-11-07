@@ -5,11 +5,18 @@ for i in quay.io/3scale/apicast:master feedhenry/cordova-app-apb:0.0.6 feedhenry
 ```
 
 ## Local setup
+Export your Docker credentials:
+```
+export DOCKER_USER=<docker user>
+export DOCKER_PASS=<docker pass>
+```
+
 For the face to face, we are working from the 0.0.6 git tag.
 ```
 cd /path/to/this/repo
 git checkout 0.0.6
-ansible-playbook installer/playbook.yml -e "dockerhub_username=USERNAME" -e "dockerhub_password=PASSWORD" -e "dockerhub_tag=0.0.6" --ask-become-pass
+ansible-galaxy install -r ./installer/requirements.yml
+ansible-playbook installer/playbook.yml -e "dockerhub_username=$DOCKER_USER" -e "dockerhub_password=$DOCKER_PASS" -e "dockerhub_tag=0.0.6" --ask-become-pass
 ```
 For more detailed instructions, look [here](https://github.com/feedhenry/mcp-standalone/blob/master/docs/walkthroughs/local-setup.adoc#local-setup).
 
