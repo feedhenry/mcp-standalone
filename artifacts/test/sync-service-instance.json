@@ -1,0 +1,19 @@
+{
+	"kind": "ServiceInstance",
+	"apiVersion": "servicecatalog.k8s.io/v1beta1",
+	"metadata": {
+		"generateName": "dh-fh-sync-server-apb-"
+	},
+	"spec": {
+		"clusterServiceClassExternalName": "dh-fh-sync-server-apb",
+		"clusterServicePlanExternalName": "default",
+		"parametersFrom": [
+			{
+				"secretKeyRef": {
+					"name": "dh-fh-sync-server-apb-parameters",
+					"key": "parameters"
+				}
+			}
+		]
+	}
+}
