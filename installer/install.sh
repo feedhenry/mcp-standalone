@@ -1,6 +1,9 @@
 #!/bin/bash
 
-readonly RED='\033[0;31m'
+readonly SCRIPT_PATH=$(dirname $0)
+readonly SCRIPT_ABSOLUTE_PATH=$(cd $SCRIPT_PATH && pwd)
+
+readonly RED=$(tput setaf 1)
 
 readonly VER_EQ=0
 readonly VER_GT=1
@@ -8,11 +11,11 @@ readonly VER_LT=2
 
 function banner() {
   cat <<EOF
-  __  __  ____ ____  
- |  \/  |/ ___|  _ \ 
+  __  __  ____ ____
+ |  \/  |/ ___|  _ \
  | |\/| | |   | |_) |
- | |  | | |___|  __/ 
- |_|  |_|\____|_|                      
+ | |  | | |___|  __/
+ |_|  |_|\____|_|
 
 EOF
 }
@@ -61,6 +64,14 @@ function check_version_msg() {
 
 function check_passed_msg() {
   echo "✓ ${1} check passed."
+}
+
+function check_docker() {
+  docker_version=$(docker version --format '{{json .Client.Version}}')
+  if [[ $docker_version == *"-rc"* ]]; then
+    echo "Docker version is not good. Use latest Stable release"
+    exit 1
+  fi
 }
 
 function check_python() {
@@ -159,6 +170,7 @@ function run_installer() {
 
   echo "Performing and clean and running the installer. You will be asked for your password."
 
+  cd ${SCRIPT_ABSOLUTE_PATH}
   cd .. && make clean &>/dev/null
 
   if [[ ${oc_version_comparison} -ne ${VER_LT} ]]; then
@@ -170,6 +182,7 @@ function run_installer() {
 }
 
 banner
+check_docker
 check_python
 check_ansible
 check_oc
