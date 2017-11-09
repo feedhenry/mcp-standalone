@@ -68,7 +68,7 @@ function check_docker() {
   check_version_msg "Docker" "using Stable channel"
   docker_version=$(docker version --format '{{json .Client.Version}}')
   if [[ ${docker_version} == *"-rc"* ]]; then
-    echo "${RED}Docker version is not good. Use latest Stable release"
+    echo "${RED}Docker versions from the Edge channel are currently not supported. Switch to a release from the Stable channel"
     exit 1
   fi
   check_passed_msg "Docker"
