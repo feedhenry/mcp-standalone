@@ -163,7 +163,7 @@ function run_installer() {
     exit 1
   fi
 
-  echo "Credentials are valid. Continuing...\n"
+  echo -e "Credentials are valid. Continuing...\n"
 
   read -p "DockerHub Tag (Defaults to latest): " dockerhub_tag
   dockerhub_tag=${dockerhub_tag:-"latest"}
