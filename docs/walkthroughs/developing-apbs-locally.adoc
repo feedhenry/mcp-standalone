@@ -2,31 +2,93 @@
 Developing APBs Locally
 -----------------------
 
-Create a cluster pointing at your own docker organisation, this will
-also copy all the existing APBs in feedhenry to the dockerhub_org:
+The document is documenting best practises for the FeedHenry APB development! Some general information about the Ansible Service Broker (ASB) & Ansible Playbook Bundles (APB) can be found link:https://docs.openshift.com/container-platform/3.6/architecture/service_catalog/ansible_service_broker.html[here].
 
+## Installation
+
+The `apb` CLI can be installed locally, _however_ it is highly recommended using it wrapped in a Linux container. Below is an example on how to create an alias for the _wrapped_`apb` CLI:
+
+....
+alias apb='docker run --rm --privileged -v $PWD:/mnt -v $HOME/.kube:/.kube -v /var/run/docker.sock:/var/run/docker.sock -u $UID docker.io/ansibleplaybookbundle/apb'
+....
+
+
+## Creating an APB
+
+There is a link:https://github.com/ansibleplaybookbundle/ansible-playbook-bundle/blob/master/docs/getting_started.md[great tutorial] on how to write ABPs, it's highly recommended going through that!
+
+_NOTE:_ It's a good practise to have the APB end with `-apb`!
+
+
+### Create a Makefile
+
+Until link:https://github.com/ansibleplaybookbundle/ansible-playbook-bundle/pull/149[this PR] gets merged, it is highly recommended to create a `Makefile`, like link:https://raw.githubusercontent.com/feedhenry/fh-sync-server-apb/master/Makefile[here]:
+
+### Local Build
+
+With the `Makefile` in place, run a _local_ build like:
+
+....
+make apb_build
+....
+
+### Pushing to Dockerhub
+
+If you want to push the _APB_ to your own Dockerhub account, run the following, to run a _complete_ build:
+
+....
+make DOCKERORG="my_org"
+....
+
+_NOTE:_ With `DOCKERHOST` you can also override the dockerhost; default is `docker.io`.
+
+### Locally pushing APBs to Ansible Service Broker (ASB)
+
+#### Setup of MCP
+
+Create a MCP cluster pointing at your own docker organisation, this will also copy all the existing APBs in feedhenry to the dockerhub_org:
 ....
 ansible-playbook playbook.yml -e "dockerhub_username=<dockerusername>" -e "dockerhub_password=<dockerpassword>" -e "dockerhub_org=<USE_THIS_VALUE>" -e "apb_sync=true" --ask-become-pass
 ....
 
-If the APB you wish to develop already exists in the feedhenry
-organisation, then syncing that APB can be skipped by adding:
+#### Push to ASB
+
+Once you have issued the (local) build, you can push your ABP to the running ASB of your MCP projct:
 
 ....
--e "skip_apb=<apb-name>"
+apb push
 ....
 
-Make your changes locally, and change the image name in the `apb.yml`
-file to match your organisation name. Then run:
+Afterwards your APB is ready to be used from the _Service Catalog_.
+
+## Best Practises
+
+### Mobile-Service Tag
+
+For MCP enabled _APBs_, make sure we have a `mobile-service` tag inside the `apb.yml` file:
 
 ....
-make DOCKERORG=<your-org-name> DOCKERHOST=<docker-host-defaults-to-docker.io>
+...
+tags: 
+  - mobile-service
 ....
 
-As the `apb.yml` has been updated, you will need to do a push, run:
+### ServiceName label
+
+Inside of the `apb.yml` file, make sure you use the `serviceName:` label, like:
 
 ....
-apb push --broker=<asb-broker-route>
+...
+metadata:
+  displayName: FeedHenry Sync Server
+  console.openshift.io/iconClass: icon-nodejs
+  serviceName: fh-sync-server
+...
 ....
 
-The APB is now in the catalog and ready to be tested.
+## Testing
+
+There are currently not much tools for testing. The APB team has a few open Github issues and proposals:
+
+* link:https://github.com/ansibleplaybookbundle/ansible-playbook-bundle/issues/131[lint command for APB content]
+* link:https://github.com/ansibleplaybookbundle/ansible-playbook-bundle/blob/master/docs/proposals/testing.md[CI and Image tests]
