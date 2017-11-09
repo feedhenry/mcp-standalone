@@ -67,7 +67,7 @@ function check_passed_msg() {
 function check_docker() {
   check_version_msg "Docker" "using Stable channel"
   docker_version=$(docker version --format '{{json .Client.Version}}')
-  if [[ $docker_version == *"-rc"* ]]; then
+  if [[ ${docker_version} == *"-rc"* ]]; then
     echo "${RED}Docker version is not good. Use latest Stable release"
     exit 1
   fi
@@ -172,6 +172,10 @@ function run_installer() {
 
   cd ${SCRIPT_ABSOLUTE_PATH}
   cd .. && make clean &>/dev/null
+
+  set -e
+  ansible-galaxy install -r ./installer/requirements.yml
+  set +e
 
   if [[ ${oc_version_comparison} -ne ${VER_LT} ]]; then
     echo "Skipping OpenShift client tools installation..."
