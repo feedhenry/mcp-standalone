@@ -2,11 +2,11 @@
 
 /**
  * @ngdoc component
- * @name mcp.component:create-service
+ * @name mcp.component:mp-create-service
  * @description
- * # createService
+ * # mp-create-service
  */
-angular.module('mobileControlPanelApp').component('createService', {
+angular.module('mobileControlPanelApp').component('mpCreateService', {
   template: `<div class="container-fluid">
                 <div class="form-group">
                     <label for="sel1">Select A Service Type:</label>

@@ -10,11 +10,11 @@
           <alerts alerts="alerts"></alerts>
         </div>
       </div>
-      <div class="middle-content mobile-content" persist-tab-state>
+      <div class="middle-content mp-app" persist-tab-state>
         <div class="container-fluid">
           <div class="row">
             <div class="col-md-12">
-              <div class="object-tab-title">
+              <div class="mp-object-tab-title">
                 <h1>
                   <span class="fa icon {{app.metadata.icon}} card-pf-icon-circle">&nbsp;</span>{{app.name}}
                   <small class="meta" ng-if="app">created <span am-time-ago="app.metadata.created"></span></small>
@@ -226,18 +226,18 @@ mobileCore.configure(mcpConfig).then((config) => {
                     Loading...
                   </div>
                   <div ng-if="!loading">
-                    <enable-mobile-build ng-if="!hasMobileCiCd"></enable-mobile-build>
-                    <div class="config-actions clearfix">
+                    <mp-enable-mobile-build ng-if="!hasMobileCiCd"></mp-enable-mobile-build>
+                    <div class="mp-config-actions clearfix">
                       <div ng-if="buildConfig && hasMobileCiCd"  class="pull-right">
                         <!-- ng-if="'buildconfigs/instantiate' | canI : 'create'"  -->
                         <button ng-disabled="view === 'edit'" type="button" class="btn btn-default" ng-click="startBuild()">Build App</button>
-                        <action-dropdown actions=dropdownActions selected=setView></action-dropdown>
+                        <mp-action-dropdown actions=dropdownActions selected=setView></mp-action-dropdown>
                       </div>
                     </div>
                     <div ng-if="hasMobileCiCd" ng-switch="view">
-                      <create-app-config ng-switch-when="create" created=createAppBuildConfig></create-app-config>
-                      <view-app-config ng-switch-when="view" config=buildConfig></view-app-config>
-                      <edit-app-config ng-switch-when="edit" config=buildConfig updated=updateAppBuildConfig cancelled=cancelEdit></edit-app-config>
+                      <mp-create-app-config ng-switch-when="create" created=createAppBuildConfig></mp-create-app-config>
+                      <mp-view-app-config ng-switch-when="view" config=buildConfig></mp-view-app-config>
+                      <mp-edit-app-config ng-switch-when="edit" config=buildConfig updated=updateAppBuildConfig cancelled=cancelEdit></mp-edit-app-config>
                     </div>
                   </div>
 
@@ -249,11 +249,11 @@ mobileCore.configure(mcpConfig).then((config) => {
                     Loading...
                   </div>
                   <div ng-if="!loading">
-                    <div class="config-actions clearfix">
+                    <div class="mp-config-actions clearfix">
                       <div ng-if="buildConfig && hasMobileCiCd"  class="pull-right">
                         <!-- ng-if="'buildconfigs/instantiate' | canI : 'create'"  -->
                         <button ng-disabled="view === 'edit'" type="button" class="btn btn-default" ng-click="startBuild()">Build App</button>
-                        <action-dropdown actions=dropdownActions selected=setView></action-dropdown>
+                        <mp-action-dropdown actions=dropdownActions selected=setView></mp-action-dropdown>
                       </div>
                     </div>
                     <div class="row">
@@ -265,7 +265,7 @@ mobileCore.configure(mcpConfig).then((config) => {
                       <div class="col-lg-12">
                         <div class="build-pipelines" ng-repeat="build in orderedBuilds">
                           <build-pipeline build=build></build-pipeline>
-                          <app-download-url build=build></app-download-url>
+                          <mp-app-download build=build></mp-app-download>
                         </div>
                       </div>
                     </div>

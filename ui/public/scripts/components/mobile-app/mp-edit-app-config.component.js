@@ -2,13 +2,13 @@
 
 /**
  * @ngdoc component
- * @name mcp.component:edit-app-appBuildConfig
+ * @name mcp.component:mp-edit-app-appBuildConfig
  * @description
- * # edit-app-config
+ * # mp-edit-app-config
  */
-angular.module('mobileControlPanelApp').component('editAppConfig', {
+angular.module('mobileControlPanelApp').component('mpEditAppConfig', {
   template: `<div>
-              <div class="row edit app-config">
+              <div class="row edit mp-app-config">
                 <div class="col-lg-6">
                   <h3>Edit</h3>
                   <form novalidate class="form-horizontal" name="appBuildConfig">

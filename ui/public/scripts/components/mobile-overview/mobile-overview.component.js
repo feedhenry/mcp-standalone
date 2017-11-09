@@ -7,7 +7,7 @@
  */
 angular.module('mobileControlPanelApp').component('mobileOverview', {
   template: `<div class="cards-pf">
-              <overview ng-repeat="overview in $ctrl.overviews" model=overview object-selected=objectSelected action-selected=actionSelected></overview>
+              <mp-overview ng-repeat="overview in $ctrl.overviews" model=overview object-selected=objectSelected action-selected=actionSelected></mp-overview>
             </div>`,
   bindings: {
     overviews: '<',

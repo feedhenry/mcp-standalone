@@ -7,7 +7,7 @@
  * # mp-service-integration
  */
 angular.module('mobileControlPanelApp').component('mpServiceIntegration', {
-  template: `<div class="service-integration">
+  template: `<div class="mp-service-integration">
                 <div class="integration-header row">
                   <div class="title">
                     <h3>{{$ctrl.integration.displayName}}</h3>

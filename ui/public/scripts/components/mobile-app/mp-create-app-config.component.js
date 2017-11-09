@@ -2,13 +2,13 @@
 
 /**
  * @ngdoc component
- * @name mcp.component:create-app-config
+ * @name mcp.component:mp-create-app-config
  * @description
- * # create-app-config
+ * # mp-create-app-config
  */
-angular.module('mobileControlPanelApp').component('createAppConfig', {
+angular.module('mobileControlPanelApp').component('mpCreateAppConfig', {
   template: `<div>
-              <div class="row create app-config">
+              <div class="row create mp-app-config">
                 <div class="col-lg-6">
                   <h3>Create</h3>
                   <form novalidate class="form-horizontal" name="appBuildConfig">

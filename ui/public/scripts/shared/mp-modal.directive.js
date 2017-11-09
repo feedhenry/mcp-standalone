@@ -2,11 +2,11 @@
 
 /**
  * @ngdoc component
- * @name mcp.directive:modal
+ * @name mcp.directive:mp-modal
  * @description
- * # modal
+ * # mp-modal
  */
-angular.module('mobileControlPanelApp').directive('modal', [
+angular.module('mobileControlPanelApp').directive('mpModal', [
   '$timeout',
   function($timeout) {
     return {

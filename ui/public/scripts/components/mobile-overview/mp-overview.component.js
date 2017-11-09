@@ -2,12 +2,12 @@
 
 /**
  * @ngdoc component
- * @name mcp.component:overview
+ * @name mcp.component:mp-overview
  * @description
- * # overview
+ * # mp-overview
  */
-angular.module('mobileControlPanelApp').component('overview', {
-  template: `<div ng-if="$ctrl.model.objects.length" class="overview container-fluid container-cards-pf">
+angular.module('mobileControlPanelApp').component('mpOverview', {
+  template: `<div ng-if="$ctrl.model.objects.length" class="mp-overview container-fluid container-cards-pf">
               <div class="header">
                 <h1>{{$ctrl.model.title}}</h1>
                 <span class="page-header-link">
@@ -20,16 +20,16 @@ angular.module('mobileControlPanelApp').component('overview', {
                     <a ng-if="!action.modal" ng-class="['btn', {'btn-default': !action.primary, 'btn-primary': action.primary}]" ng-click="action.action()" ng-if="action.canView()">
                       {{action.label}}
                     </a>
-                    <modal modal-class="'control-panel'" ng-if="action.modal" ng-class="{'btn-default': !action.primary, 'btn-primary': action.primary}" modal-open=$ctrl.model.modalOpen launch=action.label modal-title=action.label display-controls=false ng-if="action.canView()">
+                    <mp-modal modal-class="'mp-service-create-modal'" ng-if="action.modal" ng-class="{'btn-default': !action.primary, 'btn-primary': action.primary}" modal-open=$ctrl.model.modalOpen launch=action.label modal-title=action.label display-controls=false ng-if="action.canView()">
                       <div class="content" ng-include=action.contentUrl></div>
-                    </modal>
+                    </mp-modal>
                   </div>
                 </div>
               </div>
 
               <div class="row row-cards-pf">
                 <div ng-repeat="object in $ctrl.model.objects" class="col-xs-12 col-sm-6 col-md-3">
-                  <object-card object=object selected=objectSelected action-selected=actionSelected service-classes=$ctrl.model.serviceClasses></object-card>
+                  <mp-object-card object=object selected=objectSelected action-selected=actionSelected service-classes=$ctrl.model.serviceClasses></mp-object-card>
                 </div>
               </div>
             </div>
@@ -51,9 +51,9 @@ angular.module('mobileControlPanelApp').component('overview', {
                 <a ng-if="!action.modal" ng-class="['btn', {'btn-default': !action.primary, 'btn-primary': action.primary}]" ng-click="action.action()" ng-if="action.canView()">
                     {{action.label}}
                 </a>
-                <modal modal-class="'control-panel'" ng-if="action.modal" class="btn-default" modal-open=$ctrl.model.modalOpen launch=action.label modal-title=action.label display-controls=false ng-if="action.canView()">
+                <mp-modal modal-class="'mp-service-create-modal'" ng-if="action.modal" class="btn-default" modal-open=$ctrl.model.modalOpen launch=action.label modal-title=action.label display-controls=false ng-if="action.canView()">
                   <div ng-include=action.contentUrl></div>
-                </modal>  
+                </mp-modal>  
               </div>
             </div>`,
   bindings: {

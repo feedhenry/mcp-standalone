@@ -2,22 +2,22 @@
 
 /**
  * @ngdoc component
- * @name mcp.component:app-download-url
+ * @name mcp.component:mp-app-download
  * @description
- * # app-download-url
+ * # mp-app-download
  */
-angular.module('mobileControlPanelApp').component('appDownloadUrl', {
-  template: `<div class="app-download-url">
+angular.module('mobileControlPanelApp').component('mpAppDownload', {
+  template: `<div class="mp-app-download">
                 <div class="url-controls" ng-hide=url>
                   <button ng-disabled="$ctrl.build.status.phase !== 'Complete'" ng-click="generateUrl()" class="btn btn-success btn-xs" type="button">Generate Download URL</button>
                   <div ng-show="$ctrl.build.status.phase === 'Complete'" class="help-block">Download URL will last 30 mins before expiring</div>
                 </div>
                 <div ng-hide=!url>
                   <label>Download URL: </label><a ng-if=url href="{{url}}">{{url}}</a>
-                  <modal modal-class="'app-download'" class="btn-primary btn-xs" launch="'QR Code'" modal-open=modalOpen>
+                  <mp-modal modal-class="'mp-app-download-modal'" class="btn-primary btn-xs" launch="'QR Code'" modal-open=modalOpen>
                     <p class="help-block" >Scan the QR code to install this build directly onto a device</p>
-                    <qr-code content=url></qr-code>
-                  </modal>
+                    <mp-qrcode content=url></mp-qrcode>
+                  </mp-modal>
                 </div>
               </div>`,
   bindings: {

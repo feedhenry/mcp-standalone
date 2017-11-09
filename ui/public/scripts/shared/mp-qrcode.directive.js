@@ -2,18 +2,18 @@
 
 /**
  * @ngdoc component
- * @name mcp.directive:qr-code
+ * @name mcp.directive:mp-qrcode
  * @description
- * # qr-code
+ * # mp-qrcode
  */
-angular.module('mobileControlPanelApp').directive('qrCode', function() {
+angular.module('mobileControlPanelApp').directive('mpQrcode', function() {
   return {
     template: `<div class="qr-code-container"></div>`,
     scope: {
       content: '<?'
     },
     link: function($scope, element, attrs) {
-      const qrCodeContainer = $('.qr-code-container', element);
+      const qrCodeContainer = $('.mp-qrcode-container', element);
       qrCodeContainer.qrcode({
         text: $scope.content,
         size: 250

@@ -9,11 +9,11 @@
           <alerts alerts="alerts"></alerts>
         </div>
       </div>
-      <div class="middle-content mobile-content" persist-tab-state>
+      <div class="middle-content mp-service" persist-tab-state>
         <div class="container-fluid">
           <div class="row">
             <div class="col-md-12">
-              <div class="object-tab-title">
+              <div class="mp-object-tab-title">
                 <h1>
                   {{service.name}}
                 </h1>
@@ -21,11 +21,11 @@
               <uib-tabset class="mp-tabsets" justified=true>
                 <uib-tab ng-if="service" active=true select=dashboardSelected()>
                   <uib-tab-heading>Dashboard</uib-tab-heading>
-                  <div class="service-dashboard">
-                    <div ng-include="'extensions/mcp/views/service-details.template.html'"></div>
+                  <div class="mp-service-dashboard">
+                    <div ng-include="'extensions/mcp/templates/service-details.template.html'"></div>
                     <h2>Stats</h2>
                     <div class="col-12">
-                      <div ng-include="'extensions/mcp/views/' + templateName + '-chart.template.html'"></div>
+                      <div ng-include="'extensions/mcp/templates/' + templateName + '-chart.template.html'"></div>
                     </div>
 
                     <div ng-if="chartData.length == 0">
@@ -37,11 +37,11 @@
                 </uib-tab>
                 <uib-tab>
                   <uib-tab-heading>App Integrations</uib-tab-heading>
-                  <ng-include src="'extensions/mcp/views/integration-docs/mobile-app-integration.html'"></ng-include>
+                  <ng-include src="'extensions/mcp/templates/mobile-app-integration.template.html'"></ng-include>
                 </uib-tab>
                 <uib-tab ng-if="integrations.length">
                   <uib-tab-heading>Services Integrations</uib-tab-heading>
-                  <ng-include src="'extensions/mcp/views/integration-docs/mobile-service-integration.html'"></ng-include>
+                  <ng-include src="'extensions/mcp/templates/mobile-service-integration.template.html'"></ng-include>
                 </uib-tab>
               </uib-tabset>
             </div>

@@ -2,11 +2,11 @@
 
 /**
  * @ngdoc component
- * @name mcp.component:get-started
+ * @name mcp.component:mp-setup
  * @description
- * # get-started
+ * # mp-setup
  */
-angular.module('mobileControlPanelApp').component('noMcp', {
+angular.module('mobileControlPanelApp').component('mpSetup', {
   template: `<div class="blank-slate-pf" id="">
               <div class="blank-slate-pf-icon">
                 <span class="pficon pficon pficon-add-circle-o"></span>

@@ -2,11 +2,11 @@
 
 /**
  * @ngdoc component
- * @name mcp.component:dropdown
+ * @name mcp.component:mp-action-dropdown
  * @description
- * # dropdown
+ * # mp-action-dropdown
  */
-angular.module('mobileControlPanelApp').component('actionDropdown', {
+angular.module('mobileControlPanelApp').component('mpActionDropdown', {
   template: `<div class="dropdown">
               <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="true">
               Actions
