@@ -10,14 +10,12 @@ readonly VER_GT=1
 readonly VER_LT=2
 
 function banner() {
-  cat <<EOF
-  __  __  ____ ____
- |  \/  |/ ___|  _ \
- | |\/| | |   | |_) |
- | |  | | |___|  __/
- |_|  |_|\____|_|
-
-EOF
+echo '  __  __  ____ ____'
+echo ' |  \/  |/ ___|  _ \'
+echo ' | |\/| | |   | |_) |'
+echo ' | |  | | |___|  __/'
+echo ' |_|  |_|\____|_|'
+echo ''
 }
 
 oc_version_comparison=${VER_LT}
