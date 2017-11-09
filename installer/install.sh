@@ -67,11 +67,13 @@ function check_passed_msg() {
 }
 
 function check_docker() {
+  check_version_msg "Docker" "using Stable channel"
   docker_version=$(docker version --format '{{json .Client.Version}}')
   if [[ $docker_version == *"-rc"* ]]; then
-    echo "Docker version is not good. Use latest Stable release"
+    echo "${RED}Docker version is not good. Use latest Stable release"
     exit 1
   fi
+  check_passed_msg "Docker"
 }
 
 function check_python() {
