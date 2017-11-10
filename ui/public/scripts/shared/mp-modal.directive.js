@@ -107,6 +107,10 @@ angular.module('mobileControlPanelApp').directive('mpModal', [
               $('.modal-backdrop').remove();
             }
           });
+
+          scope.$watch('$destroy', function() {
+            $('.modal.container').remove();
+          });
         });
       }
     };
