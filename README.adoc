@@ -90,6 +90,12 @@ Walkthroughs
 * link:./docs/walkthroughs/mobile-ci-cd.adoc[Mobile CI/CD Walkthough]
 * link:./docs/walkthroughs/sync-and-3scale.adoc[3scale Walkthrough]
 
+[[videos]]
+Videos
+~~~~~~
+
+* https://www.youtube.com/user/feedhenrytv/videos[FeedHenry Youtube Channel]
+
 [[doing-a-development-release]]
 Development Release
 ~~~~~~~~~~~~~~~~~~~
