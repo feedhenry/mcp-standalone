@@ -2,7 +2,7 @@
 = Local Setup
 
 This document walks you through setting up:
-* a local OpenShift cluster using `oc cluster up`. 
+* a local OpenShift cluster using `oc cluster up`.
 * a locally running Mobile Control Panel
 You can use this guide for _either_ an installation of Mobile Control Panel or for local development of MCP.
 
@@ -58,7 +58,7 @@ ansible-galaxy install -r ./installer/requirements.yml
 === Configure the Firewall
 
 . Configure the Docker registry _and_ ports required as part
-of the cluster setup: 
+of the cluster setup:
 +
 * Linux: Follow steps 2 _and_ 3
 https://github.com/openshift/origin/blob/master/docs/cluster_up_down.md#linux[here]
@@ -81,9 +81,7 @@ The installer sets up your OpenShift environment with the service catalog and th
 
 [source,sh]
 ----
-export DOCKERHUB_USERNAME="<username>"
-export DOCKERHUB_PASSWORD="<password>"
-cd installer/ && ansible-playbook playbook.yml -e "dockerhub_username=$DOCKERHUB_USERNAME" -e "dockerhub_password=$DOCKERHUB_PASSWORD" --ask-become-pass
+./installer/install.sh
 ----
 
 A DockerHub username and password are currently currently required because the
@@ -113,7 +111,7 @@ make run_server NAMESPACE=myproject
 
 When running the MCP Server outside of OpenShift, it won't know which project the user is in.
 The MCP Server needs to know which project so it can look for resources by namespace.
-Specifying the `NAMESPACE` var allows MCP to determine which project contains required resources, 
+Specifying the `NAMESPACE` var allows MCP to determine which project contains required resources,
 and to create a service account in that project to access those resources.
 When using the MCP UI, it is important to stay within this project to avoid unusual behaviour.
 
@@ -164,7 +162,7 @@ before creating the Android App.
 . Accept the self-signed cert for the MCP Server in your
 Browser. To do this:
 +
-* If running MCP Server locally, go to https://localhost:3001.  
+* If running MCP Server locally, go to https://localhost:3001.
 * Otherwise, get the route from OpenShift using:
 +
 `oc get route mcp-standalone -n myproject --template "https://{{.spec.host}} "`
@@ -180,7 +178,7 @@ should now see the Mobile Overview screen and your Android App.
 [[useful-bash-function]]
 == Useful Bash Function
 
-The following bash function will allow you to do 
+The following bash function will allow you to do
 ....
 mcp up
 mcp down

@@ -8,6 +8,8 @@ for i in quay.io/3scale/apicast:master docker.io/feedhenry/cordova-app-apb:0.0.6
 
 Follow the local setup guide from [here](https://github.com/feedhenry/mcp-standalone/blob/master/docs/walkthroughs/local-setup.adoc#requirements), taking care to setup prerequisites and any firewalld rules (if on Linux)
 
+When prompted with `DockerHub Tag (defaults to latest)` in the installer, use `0.0.6`.
+
 ## 3 Scale
 If you intend to experiment with 3 Scale, you will need to set up a trial account with them, this can take a day or two to be provisioned, start the process [here](https://www.3scale.net/signup/)
 
