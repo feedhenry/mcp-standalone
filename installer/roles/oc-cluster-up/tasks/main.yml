@@ -6,12 +6,6 @@
   changed_when: false
   when: ansible_os_family == "Darwin"
 
-- name: Create alias for lo0 (linux)
-  shell: ifconfig lo:0 {{ cluster_public_hostname }} netmask 255.255.255.0 up
-  become: yes
-  changed_when: false
-  when: ansible_os_family in ["RedHat", "Debian"]
-
 - set_fact:
     routing_suffix: "{{ cluster_public_hostname }}.nip.io"
     public_hostname: "{{ cluster_public_hostname }}"

@@ -6,7 +6,7 @@ BIN_DIR := $(GOPATH)/bin
 GOMETALINTER := $(BIN_DIR)/gometalinter
 SHELL = /bin/bash
 #CHANGE this if using a different url for openshift
-OSCP = https://192.168.37.1:8443
+OSCP = https://172.17.0.1:8443
 NAMESPACE =project2
 TAG=latest
 LDFLAGS=-ldflags "-w -s -X main.Version=${TAG}"
