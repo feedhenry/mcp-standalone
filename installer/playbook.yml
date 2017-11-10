@@ -3,7 +3,8 @@
 - name: Setup OpenShift cluster with Mobile Control Panel and Service Brokers
   hosts: localhost
   roles:
-  # Uses GitHub release
+  - role: install-socat
+    tags: install-socat
   - role: openshift-origin-client-tools
     tags: install-oc
   # Uses Ansible Service Broker S3 binaries
