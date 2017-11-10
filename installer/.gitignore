@@ -1,3 +1,4 @@
 *.retry
 andrewrothstein*
 openshift-origin-client-tools/
+install-socat/
