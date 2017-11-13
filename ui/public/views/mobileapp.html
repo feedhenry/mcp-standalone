@@ -37,7 +37,7 @@
                     <li ng-if="app.clientType == 'android'" role="presentation" ng-class="{'active' : installType == 'gradle'}"><a ng-click="installationOpt('gradle')" href="#">Gradle</a></li>
                   </ul>
 
-                  <p ng-if="installType == 'npm'">Add the following to your <code>pacakge.json</code> file</p>
+                  <p ng-if="installType == 'npm'">Add the following to your <code>package.json</code> file</p>
                   <p ng-if="installType == 'gradle'">Add the following to your <code>build.gradle</code> file</p>
                   <p ng-if="installType == 'maven'">Add the following to your <code>pom.xml</code> file</p>
                   <p ng-if="installType == 'cocoapods'">Add the following to your <code>Podfile</code></p>
