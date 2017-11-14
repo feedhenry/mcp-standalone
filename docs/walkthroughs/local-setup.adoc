@@ -53,6 +53,9 @@ is not essential.
 ----
 ansible-galaxy install -r ./installer/requirements.yml
 ----
+*Note (macOS):* If you're using `ansible` installed via `pip`, you may need create 
+a special folder for ansible-roles and run this command with `--roles-path <ansible-roles-folder-path>`,
+or run it with `sudo`. This is because non-root user does not have write access to default ansible roles folder (`/etc/ansible/roles`).
 
 [[firewall-setup]]
 === Configure the Firewall
