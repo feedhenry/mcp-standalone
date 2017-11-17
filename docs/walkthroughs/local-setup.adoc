@@ -2,8 +2,10 @@
 = Local Setup
 
 This document walks you through setting up:
+
 * a local OpenShift cluster using `oc cluster up`.
 * a locally running Mobile Control Panel
+
 You can use this guide for _either_ an installation of Mobile Control Panel or for local development of MCP.
 
 The guide also introduces how to use MCP to create mobile apps. See the other link:../../README.adoc#walkthroughs[MCP walkthroughs]
@@ -13,52 +15,19 @@ for more detailed guides.
 [[requirements]]
 == Requirements
 
+[[tooling-requirements]]
+=== Tooling Requirements (Required)
+
 * http://docs.ansible.com/ansible/latest/intro_installation.html[Ansible]
 >= 2.3.2.0
 * https://hub.docker.com/[Docker Hub account]
 * https://docs.docker.com/engine/installation/[Docker]
-* https://github.com/openshift/origin/releases[oc command line client]
 * https://nodejs.org/en/[Node.js] >= 6.10.0
 * `libselinux-python` package (Linux only)
+* https://brew.sh[Homebrew] >= 1.3.6 (Mac only)
 
-For local development, you need to set the Go environment :
-
-. Include the Go path:
-+
-[source,sh]
-----
-export PATH="$PATH:~/go/bin"
-----
-
-. Add the path permanently to your `.bashrc` or `.bashprofile`.
-
-[[creating-a-local-cluster]]
-== Creating a Local Cluster
-
-[[clone-this-repository]]
-=== Clone this repository
-
-[source,bash]
-----
-git clone git@github.com:feedhenry/mcp-standalone.git
-----
-
-*Note:* It is recommended to clone this into a valid $GOPATH, however it
-is not essential.
-
-[[install-the-required-ansible-dependencies]]
-=== Install the required ansible dependencies:
-
-[source,sh]
-----
-ansible-galaxy install -r ./installer/requirements.yml
-----
-*Note (macOS):* If you're using `ansible` installed via `pip`, you may need create 
-a special folder for ansible-roles and run this command with `--roles-path <ansible-roles-folder-path>`,
-or run it with `sudo`. This is because non-root user does not have write access to default ansible roles folder (`/etc/ansible/roles`).
-
-[[firewall-setup]]
-=== Configure the Firewall
+[[firewall-requirements]]
+=== Firewall Requirements (Required)
 
 . Configure the Docker registry _and_ ports required as part
 of the cluster setup:
@@ -76,6 +45,54 @@ zone:
 firewall-cmd --permanent --zone dockerc --add-port 443/tcp
 firewall-cmd --reload
 ----
+
+[[local-dev-requirements]]
+=== Local Development Requirements (Optional)
+
+If you plan on developing locally, you need to set the Go environment :
+
+. Include the Go path:
++
+[source,sh]
+----
+export PATH="$PATH:$GOPATH/bin"
+----
+
+. Add the path permanently to your `.bashrc` or `.bashprofile`.
+
+[[creating-a-local-cluster]]
+== Creating a Local Cluster
+
+[[clone-this-repository]]
+=== Clone this repository
+
+* Option 1: If `GOPATH` is set
+[source,bash]
+----
+mkdir -p $GOPATH/src/github.com/feedhenry
+cd $GOPATH/src/github.com/feedhenry
+git clone https://github.com/feedhenry/mcp-standalone
+----
+
+* Option 2: If `GOPATH` is *not* set
+[source,bash]
+----
+git clone https://github.com/feedhenry/mcp-standalone
+----
+
+
+[[install-the-required-ansible-dependencies]]
+=== Install the required ansible dependencies:
+
+[source,sh]
+----
+cd mcp-standalone
+ansible-galaxy install -r ./installer/requirements.yml
+----
+*Note (macOS):* If you're using `ansible` installed via `pip`, you may need create 
+a special folder for ansible-roles and run this command with `--roles-path <ansible-roles-folder-path>`,
+or run it with `sudo`. This is because non-root user does not have write access to default ansible roles folder (`/etc/ansible/roles`).
+
 
 [[run-the-ansible-installer]]
 === Run the MCP Ansible Installer
@@ -108,7 +125,6 @@ MCP Server execute the following in the root directory of the repo:
 
 [source,sh]
 ----
-cd ..
 make run_server NAMESPACE=myproject
 ----
 
