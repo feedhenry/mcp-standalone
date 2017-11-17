@@ -22,7 +22,6 @@ for more detailed guides.
 >= 2.3.2.0
 * https://hub.docker.com/[Docker Hub account]
 * https://docs.docker.com/engine/installation/[Docker]
-* https://github.com/openshift/origin/releases[oc command line client] >= 3.7.0-rc0
 * https://nodejs.org/en/[Node.js] >= 6.10.0
 * `libselinux-python` package (Linux only)
 * https://brew.sh[Homebrew] >= 1.3.6 (Mac only)
