@@ -14,7 +14,7 @@ angular.module('mobileControlPanelApp').component('mpObjectCard', {
                   <span class="card-pf-icon-circle icon fa {{getIcon($ctrl.object)}}"></span>
                 </div>
                 <h2 class="card-pf-title text-center">
-                  {{$ctrl.object.name}}
+                  {{getDisplayName($ctrl.object)}}
                 </h2>
                 <p class="card-pf-info text-center"> {{$ctrl.object.description}}</p>
               </div>
@@ -34,7 +34,8 @@ angular.module('mobileControlPanelApp').component('mpObjectCard', {
   },
   controller: [
     '$scope',
-    function($scope) {
+    'ServiceClassService',
+    function($scope, ServiceClassService) {
       $scope.objectIsService = !!$scope.$ctrl.object.integrations;
       const actions = ['Delete'];
       $scope.actions = actions.map(action => ({
@@ -50,47 +51,31 @@ angular.module('mobileControlPanelApp').component('mpObjectCard', {
         $scope.$ctrl.actionSelected()(value);
       };
 
-      $scope.getIcon = function(object) {
+      $scope.getDisplayName = function(object) {
         const objectIsService = !!object.integrations;
-        if (objectIsService) {
-          for (var serviceId in $scope.$ctrl.serviceClasses) {
-            var serviceClass = $scope.$ctrl.serviceClasses[serviceId];
-            var serviceName = serviceClass.spec.externalMetadata.serviceName;
-            if (
-              serviceName === object.name ||
-              (serviceName &&
-                serviceName.toLowerCase().indexOf(object.name) >= 0)
-            ) {
-              if (
-                typeof serviceClass.spec.externalMetadata[
-                  'console.openshift.io/iconClass'
-                ] !== 'undefined'
-              ) {
-                return formatIconClasses(
-                  serviceClass.spec.externalMetadata[
-                    'console.openshift.io/iconClass'
-                  ]
-                );
-              }
-            }
-          }
-          return formatIconClasses('fa-clone');
-        } else {
-          return object.metadata.icon;
+        if (!objectIsService) {
+          return object.name;
         }
+        const serviceClass = ServiceClassService.retrieveServiceClass(
+          object,
+          $scope.$ctrl.serviceClasses
+        );
+        return ServiceClassService.retrieveDisplayName(
+          serviceClass,
+          object.name
+        );
       };
 
-      formatIconClasses = function(icon) {
-        bits = icon.split('-', 2);
-        switch (bits[0]) {
-          case 'font':
-          case 'icon':
-            return 'font-icon ' + icon;
-          case 'fa':
-            return 'fa ' + icon;
-          default:
-            return icon;
+      $scope.getIcon = function(object) {
+        const objectIsService = !!object.integrations;
+        if (!objectIsService) {
+          return object.metadata.icon;
         }
+        const serviceClass = ServiceClassService.retrieveServiceClass(
+          object,
+          $scope.$ctrl.serviceClasses
+        );
+        return ServiceClassService.retrieveIcon(serviceClass);
       };
     }
   ]

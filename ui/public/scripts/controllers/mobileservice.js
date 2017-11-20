@@ -13,6 +13,7 @@ angular.module('mobileControlPanelApp').controller('MobileServiceController', [
   'mcpApi',
   '$routeParams',
   'ProjectsService',
+  'ServiceClassService',
   'DataService',
   function(
     $scope,
@@ -20,6 +21,7 @@ angular.module('mobileControlPanelApp').controller('MobileServiceController', [
     mcpApi,
     $routeParams,
     ProjectsService,
+    ServiceClassService,
     DataService
   ) {
     $scope.alerts = {};
@@ -67,6 +69,17 @@ angular.module('mobileControlPanelApp').controller('MobileServiceController', [
     ])
       .then(serviceInfo => {
         const [service = {}, apps = []] = serviceInfo;
+
+        const serviceClass = ServiceClassService.retrieveServiceClass(
+          service,
+          $scope.serviceClasses
+        );
+        if (!serviceClass) {
+          return service.name;
+        }
+        $scope.serviceClassName =
+          serviceClass.spec.externalMetadata.displayName || service.name;
+        $scope.breadcrumbs[1].title = $scope.serviceClassName;
 
         $scope.service = service;
         $scope.integrations = Object.keys(service.integrations);

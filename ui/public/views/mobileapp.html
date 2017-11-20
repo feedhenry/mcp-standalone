@@ -140,7 +140,7 @@ mobileCore.configure(mcpConfig).then((config) => {
                         <tr>
                           <td>Hello World</td>
                           <td>Android hello world starter app. Shows you how to plugin the core sdk.</td>
-                          <td><a href="https://github.com/feedhenry-templates/sync-android-app">https://github.com/feedhenry-templates/android-app</a>å</td>
+                          <td><a href="https://github.com/feedhenry-templates/sync-android-app">https://github.com/feedhenry-templates/android-app</a></td>
                         </tr>
                         <tr>
                           <td>Sync Android quick start</td>
@@ -189,7 +189,7 @@ mobileCore.configure(mcpConfig).then((config) => {
                         <tr>
                           <td>Hello World</td>
                           <td>Cordova hello world starter app. Shows you how to plugin the core sdk.</td>
-                          <td><a href="https://github.com/feedhenry-templates/sync-cordova-app">https://github.com/feedhenry-templates/cordova-app</a>å</td>
+                          <td><a href="https://github.com/aidenkeating/cordova-sync-app<">https://github.com/aidenkeating/cordova-sync-app</a></td>
                         </tr>
                         <tr>
                           <td>Sync Cordova quick start</td>
@@ -209,11 +209,11 @@ mobileCore.configure(mcpConfig).then((config) => {
                       <div class="card-pf card-pf-view card-pf-view-select card-pf-view-multi-select" ng-click="openServiceIntegration(service.id)">
                         <div class="card-pf-body">
                           <div class="card-pf-top-element">
-                            <span class="fa icon card-pf-icon-circle"></span>
+                            <span class="fa icon card-pf-icon-circle {{getServiceIcon(service)}}"></span>
                           </div>
                           <h2 class="card-pf-title text-center">
-                            {{service.name}}
-                          </h3>
+                            {{getServiceName(service)}}
+                          </h2>
                         </div>
                       </div>
                     </div>
