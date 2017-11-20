@@ -18,6 +18,7 @@ echo ' |_|  |_|\____|_|'
 echo ''
 }
 
+oc_install_dir="/usr/local/bin"
 oc_version_comparison=${VER_LT}
 
 # Returns:
@@ -144,6 +145,7 @@ function check_oc() {
       read -p "Allow the installer to delete and reinstall the OpenShift client tools? (y/n): " uninstall_client_tools
       if [[ ${uninstall_client_tools} == "y" ]]; then
         echo "Removing oc tool"
+        oc_install_dir=$(dirname $(command -v oc))
         rm $(command -v oc)
       else
         echo -e "${RED}The Mobile Control Panel requires oc >= 3.7"
@@ -152,6 +154,13 @@ function check_oc() {
     fi
     check_passed_msg "OpenShift Client Tools"
   fi
+}
+
+function read_oc_install_dir() {
+  read -p "Where do you want to install oc? (Defaults to ${oc_install_dir}): " user_oc_install_dir
+  oc_install_dir=${user_oc_install_dir:-${oc_install_dir}}
+  echo "Updating PATH to include specified directory"
+  export PATH="${oc_install_dir}:${PATH}"
 }
 
 function run_installer() {
@@ -192,7 +201,7 @@ function run_installer() {
     echo "Skipping OpenShift client tools installation..."
     ansible-playbook installer/playbook.yml -e "dockerhub_username=${dockerhub_username}" -e "dockerhub_password=${dockerhub_password}" -e "dockerhub_tag=${dockerhub_tag}" --skip-tags "install-oc" --ask-become-pass
   else
-    ansible-playbook installer/playbook.yml -e "dockerhub_username=${dockerhub_username}" -e "dockerhub_password=${dockerhub_password}" -e "dockerhub_tag=${dockerhub_tag}" --ask-become-pass
+    ansible-playbook installer/playbook.yml -e "dockerhub_username=${dockerhub_username}" -e "dockerhub_password=${dockerhub_password}" -e "dockerhub_tag=${dockerhub_tag}" -e "oc_install_parent_dir=${oc_install_dir}" --ask-become-pass
   fi
 }
 
@@ -202,4 +211,7 @@ check_npm
 check_python
 check_ansible
 check_oc
+if [[ ${oc_version_comparison} -eq ${VER_LT} ]]; then
+  read_oc_install_dir
+fi
 run_installer
