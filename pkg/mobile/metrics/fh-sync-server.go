@@ -237,8 +237,11 @@ func (ss *FhSyncServer) getStats(host string) (*statsResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer res.Body.Close()
-
+	defer func() {
+		if err := res.Body.Close(); err != nil {
+			logrus.Error("failed to close response body. can cause file handle leaks ", err)
+		}
+	}()
 	data, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		return nil, errors.Wrap(err, "error reading stats response body")

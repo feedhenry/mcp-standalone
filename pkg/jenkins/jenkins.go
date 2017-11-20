@@ -54,7 +54,11 @@ func (c *Client) Retrieve(location *url.URL, token string) (io.ReadCloser, error
 	if res.StatusCode != http.StatusOK {
 		return nil, errors.New("unexpected response code from Jenkins download " + res.Status)
 	}
-	defer res.Body.Close()
+	defer func() {
+		if err := res.Body.Close(); err != nil {
+			logrus.Error("failed to close response body. can cause file handle leaks ", err)
+		}
+	}()
 	decoder := json.NewDecoder(res.Body)
 	buildArtifacts := []*buildArtifact{}
 	if err := decoder.Decode(&buildArtifacts); err != nil {

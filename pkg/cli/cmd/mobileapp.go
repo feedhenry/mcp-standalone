@@ -24,12 +24,19 @@ import (
 	"net/url"
 	"path"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/spf13/viper"
 
 	"github.com/feedhenry/mcp-standalone/pkg/httpclient"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
 	"github.com/spf13/cobra"
 )
+
+func closeBody(res *http.Response) {
+	if err := res.Body.Close(); err != nil {
+		logrus.Error("failed to close response body ", err)
+	}
+}
 
 // mobileappCmd represents the mobileapp command
 var getmobileappCmd = &cobra.Command{
@@ -60,7 +67,8 @@ var getmobileappCmd = &cobra.Command{
 		if err != nil {
 			log.Fatalf(" %s : failed to make the get request %s ", cmd.Name(), err)
 		}
-		defer res.Body.Close()
+		defer closeBody(res)
+
 		if res.StatusCode != http.StatusOK {
 			log.Fatalf("unexpected response code %v", res.StatusCode)
 		}
@@ -101,7 +109,7 @@ func getMobileApp(name string) *mobile.App {
 	if err != nil {
 		log.Fatalf("failed to make the get request %s ", err)
 	}
-	defer res.Body.Close()
+	defer closeBody(res)
 	if res.StatusCode != http.StatusOK {
 		log.Fatalf("unexpected response code %v", res.StatusCode)
 	}
@@ -135,7 +143,7 @@ var deletemobileCmd = &cobra.Command{
 		if err != nil {
 			log.Fatalf(" %s : failed to make the get request %s ", cmd.Name(), err)
 		}
-		defer res.Body.Close()
+		defer closeBody(res)
 		if res.StatusCode != http.StatusOK {
 			log.Fatalf("unexpected response code %v", res.StatusCode)
 		}

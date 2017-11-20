@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/feedhenry/mcp-standalone/pkg/openshift/build"
 	"github.com/pkg/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -47,7 +48,11 @@ func (bc *BuildConfigs) Create(config *build.BuildConfig) (*build.BuildConfig, e
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to make request to create buildconfig ")
 	}
-	defer res.Body.Close()
+	defer func() {
+		if err := res.Body.Close(); err != nil {
+			logrus.Error("failed to close response body. can cause file handle leaks ", err)
+		}
+	}()
 	if res.StatusCode != http.StatusCreated {
 		return nil, errors.New("unexpected status creating buildconfig " + res.Status)
 	}
@@ -72,7 +77,11 @@ func (bc *Builds) Get(name string, options metav1.GetOptions) (*build.Build, err
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to make request to get build ")
 	}
-	defer res.Body.Close()
+	defer func() {
+		if err := res.Body.Close(); err != nil {
+			logrus.Error("failed to close response body. can cause file handle leaks ", err)
+		}
+	}()
 	if res.StatusCode != http.StatusOK {
 		return nil, errors.New("unexpected status code from getting build " + res.Status)
 	}
@@ -100,7 +109,11 @@ func (bc Builds) Update(b *build.Build) (*build.Build, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to make request to create build ")
 	}
-	defer res.Body.Close()
+	defer func() {
+		if err := res.Body.Close(); err != nil {
+			logrus.Error("failed to close response body. can cause file handle leaks ", err)
+		}
+	}()
 	if res.StatusCode != http.StatusOK {
 		return nil, errors.New("unexpected status updating build " + res.Status)
 	}

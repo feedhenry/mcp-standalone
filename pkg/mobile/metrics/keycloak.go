@@ -141,7 +141,11 @@ func (kc *Keycloak) getToken(host, user, pass, realm string) (string, error) {
 	if err != nil {
 		return "", errors.Wrap(err, "failed to make request to keycloak "+u)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			logrus.Error("failed to close response body. can cause file handle leaks ", err)
+		}
+	}()
 	if resp.StatusCode != 200 {
 		return "", errors.New("failed to login to keycloak response code was: " + resp.Status + " url called was : " + u)
 	}
@@ -187,7 +191,11 @@ func (kc *Keycloak) getClientStats(host, token, realm string) ([]*clientStat, er
 	if res.StatusCode != 200 {
 		return nil, errors.New("unexpected response code from keycloack server " + res.Status)
 	}
-	defer res.Body.Close()
+	defer func() {
+		if err := res.Body.Close(); err != nil {
+			logrus.Error("failed to close response body. can cause file handle leaks ", err)
+		}
+	}()
 	decode := json.NewDecoder(res.Body)
 	clientStats := []*clientStat{}
 	if err := decode.Decode(&clientStats); err != nil {
@@ -217,7 +225,11 @@ func (kc *Keycloak) getRealmEvents(host, token, realm string) ([]*eventType, err
 	if res.StatusCode != 200 {
 		return nil, errors.New("unexpected response code when getting realm events expected 200 but got: " + res.Status)
 	}
-	defer res.Body.Close()
+	defer func() {
+		if err := res.Body.Close(); err != nil {
+			logrus.Error("failed to close response body. can cause file handle leaks ", err)
+		}
+	}()
 	var events = []*eventType{}
 	decoder := json.NewDecoder(res.Body)
 	if err := decoder.Decode(&events); err != nil {

@@ -9,9 +9,11 @@ import (
 	"time"
 
 	"encoding/json"
+	"strconv"
+
+	"github.com/Sirupsen/logrus"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
 	"github.com/pkg/errors"
-	"strconv"
 )
 
 const (
@@ -51,7 +53,11 @@ func (ua *UserAccess) ReadUserFromToken(host, token string, insecure bool) (*mob
 	if err != nil {
 		return user, errors.Wrap(err, "failed to make request to read user from openshift")
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			logrus.Error("failed to close response body. can cause file handle leaks ", err)
+		}
+	}()
 	if resp.StatusCode != http.StatusOK {
 		if resp.StatusCode == http.StatusUnauthorized || resp.StatusCode == http.StatusForbidden {
 			return user, &AuthenticationError{Message: "access was denied", StatusCode: resp.StatusCode}

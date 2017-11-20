@@ -51,10 +51,18 @@ func init() {
 	RootCmd.PersistentFlags().String("host", "", "set the host of mcp")
 	RootCmd.PersistentFlags().String("token", "", "set the token to use with mcp")
 	RootCmd.PersistentFlags().StringP("file", "f", "", "set the token to use with mcp")
-	viper.BindPFlag("host", RootCmd.PersistentFlags().Lookup("host"))
-	viper.BindPFlag("token", RootCmd.PersistentFlags().Lookup("token"))
-	viper.BindPFlag("config", RootCmd.PersistentFlags().Lookup("config"))
-	viper.BindPFlag("file", RootCmd.PersistentFlags().Lookup("file"))
+	if err := viper.BindPFlag("host", RootCmd.PersistentFlags().Lookup("host")); err != nil {
+		panic(err)
+	}
+	if err := viper.BindPFlag("token", RootCmd.PersistentFlags().Lookup("token")); err != nil {
+		panic(err)
+	}
+	if err := viper.BindPFlag("config", RootCmd.PersistentFlags().Lookup("config")); err != nil {
+		panic(err)
+	}
+	if err := viper.BindPFlag("file", RootCmd.PersistentFlags().Lookup("file")); err != nil {
+		panic(err)
+	}
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.

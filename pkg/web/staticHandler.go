@@ -43,7 +43,11 @@ func (sh StaticHandler) Static(res http.ResponseWriter, req *http.Request) {
 			return
 		}
 	}
-	defer f.Close()
+	defer func() {
+		if err := f.Close(); err != nil {
+			sh.logger.Error("failed to close file handle. Could be leaking resources ", err)
+		}
+	}()
 
 	fi, err := f.Stat()
 	if err != nil {

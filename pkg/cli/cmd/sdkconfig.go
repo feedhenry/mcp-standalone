@@ -53,7 +53,7 @@ var getsdkconfigCmd = &cobra.Command{
 		if err != nil {
 			log.Fatalf("error doint request %s ", err)
 		}
-		defer res.Body.Close()
+		defer closeBody(res)
 		if res.StatusCode != 200 {
 			log.Fatal("unexpected status code response " + res.Status)
 		}
