@@ -69,3 +69,13 @@
 
 - debug:
     msg: "{{ oc_cluster_status.stdout_lines }}"
+
+- block:
+  - debug:
+      msg:
+      - "{{ oc_install_parent_dir }}/oc was used to create your cluster."
+      - Ensure that {{ oc_install_parent_dir }} is on your PATH.
+      - If it's not, run export PATH={{ oc_install_parent_dir }}:$PATH, to persist this PATH do
+      - echo 'export PATH={{ oc_install_parent_dir }}:$PATH' >> ~/.bash_profile
+  when:
+  - oc_install_parent_dir is defined

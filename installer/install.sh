@@ -159,6 +159,8 @@ function check_oc() {
 function read_oc_install_dir() {
   read -p "Where do you want to install oc? (Defaults to ${oc_install_dir}): " user_oc_install_dir
   oc_install_dir=${user_oc_install_dir:-${oc_install_dir}}
+  echo "Updating PATH to include specified directory"
+  export PATH="${oc_install_dir}:${PATH}"
 }
 
 function run_installer() {
