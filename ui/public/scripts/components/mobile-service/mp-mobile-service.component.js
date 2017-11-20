@@ -9,16 +9,20 @@
 angular.module('mobileControlPanelApp').component('mpMobileService', {
   template: `<div class="mp-service">
               <div class="container-fluid">
-                <mp-service-info service=$ctrl.service></mp-service-info>
+                <mp-service-info service=$ctrl.service service-classes=$ctrl.serviceClasses></mp-service-info>
               </div>
             </div>`,
   controller: [
-    'McpService',
+    'MobileServiceService',
     '$routeParams',
-    function(McpService, $routeParams) {
+    function(MobileServiceService, $routeParams) {
       this.$onInit = function() {
-        McpService.mobileService($routeParams.service, 'true')
-          .then(service => (this.service = service))
+        MobileServiceService.getData($routeParams.project, $routeParams.service)
+          .then(data => {
+            const [service = {}, serviceClasses = []] = data;
+            this.service = service;
+            this.serviceClasses = serviceClasses['_data'];
+          })
           .catch(err => console.error('Error loading Services', err));
       };
     }

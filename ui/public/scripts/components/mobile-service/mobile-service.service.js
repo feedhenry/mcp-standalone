@@ -2,21 +2,20 @@
 
 /**
  * @ngdoc service
- * @name mobileControlPanelApp.ClientSetupService
+ * @name mobileControlPanelApp.MobileServiceService
  * @description
- * # ClientSetupService
- * ClientSetupService
+ * # MobileServiceService
+ * MobileServiceService
  */
-angular.module('mobileControlPanelApp').service('ClientSetupService', [
+angular.module('mobileControlPanelApp').service('MobileServiceService', [
   'ProjectsService',
   'ServiceClassesService',
   'McpService',
   function(ProjectsService, ServiceClassesService, McpService) {
-    this.getData = function(projectId, appId) {
+    this.getData = function(projectId, serviceId) {
       return ProjectsService.get(projectId).then(projectInfo => {
         return Promise.all([
-          McpService.mobileApp(appId),
-          McpService.mobileServices(),
+          McpService.mobileService(serviceId, 'true'),
           ServiceClassesService.list(projectInfo[1])
         ]);
       });

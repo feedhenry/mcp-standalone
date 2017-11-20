@@ -8,11 +8,16 @@
  * MobileOverviewService
  */
 angular.module('mobileControlPanelApp').service('MobileOverviewService', [
-  'DataService',
+  'ServiceClassesService',
   'ProjectsService',
   'AuthorizationService',
   'McpService',
-  function(DataService, ProjectsService, AuthorizationService, McpService) {
+  function(
+    ServiceClassesService,
+    ProjectsService,
+    AuthorizationService,
+    McpService
+  ) {
     this.getOverview = function(projectId) {
       return ProjectsService.get(projectId).then(projectInfo => {
         return Promise.all([
@@ -20,13 +25,7 @@ angular.module('mobileControlPanelApp').service('MobileOverviewService', [
           Promise.resolve(projectInfo[1]),
           McpService.mobileApps(),
           McpService.mobileServices(),
-          DataService.list(
-            {
-              group: 'servicecatalog.k8s.io',
-              resource: 'clusterserviceclasses'
-            },
-            projectInfo[1]
-          )
+          ServiceClassesService.list(projectInfo[1])
         ]);
       });
     };

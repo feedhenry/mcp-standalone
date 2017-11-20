@@ -11,10 +11,10 @@ angular.module('mobileControlPanelApp').component('mpObjectCard', {
               <mp-kebab actions=$ctrl.actions action-selected=$ctrl.actionSelected()></mp-kebab>
               <div class="card-pf-body">
                 <div class="card-pf-top-element card-icon ng-scope" ng-click="$ctrl.selected()($ctrl.object)">
-                  <span class="card-pf-icon-circle icon fa {{$ctrl.getIcon($ctrl.object)}}"></span>
+                  <mp-object-icon object=$ctrl.object service-classes=$ctrl.serviceClasses></mp-object-icon>
                 </div>
                 <h2 class="card-pf-title text-center">
-                  {{$ctrl.object.displayName || $ctrl.object.name}}
+                  {{ $ctrl.object | objectName:$ctrl.serviceClasses }}
                 </h2>
                 <p class="card-pf-info text-center"> {{$ctrl.object.description}}</p>
               </div>
@@ -40,49 +40,6 @@ angular.module('mobileControlPanelApp').component('mpObjectCard', {
         label: action,
         value: this.object
       }));
-
-      this.getIcon = function(object) {
-        const objectIsService = !!object.integrations;
-        if (objectIsService) {
-          for (var serviceId in this.serviceClasses) {
-            var serviceClass = this.serviceClasses[serviceId];
-            var serviceName = serviceClass.spec.externalMetadata.serviceName;
-            if (
-              serviceName === object.name ||
-              (serviceName &&
-                serviceName.toLowerCase().indexOf(object.name) >= 0)
-            ) {
-              if (
-                typeof serviceClass.spec.externalMetadata[
-                  'console.openshift.io/iconClass'
-                ] !== 'undefined'
-              ) {
-                return formatIconClasses(
-                  serviceClass.spec.externalMetadata[
-                    'console.openshift.io/iconClass'
-                  ]
-                );
-              }
-            }
-          }
-          return formatIconClasses('fa-clone');
-        } else {
-          return object.metadata.icon;
-        }
-      };
-
-      formatIconClasses = icon => {
-        bits = icon.split('-', 2);
-        switch (bits[0]) {
-          case 'font':
-          case 'icon':
-            return 'font-icon ' + icon;
-          case 'fa':
-            return 'fa ' + icon;
-          default:
-            return icon;
-        }
-      };
     }
   ]
 });

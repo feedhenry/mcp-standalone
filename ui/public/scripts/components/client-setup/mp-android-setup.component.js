@@ -73,7 +73,7 @@ try{
                     <tr>
                       <td>Hello World</td>
                       <td>Android hello world starter app. Shows you how to plugin the core sdk.</td>
-                      <td><a href="https://github.com/feedhenry-templates/sync-android-app">https://github.com/feedhenry-templates/android-app</a>å</td>
+                      <td><a href="https://github.com/feedhenry-templates/sync-android-app">https://github.com/feedhenry-templates/android-app</a></td>
                     </tr>
                     <tr>
                       <td>Sync Android quick start</td>

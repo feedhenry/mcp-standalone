@@ -57,7 +57,7 @@ sync.init({
                     <tr>
                       <td>Hello World</td>
                       <td>Cordova hello world starter app. Shows you how to plugin the core sdk.</td>
-                      <td><a href="https://github.com/feedhenry-templates/sync-cordova-app">https://github.com/feedhenry-templates/cordova-app</a>å</td>
+                      <td><a href="https://github.com/aidenkeating/cordova-sync-app<">https://github.com/aidenkeating/cordova-sync-app</a></td>
                     </tr>
                     <tr>
                       <td>Sync Cordova quick start</td>

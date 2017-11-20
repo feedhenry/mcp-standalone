@@ -11,7 +11,7 @@ angular.module('mobileControlPanelApp').component('mpServiceInfo', {
                 <div class="col-md-12">
                   <div class="mp-object-tab-title">
                     <h1>
-                      {{$ctrl.service.name}}
+                      {{ $ctrl.service | objectName:$ctrl.serviceClasses }}
                     </h1>
                   </div>
                   <uib-tabset class="mp-tabsets" justified=true>
@@ -31,7 +31,8 @@ angular.module('mobileControlPanelApp').component('mpServiceInfo', {
                 </div>
               </div>`,
   bindings: {
-    service: '<'
+    service: '<',
+    serviceClasses: '<'
   },
   controller: [
     function() {

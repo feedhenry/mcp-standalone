@@ -21,7 +21,11 @@ angular.module('mobileControlPanelApp').component('mpClientSetup', {
               <mp-cordova-setup app=$ctrl.app></mp-cordova-setup>
               <mp-ios-setup app=$ctrl.app></mp-ios-setup>
 
-              <mp-service-integrations integrations=$ctrl.integrations service-selected=$ctrl.openServiceIntegration></mp-service-integrations>
+              <mp-service-integrations
+                integrations=$ctrl.integrations
+                service-classes=$ctrl.serviceClasses
+                service-selected=$ctrl.openServiceIntegration>
+              </mp-service-integrations>
             </div>`,
   controller: [
     '$routeParams',
@@ -29,10 +33,14 @@ angular.module('mobileControlPanelApp').component('mpClientSetup', {
     'ClientSetupService',
     function($routeParams, $location, ClientSetupService) {
       this.$onInit = function() {
-        ClientSetupService.getData($routeParams.mobileapp).then(data => {
-          const [app = {}, services = []] = data;
+        ClientSetupService.getData(
+          $routeParams.project,
+          $routeParams.mobileapp
+        ).then(data => {
+          const [app = {}, services = [], serviceClasses = []] = data;
           this.app = app;
           this.integrations = services;
+          this.serviceClasses = serviceClasses['_data'];
         });
       };
 
