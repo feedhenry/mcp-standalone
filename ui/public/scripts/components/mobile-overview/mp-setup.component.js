@@ -7,7 +7,7 @@
  * # mp-setup
  */
 angular.module('mobileControlPanelApp').component('mpSetup', {
-  template: `<div class="blank-slate-pf" id="">
+  template: `<div class="blank-slate-pf" ng-if="!$ctrl.hasMcpServer">
               <div class="blank-slate-pf-icon">
                 <span class="pficon pficon pficon-add-circle-o"></span>
               </div>
@@ -18,5 +18,8 @@ angular.module('mobileControlPanelApp').component('mpSetup', {
               <div class="blank-slate-pf-main-action">
                 <a ng-href="/" class="btn btn-primary btn-lg">Provision Mobile Control Panel</a>
               </div>
-            </div>`
+            </div>`,
+  bindings: {
+    hasMcpServer: '<'
+  }
 });

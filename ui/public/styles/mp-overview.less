@@ -1,27 +1,42 @@
 .mp-overview {
+  margin-top:0;
+
   .header {
     padding: 15px 0;
     border-color: rgb(54, 54, 54);
     border-bottom: 1px solid rgba(0, 0, 0, 0.26);
     border-radius: 1px;
     margin-bottom: 10px;
+    margin-left: 0px;
+    margin-right: 0px;
+
+    .column {
+      padding: 0px;
+    }
+
     h1 {
       display: inline;
     }
     a {
       margin-left: 10px;
     }
+
+    .actions {
+      display: inline;
+    }
   }
 
-  &.container-cards-pf {
+  .container-cards-pf {
     margin-top:0;
-  }
-
-  .actions {
-    display: inline;
   }
 
   .row.row-cards-pf {
     margin-bottom:50px;
+  }
+
+  .no-objects {
+    .actions {
+      margin-top: 21px;
+    }
   }
 }

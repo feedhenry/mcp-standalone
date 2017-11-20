@@ -8,10 +8,10 @@
  */
 angular.module('mobileControlPanelApp').component('mpObjectCard', {
   template: `<div class="mp-object-card card-pf card-pf-view card-pf-view-select card-pf-view-multi-select">
-              <mp-kebab actions=actions action-selected=actionSelected></mp-kebab>
+              <mp-kebab actions=$ctrl.actions action-selected=$ctrl.actionSelected()></mp-kebab>
               <div class="card-pf-body">
-                <div class="card-pf-top-element card-icon ng-scope" ng-click="selected($ctrl.object)">
-                  <span class="card-pf-icon-circle icon fa {{getIcon($ctrl.object)}}"></span>
+                <div class="card-pf-top-element card-icon ng-scope" ng-click="$ctrl.selected()($ctrl.object)">
+                  <span class="card-pf-icon-circle icon fa {{$ctrl.getIcon($ctrl.object)}}"></span>
                 </div>
                 <h2 class="card-pf-title text-center">
                   {{$ctrl.object.name}}
@@ -33,28 +33,19 @@ angular.module('mobileControlPanelApp').component('mpObjectCard', {
     actionSelected: '&'
   },
   controller: [
-    '$scope',
-    function($scope) {
-      $scope.objectIsService = !!$scope.$ctrl.object.integrations;
+    function() {
+      this.objectIsService = !!this.object.integrations;
       const actions = ['Delete'];
-      $scope.actions = actions.map(action => ({
+      this.actions = actions.map(action => ({
         label: action,
-        value: $scope.$ctrl.object
+        value: this.object
       }));
 
-      $scope.selected = function(value) {
-        $scope.$ctrl.selected()(value);
-      };
-
-      $scope.actionSelected = function(value) {
-        $scope.$ctrl.actionSelected()(value);
-      };
-
-      $scope.getIcon = function(object) {
+      this.getIcon = function(object) {
         const objectIsService = !!object.integrations;
         if (objectIsService) {
-          for (var serviceId in $scope.$ctrl.serviceClasses) {
-            var serviceClass = $scope.$ctrl.serviceClasses[serviceId];
+          for (var serviceId in this.serviceClasses) {
+            var serviceClass = this.serviceClasses[serviceId];
             var serviceName = serviceClass.spec.externalMetadata.serviceName;
             if (
               serviceName === object.name ||
@@ -80,7 +71,7 @@ angular.module('mobileControlPanelApp').component('mpObjectCard', {
         }
       };
 
-      formatIconClasses = function(icon) {
+      formatIconClasses = icon => {
         bits = icon.split('-', 2);
         switch (bits[0]) {
           case 'font':

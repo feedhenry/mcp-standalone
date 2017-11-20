@@ -25,10 +25,10 @@ angular.module('mobileControlPanelApp').component('mpAppDownload', {
   },
   controller: [
     '$scope',
-    'mcpApi',
+    'McpService',
     '$timeout',
     '$window',
-    function($scope, mcpApi, $timeout, $window) {
+    function($scope, McpService, $timeout, $window) {
       let storedValue = $window.localStorage.getItem(
         $scope.$ctrl.build.metadata.name
       );
@@ -55,19 +55,19 @@ angular.module('mobileControlPanelApp').component('mpAppDownload', {
       }
 
       $scope.generateUrl = function() {
-        mcpApi
-          .mobileAppDownloadUrl($scope.$ctrl.build.metadata.name)
-          .then(res => {
-            $scope.url = res.url;
-            $window.localStorage.setItem(
-              $scope.$ctrl.build.metadata.name,
-              JSON.stringify(res)
-            );
-            timeoutPromise = $timeout(
-              timeoutFn.bind(null, $scope),
-              res.expires - Date.now()
-            );
-          });
+        McpService.mobileAppDownloadUrl(
+          $scope.$ctrl.build.metadata.name
+        ).then(res => {
+          $scope.url = res.url;
+          $window.localStorage.setItem(
+            $scope.$ctrl.build.metadata.name,
+            JSON.stringify(res)
+          );
+          timeoutPromise = $timeout(
+            timeoutFn.bind(null, $scope),
+            res.expires - Date.now()
+          );
+        });
       };
 
       $scope.$on('$destroy', () => {

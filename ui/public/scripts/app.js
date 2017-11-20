@@ -82,7 +82,6 @@ angular.module('mobileControlPanelApp', ['openshiftConsole']).config([
       })
       .when('/project/:project/browse/mobileoverview', {
         templateUrl: 'extensions/mcp/views/mobileoverview.html',
-        controller: 'MobileOverviewController',
         reloadOnSearch: false,
         resolve: resolveMCPRoute
       })

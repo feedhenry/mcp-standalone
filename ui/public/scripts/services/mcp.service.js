@@ -2,12 +2,12 @@
 
 /**
  * @ngdoc service
- * @name mobileControlPanelApp.mcpApi
+ * @name mobileControlPanelApp.McpService
  * @description
- * # mcpApi
+ * # McpService
  * Service in the mobileControlPanelApp.
  */
-angular.module('mobileControlPanelApp').service('mcpApi', [
+angular.module('mobileControlPanelApp').service('McpService', [
   '$http',
   'AuthService',
   function($http, AuthService) {

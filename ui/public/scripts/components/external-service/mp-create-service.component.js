@@ -111,9 +111,9 @@ angular.module('mobileControlPanelApp').component('mpCreateService', {
   },
   controller: [
     '$scope',
-    'mcpApi',
+    'McpService',
     'DataService',
-    function($scope, mcpApi, DataService) {
+    function($scope, McpService, DataService) {
       DataService.list('projects', {})
         .then(p => {
           $scope.projects = p._data;
@@ -135,8 +135,7 @@ angular.module('mobileControlPanelApp').component('mpCreateService', {
           }
         }
 
-        mcpApi
-          .createMobileService($scope.externalService)
+        McpService.createMobileService($scope.externalService)
           .then(() => {
             $scope.$ctrl.created()(null, $scope.externalService);
           })
