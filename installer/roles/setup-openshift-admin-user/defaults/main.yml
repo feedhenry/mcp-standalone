@@ -1,0 +1,4 @@
+---
+# defaults file for setup-openshift-admin-user
+
+user_name: admin
