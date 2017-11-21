@@ -9,3 +9,4 @@ mcp-api
 web/app/bower_components
 web/dist
 web/node_modules
+dist/
