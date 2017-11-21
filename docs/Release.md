@@ -5,7 +5,7 @@
 - keycloak https://github.com/feedhenry/keycloak-apb
 - 3scale https://github.com/feedhenry/3scale-apb
 - sync https://github.com/feedhenry/fh-sync-server-apb
-- digger (mobile ci cd) https://github.com/feedhenry/aerogear-digger-apb  
+- digger (mobile ci cd) https://github.com/feedhenry/aerogear-digger-apb
 
 Run the following command in each of the above repos:
 
@@ -16,12 +16,29 @@ This creates a `VERSION` tag in github, and afterwards a build on Dockerhub is t
 
 ## MCP Release
 
-For MCP tag as above and run the following commands
+To perform a release of mcp-standalone you'll need:
+
+* A GitHub access token with repo access permissions
+* `goreleaser` - `go get github.com/goreleaser/goreleaser`
+
+Set the GitHub access token to the GITHUB_TOKEN environment variable.
+
+```
+export GITHUB_TOKEN=mysecrettoken
+```
+
+Run the following command with `TAG` set to a new tag.
 
 ```bash
-make image TAG=$(TAG)
-docker push docker.io/feedhenry/mcp-standalone:$(TAG)
+make release TAG=0.0.1
 ```
+
+This will perform a number of steps:
+* Build docker images
+* Tag the repo with `TAG`
+* Push the new tag
+* Create a draft release on GitHub with binaries attached
+* Push the new image to DockerHub with the tag `TAG`
 
 ### MCP included APBs
 
@@ -39,7 +56,7 @@ The above adds automated commits to your local branch, afterwards go and look fo
 ```bash
 git rev-parse HEAD
 
-## use that commit hash when creating the tag 
+## use that commit hash when creating the tag
 git tag -a $(TAG) HASH -m "signing tag"
 git push origin $(TAG)
 ```
