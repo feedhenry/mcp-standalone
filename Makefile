@@ -24,10 +24,11 @@ ui:
 	cd ui && npm install && npm run bower install && npm run grunt build
 
 .PHONY: release
-release:
-	git tag -a $(RELEASETAG) -m $(RELEASETAG)
-	git push --tags
+release: image
+	git tag -a $(TAG) -m $(TAG)
+	git push origin $(TAG)
 	goreleaser --rm-dist
+	docker push docker.io/feedhenry/mcp-standalone:$(TAG)
 
 build_cli:
 	go build -o mcp ./cmd/mcp-cli
