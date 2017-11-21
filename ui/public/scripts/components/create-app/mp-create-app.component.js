@@ -31,9 +31,13 @@ angular.module('mobileControlPanelApp').component('mpCreateApp', {
                   </div>
                 </div>
                 <div class="form-group">
+                  <label for="displayName">Display Name</label>
+                  <input class="form-control input-lg ng-pristine ng-empty" name="displayName" id="displayName" placeholder="displayName" type="text" ng-model="$ctrl.app.displayName" autocorrect="off" autocapitalize="off" spellcheck="false" style="">
+                </div>
+                <div class="form-group">
                   <label for="description">Description</label>
                   <input class="form-control input-lg ng-pristine ng-empty" name="description" id="description" placeholder="description" type="text" ng-model="$ctrl.app.description" autocorrect="off" autocapitalize="off" spellcheck="false" style="">
-                </div>  
+                </div>
                 <div class="form-group">
                   <label for="clientType">Client Type</label>
                   <select class="form-control" name="clientType" ng-model="$ctrl.app.clientType">
@@ -41,14 +45,14 @@ angular.module('mobileControlPanelApp').component('mpCreateApp', {
                       <option value="android">Android</option>
                       <option value="iOS">iOS</option>
                       <option value="cordova">Cordova</option>
-                  </select>                
+                  </select>
                 </div>
-            
+
                 <!--<div class="form-group">
                   <label for="description">Description</label>
                   <textarea class="form-control input-lg ng-pristine ng-untouched ng-valid ng-empty" name="description" id="description" placeholder="A short description." ng-model="description"></textarea>
                 </div>-->
-            
+
                 <div class="button-group">
                   <button type="submit" class="btn btn-primary btn-lg" ng-class="{'dialog-btn': isDialog}" ng-click="$ctrl.created()($ctrl.app)" ng-disabled="createAppForm.$invalid || nameTaken || disableInputs" value="" disabled="disabled">
                     Create
