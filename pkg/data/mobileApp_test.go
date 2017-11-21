@@ -153,10 +153,11 @@ func TestCreateMobileApp(t *testing.T) {
 		{
 			Name: "test create mobile app ok",
 			App: &mobile.App{
-				Name:       "app",
-				ClientType: "android",
-				APIKey:     "akey",
-				MetaData:   map[string]string{},
+				Name:        "app",
+				DisplayName: "An App",
+				ClientType:  "android",
+				APIKey:      "akey",
+				MetaData:    map[string]string{},
 			},
 			APIKeyClient: func() corev1.SecretInterface {
 				c := fake.Clientset{}
@@ -186,9 +187,10 @@ func TestCreateMobileApp(t *testing.T) {
 		{
 			Name: "test create mobile fails when error returned from client",
 			App: &mobile.App{
-				Name:       "app",
-				ClientType: "android",
-				MetaData:   map[string]string{},
+				Name:        "app",
+				DisplayName: "An App",
+				ClientType:  "android",
+				MetaData:    map[string]string{},
 			},
 			APIKeyClient: func() corev1.SecretInterface {
 				c := fake.Clientset{}
@@ -242,8 +244,9 @@ func TestListMobileApp(t *testing.T) {
 							Labels: map[string]string{"group": "mobileapp"},
 						},
 						Data: map[string]string{
-							"name":       "app",
-							"clientType": "android",
+							"name":        "app",
+							"displayName": "An App",
+							"clientType":  "android",
 						},
 					},
 						v1.ConfigMap{
@@ -251,8 +254,9 @@ func TestListMobileApp(t *testing.T) {
 								Labels: map[string]string{"group": "mobileapp"},
 							},
 							Data: map[string]string{
-								"name":       "app2",
-								"clientType": "iOS",
+								"name":        "app2",
+								"displayName": "Another App",
+								"clientType":  "iOS",
 							},
 						})
 					return true, list, nil
@@ -356,9 +360,10 @@ func TestUpdateMobileApp(t *testing.T) {
 	}{
 		{
 			App: &mobile.App{
-				Name:       "app",
-				ClientType: "iOS",
-				Labels:     map[string]string{"group": "mobileapp"},
+				Name:        "app",
+				DisplayName: "An App",
+				ClientType:  "iOS",
+				Labels:      map[string]string{"group": "mobileapp"},
 			},
 			Name: "test update mobile apps clientType ok",
 			APIKeyClient: func() corev1.SecretInterface {

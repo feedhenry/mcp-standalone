@@ -190,6 +190,7 @@ func convertConfigMapToMobileApp(m *v1.ConfigMap) *mobile.App {
 	return &mobile.App{
 		ID:          m.Name,
 		Name:        m.Data["name"],
+		DisplayName: m.Data["displayName"],
 		ClientType:  m.Data["clientType"],
 		APIKey:      m.Data["apiKey"],
 		Labels:      m.Labels,
@@ -216,6 +217,7 @@ func convertMobileAppToConfigMap(app *mobile.App) *v1.ConfigMap {
 		},
 		Data: map[string]string{
 			"name":        app.Name,
+			"displayName": app.DisplayName,
 			"clientType":  app.ClientType,
 			"apiKey":      app.APIKey,
 			"description": app.Description,

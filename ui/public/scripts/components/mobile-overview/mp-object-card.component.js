@@ -14,7 +14,7 @@ angular.module('mobileControlPanelApp').component('mpObjectCard', {
                   <span class="card-pf-icon-circle icon fa {{getIcon($ctrl.object)}}"></span>
                 </div>
                 <h2 class="card-pf-title text-center">
-                  {{$ctrl.object.name}}
+                  {{$ctrl.object.displayName || $ctrl.object.name}}
                 </h2>
                 <p class="card-pf-info text-center"> {{$ctrl.object.description}}</p>
               </div>
