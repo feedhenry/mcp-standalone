@@ -4,6 +4,7 @@ readonly SCRIPT_PATH=$(dirname $0)
 readonly SCRIPT_ABSOLUTE_PATH=$(cd $SCRIPT_PATH && pwd)
 
 readonly RED=$(tput setaf 1)
+readonly RESET=$(tput sgr0)
 
 readonly VER_EQ=0
 readonly VER_GT=1
@@ -50,7 +51,7 @@ function compare_version () {
 
 function does_not_exist_msg() {
   echo -e "${RED}${1} does not exist on host machine."
-  echo -e "It can be installed using ${2}."
+  echo -e "It can be installed using ${2}.${RESET}"
 }
 
 function check_exists_msg() {
@@ -69,7 +70,7 @@ function check_docker() {
   check_version_msg "Docker" "using Stable channel"
   docker_version=$(docker version --format '{{json .Client.Version}}')
   if [[ ${docker_version} == *"-rc"* ]]; then
-    echo "${RED}Docker versions from the Edge channel are currently not supported. Switch to a release from the Stable channel"
+    echo "${RED}Docker versions from the Edge channel are currently not supported. Switch to a release from the Stable channel${RESET}"
     exit 1
   fi
   check_passed_msg "Docker"
@@ -99,7 +100,7 @@ function check_python() {
   check_version_msg "Python" ">= 2.7"
   compare_version ${python_version} 2.7
   python_version_comparison=${?}; if [[ ${python_version_comparison} -eq ${VER_LT} ]]; then
-    echo -e "${RED}Python is < 2.7. Update to >= 2.7."
+    echo -e "${RED}Python is < 2.7. Update to >= 2.7.${RESET}"
     exit 1
   fi
   check_passed_msg "Python"
@@ -120,7 +121,7 @@ function check_ansible() {
   check_version_msg "Ansible" ">= 2.3"
   compare_version ${ansible_version} 2.3
   ansible_version_comparison=${?}; if [[ ${ansible_version_comparison} -eq ${VER_LT} ]]; then
-    echo -e "${RED}Ansible version is < 2.3. Install ansible>=2.3 using pip install ansible>=2.3"
+    echo -e "${RED}Ansible version is < 2.3. Install ansible>=2.3 using pip install ansible>=2.3${RESET}"
     exit 1
   fi
   check_passed_msg "Ansible"
@@ -148,7 +149,7 @@ function check_oc() {
         oc_install_dir=$(dirname $(command -v oc))
         rm $(command -v oc)
       else
-        echo -e "${RED}The Mobile Control Panel requires oc >= 3.7"
+        echo -e "${RED}The Mobile Control Panel requires oc >= 3.7${RESET}"
         exit 1
       fi
     fi
@@ -168,19 +169,25 @@ function run_installer() {
   to communicate with the DockerHub API. If you enter invalid credentials or then
   Mobile Services will not be available in the Service Catalog.\n"
 
-  read -p "DockerHub Username: " dockerhub_username
-  stty -echo
-  read -p "DockerHub Password: " dockerhub_password
-  stty echo
+  docker_credentials=0
+  while [ $docker_credentials -eq 0 ];
+  do
+    docker_credentials=1
+    read -p "DockerHub Username: " dockerhub_username
+    stty -echo
+    read -p "DockerHub Password: " dockerhub_password
+    stty echo
 
-  echo -e "\nChecking DockerHub credentials are valid...\n"
+    echo -e "\nChecking DockerHub credentials are valid...\n"
 
-  curl --fail -u ${dockerhub_username}:${dockerhub_password} https://cloud.docker.com/api/app/v1/service/ &> /dev/null
+    curl --fail -u ${dockerhub_username}:${dockerhub_password} https://cloud.docker.com/api/app/v1/service/ &> /dev/null
 
-  if [[ ${?} -ne 0 ]]; then
-    echo -e "${RED}Invalid Docker credentials. Run the script again."
-    exit 1
-  fi
+    if [[ ${?} -ne 0 ]]; then
+      echo -e "${RED}Invalid Docker credentials. Please re-enter${RESET}"
+      docker_credentials=0
+    fi
+
+  done
 
   echo -e "Credentials are valid. Continuing...\n"
 
