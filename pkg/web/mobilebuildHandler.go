@@ -162,7 +162,11 @@ func (bh *BuildHandler) Download(rw http.ResponseWriter, req *http.Request) {
 		handleCommonErrorCases(err, rw, bh.logger)
 		return
 	}
-	defer artifactReader.Close()
+	defer func() {
+		if err := artifactReader.Close(); err != nil {
+			bh.logger.Error("failed to close file handle. could be leaking resources ", err)
+		}
+	}()
 	rw.Header().Set("content-type", "octet/stream")
 	// TODO handle more than apk
 	rw.Header().Set("content-disposition", "attachment; filename=\"app.apk\"")
@@ -176,7 +180,11 @@ func (bh *BuildHandler) Download(rw http.ResponseWriter, req *http.Request) {
 func (bh *BuildHandler) AddAsset(rw http.ResponseWriter, req *http.Request) {
 	token := headers.DefaultTokenRetriever(req.Header)
 	buildAsset := &mobile.BuildAsset{}
-	req.ParseMultipartForm(10 * 1000000) //10MB
+	if err := req.ParseMultipartForm(10 * 1000000); err != nil { //10MB
+		err = errors.Wrap(err, "failed parse multipart form when adding asset")
+		handleCommonErrorCases(err, rw, bh.logger)
+		return
+	}
 	params := mux.Vars(req)
 	file, info, err := req.FormFile("asset")
 	if err != nil {
@@ -184,7 +192,11 @@ func (bh *BuildHandler) AddAsset(rw http.ResponseWriter, req *http.Request) {
 		handleCommonErrorCases(err, rw, bh.logger)
 		return
 	}
-	defer file.Close()
+	defer func() {
+		if err := file.Close(); err != nil {
+			bh.logger.Error("failed to close file handle. could be leaking resources", err)
+		}
+	}()
 	buildAsset.Name = info.Filename
 	buildAsset.Platform = params["platform"]
 	buildAsset.Type = mobile.BuildAssetTypeBuildSecret

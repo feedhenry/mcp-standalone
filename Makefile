@@ -46,8 +46,22 @@ run_server:
 	oc sa get-token mcp-standalone -n  $(NAMESPACE) > token
 	./mcp-api -namespace=$(NAMESPACE) -k8-host=$(OSCP) -satoken-path=./token -log-level=debug -insecure=true
 
-
+.PHONY: test
 test: test-unit
+
+.PHONY: setup
+setup:
+	@go get github.com/kisielk/errcheck
+
+.PHONY: check
+check:
+	@echo Running checks:
+	@echo errcheck
+	@errcheck -ignoretests $$(go list ./...)
+	@echo go vet
+	@go vet ./...
+	@echo go fmt
+	diff -u <(echo -n) <(gofmt -d `find . -type f -name '*.go' -not -path "./vendor/*"`)
 
 test-unit:
 	@echo Running tests:

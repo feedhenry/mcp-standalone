@@ -8,6 +8,7 @@ import (
 
 	"encoding/json"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
 	"github.com/pkg/errors"
 )
@@ -41,7 +42,11 @@ func GetMetadata(k8shost string, requester mobile.ExternalHTTPRequester) (*Metad
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to do request to retrieve OpenShift server metadata")
 	}
-	defer res.Body.Close()
+	defer func() {
+		if err := res.Body.Close(); err != nil {
+			logrus.Error("failed to close response body. can cause file handle leaks ", err)
+		}
+	}()
 	if res.StatusCode != 200 {
 		data, err := ioutil.ReadAll(res.Body)
 		if err != nil {

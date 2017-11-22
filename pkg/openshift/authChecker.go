@@ -9,6 +9,8 @@ import (
 	"strconv"
 
 	"bytes"
+
+	"github.com/Sirupsen/logrus"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
 	"github.com/pkg/errors"
 )
@@ -108,7 +110,11 @@ func (ac *AuthChecker) Check(resource, namespace string, client mobile.ExternalH
 	if err != nil {
 		return false, errors.Wrap(err, "openshift.ac.Check -> failed to make request to check authorization")
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			logrus.Error("failed to close response body. can cause file handle leaks ", err)
+		}
+	}()
 	if resp.StatusCode == http.StatusForbidden {
 		// user does not have permission to create the permission check in the namespace
 		return false, nil

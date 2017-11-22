@@ -140,7 +140,7 @@ func main() {
 	{
 		integrationSvc := integration.NewMobileSevice(*namespace)
 		metricSvc := &metrics.MetricsService{}
-		scClientBuilder := k8s.NewServiceCatalogClientBuilder(k8ClientBuilder, defaultHTTPClient, token, *namespace, k8host)
+		scClientBuilder := k8s.NewServiceCatalogClientBuilder(k8ClientBuilder, defaultHTTPClient, token, *namespace, k8host, logger)
 		svcHandler := web.NewMobileServiceHandler(logger, integrationSvc, metricSvc, svcRepoBuilder, userRepoBuilder, authCheckerBuilder, scClientBuilder, *namespace)
 		web.MobileServiceRoute(router, svcHandler)
 	}
@@ -196,8 +196,11 @@ func main() {
 	<-s //wait for interrupt
 	close(stop)
 	logger.Println("\nShutting down the server...")
-	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
-	server.Shutdown(ctx)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := server.Shutdown(ctx); err != nil {
+		panic("failed to shutdown server " + err.Error())
+	}
 }
 
 func readSAToken(path string) (string, error) {

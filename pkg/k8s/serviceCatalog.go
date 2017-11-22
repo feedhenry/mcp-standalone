@@ -17,6 +17,7 @@ import (
 
 	"bytes"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/feedhenry/mcp-standalone/pkg/mobile"
 	"github.com/pkg/errors"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -39,6 +40,7 @@ type ServiceCatalogClientBuilder struct {
 	namespace  string
 	saToken    string
 	k8builder  mobile.K8ClientBuilder
+	logger     *logrus.Logger
 }
 
 func (scb *ServiceCatalogClientBuilder) WithToken(token string) mobile.SCClientBuilder {
@@ -69,11 +71,12 @@ func (scb *ServiceCatalogClientBuilder) Build() (mobile.SCCInterface, error) {
 		namespace:         scb.namespace,
 		externalRequester: scb.httpClient,
 		k8client:          k8,
+		logger:            scb.logger,
 	}, nil
 }
 
-func NewServiceCatalogClientBuilder(builder mobile.K8ClientBuilder, httpClient mobile.ExternalHTTPRequester, saToken, namespace, k8host string) *ServiceCatalogClientBuilder {
-	return &ServiceCatalogClientBuilder{httpClient: httpClient, saToken: saToken, namespace: namespace, k8builder: builder, k8host: k8host}
+func NewServiceCatalogClientBuilder(builder mobile.K8ClientBuilder, httpClient mobile.ExternalHTTPRequester, saToken, namespace, k8host string, logger *logrus.Logger) *ServiceCatalogClientBuilder {
+	return &ServiceCatalogClientBuilder{httpClient: httpClient, saToken: saToken, namespace: namespace, k8builder: builder, k8host: k8host, logger: logger}
 }
 
 type serviceCatalogClient struct {
@@ -82,6 +85,7 @@ type serviceCatalogClient struct {
 	namespace         string
 	externalRequester mobile.ExternalHTTPRequester
 	k8client          kubernetes.Interface
+	logger            *logrus.Logger
 }
 type ServiceClass struct {
 	meta_v1.TypeMeta `json:",inline"`
@@ -222,7 +226,11 @@ func (sc *serviceCatalogClient) BindToService(bindableService, targetSvcName str
 	if err != nil {
 		return errors.Wrap(err, "failed to create binding. Request error occurred")
 	}
-	defer res.Body.Close()
+	defer func() {
+		if err := res.Body.Close(); err != nil {
+			logrus.Error("failed to close response body. can cause file handle leaks ", err)
+		}
+	}()
 	if res.StatusCode != http.StatusCreated {
 		return errors.New("unexpected status code from service catalog: " + res.Status)
 	}
@@ -282,7 +290,11 @@ func (sc *serviceCatalogClient) UnBindFromService(bindableService, targetSvcName
 	if err != nil {
 		return errors.Wrap(err, "failed to do delete request against the service catalog to delete binding "+bindingID)
 	}
-	defer res.Body.Close()
+	defer func() {
+		if err := res.Body.Close(); err != nil {
+			logrus.Error("failed to close response body. can cause file handle leaks ", err)
+		}
+	}()
 	if res.StatusCode != 200 {
 		return errors.New("unexpected response code from service catalog " + res.Status)
 	}
@@ -339,7 +351,11 @@ func (sc *serviceCatalogClient) getInstances(token, ns string) (*ServiceInstance
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to make request to get service instances")
 	}
-	defer res.Body.Close()
+	defer func() {
+		if err := res.Body.Close(); err != nil {
+			logrus.Error("failed to close response body. can cause file handle leaks ", err)
+		}
+	}()
 	data, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to read the response body for service instances")
@@ -359,7 +375,11 @@ func (sc *serviceCatalogClient) serviceClasses(token, ns string) ([]ServiceClass
 		fmt.Println("error making service class request ", err)
 		return nil, err
 	}
-	defer res.Body.Close()
+	defer func() {
+		if err := res.Body.Close(); err != nil {
+			logrus.Error("failed to close response body. can cause file handle leaks ", err)
+		}
+	}()
 	if res.StatusCode != 200 {
 		return nil, errors.New("Unexpected response code from Service Catalog " + res.Status)
 	}
