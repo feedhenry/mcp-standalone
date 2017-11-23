@@ -62,6 +62,13 @@ func (b *Build) CreateAppBuild(buildRepo mobile.BuildCruder, build *mobile.Build
 
 }
 
+func (b *Build) BuildApp(buildRepo mobile.BuildCruder, buildID string) error {
+	if err := buildRepo.BuildApp(buildID); err != nil {
+		return errors.Wrap(err, "failed to create app build")
+	}
+	return nil
+}
+
 // CreateBuildSrcKeySecret creates a public private key pair and returns the secret name it is stored in and the public part of the key as bytes
 func (b *Build) CreateBuildSrcKeySecret(br mobile.BuildCruder, buildName string) (string, []byte, error) {
 	var (

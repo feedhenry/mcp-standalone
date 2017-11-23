@@ -33,6 +33,7 @@ type ServiceCruder interface {
 
 type BuildCruder interface {
 	Create(b *BuildConfig) error
+	BuildApp(name string) error
 	AddBuildAsset(asset BuildAsset) (string, error)
 	AddDownload(buildName string, dl *BuildDownload) error
 	GetDownload(buildName string) (*BuildDownload, error)

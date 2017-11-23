@@ -9,6 +9,7 @@ import (
 
 var buildConfigsResource = schema.GroupVersionResource{Group: "", Version: "", Resource: "buildconfigs"}
 var buildResource = schema.GroupVersionResource{Group: "", Version: "", Resource: "build"}
+var buildRequestResource = schema.GroupVersionResource{Group: "", Version: "", Resource: "buildrequest"}
 var buildConfigsKind = schema.GroupVersionKind{Group: "", Version: "", Kind: "BuildConfig"}
 
 // FakeBuildConfigs implements BuildConfigInterface. Meant to be embedded into a struct to get a default
@@ -51,6 +52,14 @@ func NewFakeBuilds(ns string, fake *testing.Fake) *FakeBuilds {
 type FakeBuilds struct {
 	Fake      *testing.Fake
 	Namespace string
+}
+
+func (c *FakeBuilds) Instantiate(buildName string, buildRequest *build.BuildRequest) error {
+	_, err := c.Fake.Invokes(testing.NewCreateAction(buildRequestResource, c.Namespace, buildRequest), buildRequest)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (c *FakeBuilds) Update(b *build.Build) (*build.Build, error) {

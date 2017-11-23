@@ -61,6 +61,16 @@ func (br *BuildRepo) Status(buildName string) (*mobile.BuildStatus, error) {
 	return buildStatus, nil
 }
 
+func (br BuildRepo) BuildApp(buildName string) (error) {
+	buildRequest := &build.BuildRequest{
+		ObjectMeta: meta_v1.ObjectMeta{Name: buildName},
+	}
+	if err := br.buildClient.Instantiate(buildName, buildRequest); err != nil {
+		return errors.Wrap(err, "failed to start build")
+	}
+	return nil
+}
+
 func (br BuildRepo) AddDownload(buildName string, dl *mobile.BuildDownload) error {
 	build, err := br.buildClient.Get(buildName, meta_v1.GetOptions{})
 	if err != nil {

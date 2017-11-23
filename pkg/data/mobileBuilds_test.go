@@ -101,6 +101,51 @@ func TestBuildRepo_Create(t *testing.T) {
 	}
 }
 
+func TestBuildRepo(t *testing.T) {
+	cases := []struct {
+		Name string
+		ExpectError bool
+		BuildName string
+		BuildConfigClient func() client.BuildConfigInterface
+		BuildClient       func() client.BuildInterface
+		SecretClient      func() corev1.SecretInterface
+	}{
+		{
+			Name: "test building mobile app",
+			BuildName: "buildname",
+			BuildConfigClient: func() client.BuildConfigInterface {
+				fakeoc := testclient.NewFakeBuildConfigs("test", nil)
+				fakeoc.Fake.AddReactor("create", "buildconfigs", func(action ktesting.Action) (handled bool, ret runtime.Object, err error) {
+					return true, nil, nil
+				})
+				return fakeoc
+			},
+			BuildClient: func() client.BuildInterface {
+				fakeoc := testclient.NewFakeBuilds("test", nil)
+				return fakeoc
+
+			},
+			SecretClient: func() corev1.SecretInterface {
+				kc := &fake.Clientset{}
+				return kc.CoreV1().Secrets("test")
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.Name, func(t *testing.T) {
+			buildRepo := data.NewBuildRepo(tc.BuildConfigClient(), tc.BuildClient(), tc.SecretClient())
+			err := buildRepo.BuildApp(tc.Name)
+			if tc.ExpectError && err == nil {
+				t.Fatalf("expected error but got none")
+			}
+			if !tc.ExpectError && err != nil {
+				t.Fatalf("did not expect error but got %s", err)
+			}
+		})
+	}
+}
+
 func TestBuildRepo_AddBuildAsset(t *testing.T) {
 	cases := []struct {
 		Name         string
