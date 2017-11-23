@@ -16,7 +16,7 @@ import (
 
 var createBuildConfigCmd = &cobra.Command{
 	Use:     "buildconfig",
-	Short:   "",
+	Short:   "create a build config for a mobile app",
 	Aliases: []string{"bc"},
 	Run: func(cmd *cobra.Command, args []string) {
 		httpclient := httpclient.NewClientBuilder().Insecure(true).Timeout(5).Build()
@@ -26,7 +26,7 @@ var createBuildConfigCmd = &cobra.Command{
 		}
 		u.Path = path.Join(u.Path, "/build")
 		buildconfig := &mobile.BuildConfig{
-			AppID: cmd.Flag("host").Value.String(),
+			AppID: cmd.Flag("appid").Value.String(),
 			Name:  cmd.Flag("name").Value.String(),
 			GitRepo: &mobile.BuildGitRepo{
 				URI:             cmd.Flag("giturl").Value.String(),
