@@ -103,15 +103,15 @@ func TestBuildRepo_Create(t *testing.T) {
 
 func TestBuildRepo(t *testing.T) {
 	cases := []struct {
-		Name string
-		ExpectError bool
-		BuildName string
+		Name              string
+		ExpectError       bool
+		BuildName         string
 		BuildConfigClient func() client.BuildConfigInterface
 		BuildClient       func() client.BuildInterface
 		SecretClient      func() corev1.SecretInterface
 	}{
 		{
-			Name: "test building mobile app",
+			Name:      "test building mobile app",
 			BuildName: "buildname",
 			BuildConfigClient: func() client.BuildConfigInterface {
 				fakeoc := testclient.NewFakeBuildConfigs("test", nil)

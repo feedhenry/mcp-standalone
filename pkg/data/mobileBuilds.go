@@ -61,7 +61,7 @@ func (br *BuildRepo) Status(buildName string) (*mobile.BuildStatus, error) {
 	return buildStatus, nil
 }
 
-func (br BuildRepo) BuildApp(buildName string) (error) {
+func (br BuildRepo) BuildApp(buildName string) error {
 	buildRequest := &build.BuildRequest{
 		ObjectMeta: meta_v1.ObjectMeta{Name: buildName},
 	}

@@ -66,7 +66,7 @@ type Builds struct {
 	restClient  *http.Client
 }
 
-func (bc *Builds) Instantiate(name string, buildRequest *build.BuildRequest) (error) {
+func (bc *Builds) Instantiate(name string, buildRequest *build.BuildRequest) error {
 	u := fmt.Sprintf(createBuildURL, bc.host, bc.ns, name)
 	payload, err := json.Marshal(buildRequest)
 	if err != nil {
