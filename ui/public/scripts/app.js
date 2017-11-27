@@ -2,22 +2,13 @@
 
 console.log('MCP Extension Loaded');
 
-// Add 'Mobile' to the left nav
-window.OPENSHIFT_CONSTANTS.PROJECT_NAVIGATION.splice(1, 0, {
-  label: 'Mobile',
-  iconClass: 'fa fa-mobile',
-  href: '/browse/mobileoverview',
-  prefixes: [
-    '/browse/mobileapps',
-    '/browse/mobileservices',
-    '/create-mobileapp',
-    '/create-mobileservice'
-  ],
-  isValid: function() {
-    // TODO: Can this check if any mobile apps exist first?
-    return true;
-  }
-});
+// 'Overview' tab active state for mobile sub-views
+window.OPENSHIFT_CONSTANTS.PROJECT_NAVIGATION[0].prefixes = [
+  '/browse/mobileapps',
+  '/browse/mobileservices',
+  '/create-mobileapp',
+  '/create-mobileservice'
+];
 
 // Add 'Mobile' category and sub-categories to the Service Catalog UI
 window.OPENSHIFT_CONSTANTS.SERVICE_CATALOG_CATEGORIES.splice(

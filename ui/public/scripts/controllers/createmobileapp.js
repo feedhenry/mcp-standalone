@@ -21,8 +21,8 @@ angular
 
       $scope.breadcrumbs = [
         {
-          title: 'Mobile Apps',
-          link: 'project/' + $routeParams.project + '/browse/mobileoverview'
+          title: 'Overview',
+          link: 'project/' + $routeParams.project + '/overview'
         },
         {
           title: 'Create Mobile App'
@@ -33,9 +33,7 @@ angular
         mcpApi
           .createMobileApp(app)
           .then(app => {
-            $location.path(
-              'project/' + $routeParams.project + '/browse/mobileoverview'
-            );
+            $location.path('project/' + $routeParams.project + '/overview');
           })
           .catch(err => {
             console.error('failed to create app ', err);
@@ -43,9 +41,7 @@ angular
       };
 
       $scope.cancelled = function() {
-        $location.path(
-          'project/' + $routeParams.project + '/browse/mobileoverview'
-        );
+        $location.path('project/' + $routeParams.project + '/overview');
       };
     }
   ]);

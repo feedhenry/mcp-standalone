@@ -32,8 +32,8 @@ angular.module('mobileControlPanelApp').controller('MobileAppController', [
     $scope.renderOptions.hideFilterWidget = true;
     $scope.breadcrumbs = [
       {
-        title: 'Mobile App',
-        link: 'project/' + $routeParams.project + '/browse/mobileoverview'
+        title: 'Overview',
+        link: 'project/' + $routeParams.project + '/overview'
       },
       {
         title: $routeParams.mobileapp

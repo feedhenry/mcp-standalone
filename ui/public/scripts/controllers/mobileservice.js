@@ -26,8 +26,8 @@ angular.module('mobileControlPanelApp').controller('MobileServiceController', [
     $scope.projectName = $routeParams.project;
     $scope.breadcrumbs = [
       {
-        title: 'Mobile Service',
-        link: 'project/' + $routeParams.project + '/browse/mobileoverview'
+        title: 'Overview',
+        link: 'project/' + $routeParams.project + '/overview'
       },
       {
         title: $routeParams.service
