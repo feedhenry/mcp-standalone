@@ -7,16 +7,16 @@ oc cluster down
 
 # Remove openshift config dir things
 SCRIPT_PATH=$(dirname $0)
-SCRIPT_ABSOLUTE_PATH=$(cd $SCRIPT_PATH && pwd)
+OPENSHIFT_DATA_DIR=$(cd $SCRIPT_PATH/../ui && pwd)
 
-sudo rm -rf ${SCRIPT_ABSOLUTE_PATH}/master
-sudo rm -rf ${SCRIPT_ABSOLUTE_PATH}/node-localhost
-sudo rm -rf ${SCRIPT_ABSOLUTE_PATH}/openshift-data
-sudo rm -rf ${SCRIPT_ABSOLUTE_PATH}/openshift-pvs
+sudo rm -rf ${OPENSHIFT_DATA_DIR}/master
+sudo rm -rf ${OPENSHIFT_DATA_DIR}/node-localhost
+sudo rm -rf ${OPENSHIFT_DATA_DIR}/openshift-data
+sudo rm -rf ${OPENSHIFT_DATA_DIR}/openshift-pvs
 
 if [ "$(uname -s)" == "Linux"  ]
 then
-  findmnt -lo TARGET | grep ${SCRIPT_ABSOLUTE_PATH}/openshift-volumes | xargs -r sudo umount
+  findmnt -lo TARGET | grep ${OPENSHIFT_DATA_DIR}/openshift-volumes | xargs -r sudo umount
 fi
 
-sudo rm -rf ${SCRIPT_ABSOLUTE_PATH}/openshift-volumes
+sudo rm -rf ${OPENSHIFT_DATA_DIR}/openshift-volumes
