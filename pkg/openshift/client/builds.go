@@ -30,6 +30,7 @@ const (
 	buildconfigURL = "%s/oapi/v1/namespaces/%s/buildconfigs"
 	getBuildURL    = "%s/oapi/v1/namespaces/%s/builds/%s"
 	updateBuildURL = "%s/oapi/v1/namespaces/%s/builds/%s"
+	createBuildURL = "%s/oapi/v1/namespaces/%s/buildconfigs/%s/instantiate"
 )
 
 func (bc *BuildConfigs) Create(config *build.BuildConfig) (*build.BuildConfig, error) {
@@ -63,6 +64,39 @@ type Builds struct {
 	ns          string
 	host, token string
 	restClient  *http.Client
+}
+
+func (bc *Builds) Instantiate(name string, buildRequest *build.BuildRequest) error {
+	u := fmt.Sprintf(createBuildURL, bc.host, bc.ns, name)
+	payload, err := json.Marshal(buildRequest)
+	if err != nil {
+		return errors.Wrap(err, "failed to marshal build request")
+	}
+
+	req, err := http.NewRequest(http.MethodPost, u, bytes.NewReader(payload))
+	if err != nil {
+		return errors.Wrap(err, "failed to prepare post request for build")
+	}
+	req.Header.Set("Authorization", "Bearer "+bc.token)
+	req.Header.Set("Content-type", "application/json")
+	res, err := bc.restClient.Do(req)
+	if err != nil {
+		return errors.Wrap(err, "failed to make post request for build")
+	}
+	defer func() {
+		if err := res.Body.Close(); err != nil {
+			logrus.Error("failed to close response body. can cause file handle leaks ", err)
+		}
+	}()
+	if res.StatusCode != http.StatusCreated {
+		return errors.New("unexpected status code from creating build " + res.Status)
+	}
+	build := &build.Build{}
+	decoder := json.NewDecoder(res.Body)
+	if err := decoder.Decode(build); err != nil {
+		return errors.Wrap(err, "failed to decode build object on create")
+	}
+	return nil
 }
 
 func (bc *Builds) Get(name string, options metav1.GetOptions) (*build.Build, error) {

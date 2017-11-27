@@ -49,6 +49,7 @@ type BuildConfigsNamespacer interface {
 type BuildInterface interface {
 	Get(name string, options metav1.GetOptions) (*build.Build, error)
 	Update(build *build.Build) (*build.Build, error)
+	Instantiate(name string, buildRequest *build.BuildRequest) error
 }
 
 type BuildConfigInterface interface {

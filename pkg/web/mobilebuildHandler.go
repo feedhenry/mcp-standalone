@@ -68,6 +68,29 @@ func (bh *BuildHandler) Create(rw http.ResponseWriter, req *http.Request) {
 
 }
 
+func (bh *BuildHandler) Build(rw http.ResponseWriter, req *http.Request) {
+	token := headers.DefaultTokenRetriever(req.Header)
+	buildRepo, err := bh.buildRepoBuilder.WithToken(token).Build()
+	if err != nil {
+		err = errors.Wrap(err, "build handler failed to create build repo instance")
+		handleCommonErrorCases(err, rw, bh.logger)
+		return
+	}
+	params := mux.Vars(req)
+	buildID := params["buildID"]
+	if buildID == "" {
+		http.Error(rw, "buildID cannot be empty", http.StatusBadRequest)
+		return
+	}
+	if err := bh.buildService.BuildApp(buildRepo, buildID); err != nil {
+		err = errors.Wrap(err, "failed to start app build")
+		handleCommonErrorCases(err, rw, bh.logger)
+		return
+	}
+	rw.WriteHeader(http.StatusCreated)
+	return
+}
+
 // GenerateKeys will parse the request and hand it off to the service logic to setup a new public private key pair
 func (bh *BuildHandler) GenerateKeys(rw http.ResponseWriter, req *http.Request) {
 	token := headers.DefaultTokenRetriever(req.Header)
