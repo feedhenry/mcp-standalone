@@ -8,7 +8,7 @@
  */
 angular.module('mobileControlPanelApp').directive('mpQrcode', function() {
   return {
-    template: `<div class="qr-code-container"></div>`,
+    template: `<div class="mp-qrcode-container"></div>`,
     scope: {
       content: '<?'
     },
