@@ -89,4 +89,4 @@ apbs:
     endif
 
 clean:
-	./ui/clean.sh
+	./installer/clean.sh
