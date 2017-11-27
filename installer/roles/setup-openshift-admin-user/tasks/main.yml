@@ -1,0 +1,14 @@
+---
+# tasks file for setup-openshift-admin-user
+
+- name: Login as system admin
+  shell: "oc login -u system:admin"
+  register: oc_system_admin_login
+
+- name: Create admin user
+  shell: "oc create user {{ user_name }}"
+  register: oc_create_user
+
+- name: Give admin user permissions
+  shell: "oc adm policy add-cluster-role-to-user edit {{ user_name }}"
+  register: oc_user_policy

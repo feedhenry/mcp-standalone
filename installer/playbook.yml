@@ -12,15 +12,18 @@
   #   tags: install-oc
 
   - role: oc-cluster-up
-    tags: oc-cluster-up
+    tags: [oc-cluster-up, local, local-dev]
 
   - role: template-service-broker-setup
-    tags: setup-tsb
+    tags: [setup-tsb, local, local-dev]
 
   - role: mcp-ui-extension-setup
-    tags: setup-mcp
+    tags: [setup-mcp, local, local-dev]
+
+  - role: setup-openshift-admin-user
+    tags: [setup-admin-user, local-dev]
 
   - role: ansible-service-broker-setup
-    tags: setup-asb
+    tags: [setup-asb, local, local-dev]
   vars_files:
   - "vars/mobile-control-panel.yml"
