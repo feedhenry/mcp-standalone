@@ -80,6 +80,7 @@ func (bh *BuildHandler) Build(rw http.ResponseWriter, req *http.Request) {
 	buildID := params["buildID"]
 	if buildID == "" {
 		http.Error(rw, "buildID cannot be empty", http.StatusBadRequest)
+		return
 	}
 	if err := bh.buildService.BuildApp(buildRepo, buildID); err != nil {
 		err = errors.Wrap(err, "failed to start app build")
