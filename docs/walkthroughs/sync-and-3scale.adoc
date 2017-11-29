@@ -47,10 +47,18 @@ Integrate 3scale with Data Sync
 
 Once the 3scale service has finished provisioning it will be available as an
 integration in the Service Integrations tab of the FeedHenry Sync Server.
-Enable the integration. This results in the Mobile Control Panel changing the
-URL of the Sync Server to an APIcast URL. It will also provide the App ID and
-App Key headers required to communicate with APIcast. The configuration will
-look like:
+Enabling the service integration is done via the 'bind' playbook in the 3Scale APB.
+The 'bind' playbook will do the following:
+
+* Configure the 3Scale Service for App ID/Key Auth with a Self Managed APIcast i.e. the APICast is in our namespace.
+* Configure the 3Scale Service Proxy settings to proxy on to the FeedHenry Sync Server in our namepsace.
+* Configure GET & POST Mappings for the Service. The mappings are simple with any GET or POST request getting proxied on to the FeedHenry Sync Server. It is possible to manage mappings at a more granular level afterwards via the 3Scale Admin Portal.
+* Promote the Proxy Configuration to production so the APICast in our namespace will use it.
+* Get the App ID that our Mobile App will use with every request. This is stored in the `fh-sync-server` secret.
+* Generate an App Key that our Mobile App will use with every request. This is stored in the `fh-sync-server` secret. An App Key can be revoked/regenerated as needed from the 3Scale Admin Portal. If regenerating, the key will need to be manually updated in the `fh-sync-server` secret.
+
+Ultimately, enabling the integration will change the URL Mobile Apps use to connect to the Sync Server to an APIcast URL.
+It will also provide the App ID and App Key headers required to communicate with APIcast.
 
 [source,json]
 ----
