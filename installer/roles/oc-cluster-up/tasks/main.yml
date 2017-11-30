@@ -20,7 +20,7 @@
   when: ansible_os_family in ["RedHat", "Debian"]
 
 - set_fact:
-    routing_suffix: "{{ cluster_public_hostname }}.nip.io"
+    routing_suffix: "{{ cluster_public_hostname }}.{{ wildcard_dns_host }}"
     public_hostname: "{{ cluster_public_hostname }}"
 
 - name: Obtain status of oc cluster

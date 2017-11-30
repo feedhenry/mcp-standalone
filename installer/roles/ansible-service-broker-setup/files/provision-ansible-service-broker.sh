@@ -6,6 +6,7 @@ readonly DOCKERHUB_PASS="${2}"
 readonly DOCKERHUB_ORG="${3}"
 readonly LAUNCH_APB_ON_BIND="${4}"
 readonly TAG="${5}"
+readonly WILDCARD_DNS="${6}"
 
 echo "starting install of ansible service broker"
 
@@ -32,7 +33,7 @@ oc process -f "${TEMPLATE_LOCAL}" \
 -p BROKER_IMAGE="ansibleplaybookbundle/origin-ansible-service-broker:sprint139.1" \
 -p ENABLE_BASIC_AUTH="false" \
 -p SANDBOX_ROLE="admin" \
--p ROUTING_SUFFIX="192.168.37.1.nip.io" \
+-p ROUTING_SUFFIX="192.168.37.1.${WILDCARD_DNS}" \
 -p TAG="${TAG:-latest}" \
 -p LAUNCH_APB_ON_BIND="${LAUNCH_APB_ON_BIND}" \
 ${TEMPLATE_VARS} | oc create -f -
