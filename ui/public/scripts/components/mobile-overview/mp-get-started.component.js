@@ -7,7 +7,7 @@
  * # mp-get-started
  */
 angular.module('mobileControlPanelApp').component('mpGetStarted', {
-  template: `<div class="blank-slate-pf" id="">
+  template: `<div class="blank-slate-pf" ng-if="$ctrl.hasData && $ctrl.overviewsEmpty">
               <div class="blank-slate-pf-icon">
                 <span class="pficon pficon pficon-add-circle-o"></span>
               </div>
@@ -28,21 +28,38 @@ angular.module('mobileControlPanelApp').component('mpGetStarted', {
               </div>
               <div class="blank-slate-pf-secondary-action">
                 <a ng-href="/" class="btn btn-default">Provision Catalog Service</a>
-                <mp-modal class="btn-default" modal-open=$ctrl.options.modalOpen modal-class="'mp-service-create-modal'" launch="'Add External Service'" modal-title="'Add External Service'"" display-controls=false>
+                <mp-modal ng-init="created = $ctrl.created" class="btn-default" modal-open=$ctrl.options.modalOpen modal-class="'mp-service-create-modal'" launch="'Add External Service'" modal-title="'Add External Service'"" display-controls=false>
                   <div ng-include="'extensions/mcp/templates/create-service.template.html'"></div>
                 </mp-modal>
               </div>
             </div>`,
   bindings: {
+    overviews: '<',
     projectName: '<',
     serviceCreated: '&?',
-    options: '='
+    options: '<'
   },
   controller: [
-    '$scope',
-    function($scope) {
-      $scope.created = function(err, service) {
-        $scope.$ctrl.serviceCreated()(err, service);
+    function() {
+      this.overviewEmpty = false;
+
+      this.$onChanges = function(changes) {
+        if (!changes.overviews) {
+          return;
+        }
+
+        const currentValue = changes.overviews.currentValue;
+        const keys = Object.keys(currentValue);
+        this.hasData = keys.every(key => currentValue[key].objects);
+        if (this.hasData) {
+          this.overviewsEmpty = keys.every(
+            key => !currentValue[key].objects.length
+          );
+        }
+      };
+
+      this.created = function(err, service) {
+        this.serviceCreated()(err, service);
       };
     }
   ]

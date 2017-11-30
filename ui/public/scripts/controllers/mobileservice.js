@@ -10,14 +10,14 @@
 angular.module('mobileControlPanelApp').controller('MobileServiceController', [
   '$scope',
   '$timeout',
-  'mcpApi',
+  'McpService',
   '$routeParams',
   'ProjectsService',
   'DataService',
   function(
     $scope,
     $timeout,
-    mcpApi,
+    McpService,
     $routeParams,
     ProjectsService,
     DataService
@@ -37,8 +37,7 @@ angular.module('mobileControlPanelApp').controller('MobileServiceController', [
     const knownServices = ['fh-sync-server', 'keycloak'];
     $scope.chartData = [];
     $scope.integrations = [];
-    mcpApi
-      .mobileServiceMetrics($routeParams.service)
+    McpService.mobileServiceMetrics($routeParams.service)
       .then(chartData => {
         $scope.chartData = chartData;
         $timeout(() => {});
@@ -62,8 +61,8 @@ angular.module('mobileControlPanelApp').controller('MobileServiceController', [
       );
     });
     Promise.all([
-      mcpApi.mobileService($routeParams.service, 'true'),
-      mcpApi.mobileApps()
+      McpService.mobileService($routeParams.service, 'true'),
+      McpService.mobileApps()
     ])
       .then(serviceInfo => {
         const [service = {}, apps = []] = serviceInfo;
@@ -136,8 +135,7 @@ angular.module('mobileControlPanelApp').controller('MobileServiceController', [
     };
 
     $scope.enableIntegration = function(integration) {
-      mcpApi
-        .integrateService(integration)
+      McpService.integrateService(integration)
         .then(res => {
           //inspect res
           integration.enabled = true;
@@ -148,8 +146,7 @@ angular.module('mobileControlPanelApp').controller('MobileServiceController', [
       return true;
     };
     $scope.disableIntegration = function(integration) {
-      mcpApi
-        .deintegrateService(integration)
+      McpService.deintegrateService(integration)
         .then(res => {
           //inspect res
           integration.enabled = false;

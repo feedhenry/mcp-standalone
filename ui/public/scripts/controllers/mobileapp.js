@@ -13,7 +13,7 @@ angular.module('mobileControlPanelApp').controller('MobileAppController', [
   '$routeParams',
   '$filter',
   'ProjectsService',
-  'mcpApi',
+  'McpService',
   'DataService',
   'BuildsService',
   function(
@@ -22,7 +22,7 @@ angular.module('mobileControlPanelApp').controller('MobileAppController', [
     $routeParams,
     $filter,
     ProjectsService,
-    mcpApi,
+    McpService,
     DataService,
     BuildsService
   ) {
@@ -71,8 +71,7 @@ angular.module('mobileControlPanelApp').controller('MobileAppController', [
 
     $scope.createAppBuildConfig = function(appConfig) {
       appConfig.appID = $routeParams.mobileapp;
-      mcpApi
-        .createBuildConfig(appConfig)
+      McpService.createBuildConfig(appConfig)
         .then(response => {
           return DataService.get(
             'buildconfigs',
@@ -132,8 +131,8 @@ angular.module('mobileControlPanelApp').controller('MobileAppController', [
           DataService.list('buildconfigs', projectContext),
           DataService.list('builds', projectContext),
           DataService.list('secrets', projectContext),
-          mcpApi.mobileApp($routeParams.mobileapp),
-          mcpApi.mobileServices()
+          McpService.mobileApp($routeParams.mobileapp),
+          McpService.mobileServices()
         ]);
       })
       .then(viewData => {

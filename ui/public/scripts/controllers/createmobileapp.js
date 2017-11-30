@@ -14,8 +14,8 @@ angular
     '$scope',
     '$routeParams',
     '$location',
-    'mcpApi',
-    function($scope, $routeParams, $location, mcpApi) {
+    'McpService',
+    function($scope, $routeParams, $location, McpService) {
       $scope.alerts = {};
       $scope.projectName = $routeParams.project;
 
@@ -30,8 +30,7 @@ angular
       ];
 
       $scope.created = function(app) {
-        mcpApi
-          .createMobileApp(app)
+        McpService.createMobileApp(app)
           .then(app => {
             $location.path(
               'project/' + $routeParams.project + '/browse/mobileoverview'
