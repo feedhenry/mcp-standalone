@@ -9,45 +9,9 @@
           <alerts alerts="alerts"></alerts>
         </div>
       </div>
-      <div class="middle-content mp-service" persist-tab-state>
-        <div class="container-fluid">
-          <div class="row">
-            <div class="col-md-12">
-              <div class="mp-object-tab-title">
-                <h1>
-                  {{service.name}}
-                </h1>
-              </div>
-              <uib-tabset class="mp-tabsets" justified=true>
-                <uib-tab ng-if="service" active=true select=dashboardSelected()>
-                  <uib-tab-heading>Dashboard</uib-tab-heading>
-                  <div class="mp-service-dashboard">
-                    <div ng-include="'extensions/mcp/templates/service-details.template.html'"></div>
-                    <h2>Stats</h2>
-                    <div class="col-12">
-                      <div ng-include="'extensions/mcp/templates/' + templateName + '-chart.template.html'"></div>
-                    </div>
-
-                    <div ng-if="chartData.length == 0">
-                      <div class="empty-state-message text-center">
-                        <h2>No Stats currently available for this service</h2>
-                      </div>
-                    </div>
-                  </div>
-                </uib-tab>
-                <uib-tab>
-                  <uib-tab-heading>App Integrations</uib-tab-heading>
-                  <ng-include src="'extensions/mcp/templates/mobile-app-integration.template.html'"></ng-include>
-                </uib-tab>
-                <uib-tab ng-if="integrations.length">
-                  <uib-tab-heading>Services Integrations</uib-tab-heading>
-                  <ng-include src="'extensions/mcp/templates/mobile-service-integration.template.html'"></ng-include>
-                </uib-tab>
-              </uib-tabset>
-            </div>
-          </div>
-        </div>
-      </div><!-- /middle-content -->
+      <div class="middle-content">
+        <mp-mobile-service></mp-mobile-service>
+      </div>
     </div>
   </div>
 </project-page>
