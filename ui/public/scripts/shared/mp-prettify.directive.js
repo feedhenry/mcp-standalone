@@ -7,7 +7,8 @@
  * # mp-prettify
  */
 angular.module('mobileControlPanelApp').directive('mpPrettify', [
-  function() {
+  '$timeout',
+  function($timeout) {
     return {
       template: `<pre><ng-transclude></ng-transclude></pre>`,
       scope: {
@@ -16,14 +17,13 @@ angular.module('mobileControlPanelApp').directive('mpPrettify', [
       },
       transclude: true,
       link: function(scope, element, attrs) {
-        const innerHTML = element
-          .find('span')
-          .html()
-          .trim();
-        const prettified = prettyPrintOne(innerHTML, scope.type);
-        const pre = element.find('pre');
-        pre.html(prettified);
-        pre.addClass(scope.codeClass);
+        $timeout(function() {
+          const innerHTML = element.find('span').html();
+          const prettified = prettyPrintOne(innerHTML, scope.type);
+          const pre = element.find('pre');
+          pre.html(prettified);
+          pre.addClass(scope.codeClass);
+        });
       }
     };
   }
