@@ -1,12 +1,5 @@
 ---
 
-- name: Check oc version
-  shell: oc version | sed -n "1p"
-  register: oc_prereq_check
-
-- fail: msg="oc client tools are < 3.7, install oc >= 3.7"
-  when: oc_prereq_check.stdout.find("v3.7") == -1
-
 - name: Create alias for lo0 (macos)
   shell: ifconfig lo0 alias {{ cluster_public_hostname }}
   become: yes
