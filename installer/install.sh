@@ -197,6 +197,9 @@ function run_installer() {
   read -p "DockerHub Orgnisation (Defaults to feedhenry): " dockerhub_org
   dockerhub_org=${dockerhub_org:-"feedhenry"}
 
+  read -p "Wildcard DNS Host (Defaults to nip.io): " wildcard_dns_host
+  wildcard_dns_host=${wildcard_dns_host:-"nip.io"}
+
   echo "Performing and clean and running the installer. You will be asked for your password."
 
   cd ${SCRIPT_ABSOLUTE_PATH}
@@ -209,9 +212,9 @@ function run_installer() {
 
   if [[ ${oc_version_comparison} -ne ${VER_LT} ]]; then
     echo "Skipping OpenShift client tools installation..."
-    ansible-playbook installer/playbook.yml -e "dockerhub_username=${dockerhub_username}" -e "dockerhub_password=${dockerhub_password}" -e "dockerhub_tag=${dockerhub_tag}" -e "dockerhub_org=${dockerhub_org}" --skip-tags "install-oc" --ask-become-pass
+    ansible-playbook installer/playbook.yml -e "dockerhub_username=${dockerhub_username}" -e "dockerhub_password=${dockerhub_password}" -e "dockerhub_tag=${dockerhub_tag}" -e "dockerhub_org=${dockerhub_org}" -e "wildcard_dns_host=${wildcard_dns_host}" --skip-tags "install-oc" --ask-become-pass
   else
-    ansible-playbook installer/playbook.yml -e "dockerhub_username=${dockerhub_username}" -e "dockerhub_password=${dockerhub_password}" -e "dockerhub_tag=${dockerhub_tag}" -e "dockerhub_org=${dockerhub_org}" -e "oc_install_parent_dir=${oc_install_dir}" --ask-become-pass
+    ansible-playbook installer/playbook.yml -e "dockerhub_username=${dockerhub_username}" -e "dockerhub_password=${dockerhub_password}" -e "dockerhub_tag=${dockerhub_tag}" -e "dockerhub_org=${dockerhub_org}" -e "wildcard_dns_host=${wildcard_dns_host}" -e "oc_install_parent_dir=${oc_install_dir}" --ask-become-pass
   fi
 }
 
