@@ -90,8 +90,9 @@ angular.module('mobileControlPanelApp').component('mpMobileClientTabs', {
         if (action === ClientBuildEditorService.states.EDIT) {
           ClientBuildEditorService.state = ClientBuildEditorService.states.EDIT;
           $location.url(
-            `project/${this.project.metadata.name}/browse/mobileapps/${this.app
-              .id}?tab=buildConfig`
+            `project/${this.project.metadata.name}/browse/mobileapps/${
+              this.app.id
+            }?tab=buildConfig`
           );
         }
       };

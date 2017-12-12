@@ -38,7 +38,9 @@ angular.module('mobileControlPanelApp').component('mpClientSetup', {
 
       this.openServiceIntegration = function(id) {
         $location.url(
-          `project/${$routeParams.project}/browse/mobileservices/${id}?tab=integrations`
+          `project/${
+            $routeParams.project
+          }/browse/mobileservices/${id}?tab=integrations`
         );
       };
     }
