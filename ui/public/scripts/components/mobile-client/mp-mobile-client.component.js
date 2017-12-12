@@ -66,7 +66,9 @@ angular.module('mobileControlPanelApp').component('mpMobileClient', {
       this.startBuild = function(buildConfig) {
         MobileClientService.startBuild(buildConfig).then(() => {
           $location.url(
-            `project/${$routeParams.project}/browse/mobileapps/${$routeParams.mobileapp}?tab=buildHistory`
+            `project/${$routeParams.project}/browse/mobileapps/${
+              $routeParams.mobileapp
+            }?tab=buildHistory`
           );
         });
       };
