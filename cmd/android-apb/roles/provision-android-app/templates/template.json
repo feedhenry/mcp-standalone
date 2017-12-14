@@ -142,7 +142,7 @@
                 },
                 "annotations": {
                     "service.alpha.openshift.io/serving-cert-secret-name": "api-serving-cert",
-                    "org.feedhenry.mcp/prometheus": "ssl"
+                    "org.aerogear.metrics/ssl_endpoint": "/metrics"
                 }
             },
             "spec": {
