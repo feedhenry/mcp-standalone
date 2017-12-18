@@ -23,6 +23,13 @@ gofmt:
 ui:
 	cd ui && npm install && npm run bower install && npm run grunt build
 
+.PHONY: release
+release: image
+	git tag -a $(TAG) -m $(TAG)
+	git push origin $(TAG)
+	goreleaser --rm-dist
+	docker push docker.io/feedhenry/mcp-standalone:$(TAG)
+
 build_cli:
 	go build -o mcp ./cmd/mcp-cli
 
@@ -67,6 +74,7 @@ test-unit:
 	@echo Running tests:
 	go test -v -race -cover $(UNIT_TEST_FLAGS) \
 	  $(addprefix $(PKG)/,$(TEST_DIRS))
+
 
 apbs:
 ## Evaluate the presence of the TAG, to avoid evaluation of the nested shell script, during the read phase of make

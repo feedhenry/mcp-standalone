@@ -1,0 +1,19 @@
+# .goreleaser.yml
+# Build customization
+builds:
+  - main: ./cmd/mcp-cli/main.go
+    binary: mcp
+    goos:
+      - windows
+      - darwin
+      - linux
+    goarch:
+      - amd64
+
+archive:
+  files:
+  - LICENSE
+  - README.adoc
+
+release:
+  draft: true
