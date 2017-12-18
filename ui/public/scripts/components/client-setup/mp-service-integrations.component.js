@@ -15,10 +15,10 @@ angular.module('mobileControlPanelApp').component('mpServiceIntegrations', {
                   <div class="card-pf card-pf-view card-pf-view-select card-pf-view-multi-select" ng-click="$ctrl.serviceSelected(service.id)">
                     <div class="card-pf-body">
                       <div class="card-pf-top-element">
-                        <span class="fa icon card-pf-icon-circle"></span>
+                        <mp-object-icon object=service service-classes=$ctrl.serviceClasses></mp-object-icon>
                       </div>
                       <h2 class="card-pf-title text-center">
-                        {{service.name}}
+                        {{ service | objectName:$ctrl.serviceClasses }}
                       </h3>
                     </div>
                   </div>
@@ -27,6 +27,7 @@ angular.module('mobileControlPanelApp').component('mpServiceIntegrations', {
             </div>`,
   bindings: {
     integrations: '<',
-    serviceSelected: '<'
+    serviceClasses: '<',
+    serviceSelected: '&'
   }
 });
