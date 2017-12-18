@@ -1,3 +1,5 @@
+**REPOSITORY ARCHIVED: See fork https://github.com/aerogear/mobile-core for continuation of this work**
+
 [[mobile-control-panel-mcp]]
 Mobile Control Panel (MCP)
 --------------------------
